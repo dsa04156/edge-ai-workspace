@@ -32,3 +32,13 @@ test('approval-mode AI load is distinct from automatic round-trip',()=>{
  assert.match(D.panel({...data,runs:[run]},null,[],100),/부하 시험 완료/);
  assert.doesNotMatch(D.panel({...data,runs:[run]},null,[],100),/검증 통과/);
 });
+
+test('running load has immediate local controls and honest indeterminate progress',()=>{
+ const run={uid:'u',id:'r',name:'AI',mode:'load',phase:'Running',stage:'pressure',createdAt:90,sent:20,succeeded:18,failed:1,unknown:0};
+ const buttons=D.actions({...data,runs:[run]},'u',true,false,true);assert.match(buttons,/실행 중…/);assert.match(buttons,/aria-busy="true"/);
+ const html=D.runStatus({current:true,run},100);assert.match(html,/집중 부하 실행 중/);assert.match(html,/10초/);assert.match(html,/새 시험 요청 중단/);assert.match(html,/role="progressbar"/);assert.doesNotMatch(html,/aria-valuenow/);
+ const stale=D.runStatus({current:false,run},200);assert.match(stale,/실행 상태 확인 불가/);assert.doesNotMatch(stale,/runtime-spinner|data-demo-stop|data-runtime-elapsed/);
+ const stopping=D.runStatus({current:true,run:{...run,phase:'Stopping'}},100);assert.match(stopping,/요청 마무리/);assert.match(stopping,/disabled/);
+ const sending=D.runStatus({current:true,sending:{mode:'load'}},100);assert.match(sending,/시작 요청 접수 중/);
+ const failed=D.runStatus({current:true,run:{...run,phase:'Incomplete',finishedAt:98}},100);assert.match(failed,/검증 미완료/);assert.doesNotMatch(failed,/runtime-spinner|부하 시험 완료/);
+});

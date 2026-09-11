@@ -78,3 +78,12 @@ def test_read_route_handles_invalid_and_unreachable_sources_without_mutations():
                     assert "private" not in response.text
                 assert (await client.post("/state/runtime-services")).status_code == 405
     asyncio.run(run())
+
+
+def test_map_candidates_are_typed_public_metadata_and_removed_when_stale():
+    data = payload()
+    data["services"][0]["eligibleCandidates"] = [{"node": "candidate", "variant": "gpu", "role": "server", "private": "hidden"}]
+    item = project(data, 100).services[0]
+    assert item.eligibleCandidates[0].node == "candidate"
+    assert "hidden" not in item.model_dump_json()
+    assert project(data, 200).services[0].eligibleCandidates == []

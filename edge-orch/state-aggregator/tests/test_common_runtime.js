@@ -39,3 +39,15 @@ test('only AI services expose fresh exact-candidate approval and real metric uni
  assert.match(R.augmentationView({...s,target:{}},100,true),/disabled/);
  assert.equal(R.augmentationView({...s,aiInference:false},100,true),'');
 });
+
+test('node map distinguishes idle, observed traffic, recommendation, preparation and stale state',()=>{
+ const s={uid:'map',name:'AI',serving:true,checkedAt:99,active:target,retiring:[],eligibleCandidates:[{node:'candidate',role:'server',variant:'gpu'}],load:{at:99,pending:0,inFlight:0}};
+ let m=R.serviceMotion(s,100,true);assert.equal(m.title,'요청 대기 중');
+ assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'candidate');
+ assert.doesNotMatch(R.runtimeMap(s,m,100),/flowing/);
+ s.load.inFlight=1;m=R.serviceMotion(s,100,true);assert.equal(m.title,'AI 추론 실행 중');assert.match(R.runtimeMap(s,m,100),/flowing/);
+ s.proposal={node:'candidate',role:'server',expiresAt:160};m=R.serviceMotion(s,100,true);assert.equal(m.title,'추천 도착 · 승인 대기');
+ assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'recommended');
+ s.target={node:'candidate',role:'server'};m=R.serviceMotion(s,100,true);assert.equal(m.title,'모델 준비 중');assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'preparing');
+ m=R.serviceMotion(s,200,true);assert.equal(m.ok,false);assert.doesNotMatch(R.runtimeMap(s,m,200),/flowing|runtime-spinner|1234/);
+});

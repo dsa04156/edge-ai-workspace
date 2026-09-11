@@ -1,0 +1,13 @@
+{
+  "state-aggregator": {
+    "base": "sha256:22784b9eea2a4c83415e18f85d39183af16e2f574718da35585e7ebcb9558026",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:ec99ba2c08b85ea655f54d140a532237ef2fca06aab252d7ee884ab1fa2c5e06",
+    "tag": "runtime-map-20260911T053012",
+    "files": {
+      "edge-orch/state-aggregator/app/common_runtime.py": "sha256:b86769f6023ecbefd6d8c351e3acf043d4572f55753222b420ab5514abd8bdb8",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:f25c8b4baf9ced5d8d8fe556576956eb6dff6e27cbfb67edaa63c30701028bdc",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime-demo.js": "sha256:691d80a7bc7a84e222343892028ad051a07ce9022c5a5dfd7af6c01ffab3fbaf",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.css": "sha256:6500d89d9e01cc55e42aa2edcebd33eda268dfe90ac108361b08978fea2911a2"
+    }
+  }
+}

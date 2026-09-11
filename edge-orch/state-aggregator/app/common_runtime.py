@@ -53,6 +53,12 @@ class Exclusion(BaseModel):
     reasons: list[str]
 
 
+class RuntimeCandidate(BaseModel):
+    node: str
+    variant: str
+    role: str
+
+
 class LatencyObservation(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False)
     at: float
@@ -114,6 +120,7 @@ class RuntimeItem(BaseModel):
     lastTransition: Transition | None = None
     lastRelease: Release | None = None
     excludedCandidates: list[Exclusion] = Field(default_factory=list)
+    eligibleCandidates: list[RuntimeCandidate] = Field(default_factory=list)
     observation_error: str | None = None
     latency: LatencyObservation | None = None
     load: RuntimeLoad | None = None
@@ -149,6 +156,7 @@ def project(payload: dict, now: float) -> RuntimeState:
             item.serving = False
             item.load = None
             item.proposal = None
+            item.eligibleCandidates = []
         if item.load and (item.load.at is None or not 0 <= now - item.load.at < 15):
             item.load = None
         if (item.latency and (item.observation_error or not item.active
