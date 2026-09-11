@@ -1,0 +1,51 @@
+{
+  "observedAt": 1789113887.508315,
+  "testsPassed": 20,
+  "readyImage": "192.168.0.56:5000/state-aggregator@sha256:38676168a594cdd81a54d469f1e83ddcac0fc51dbf70cc0e68b0f6e999a45b3a",
+  "sourceAndHttpHashesVerified": true,
+  "argo": {
+    "sync": "Synced",
+    "health": "Healthy",
+    "revision": "59a233596a6f40a902c53cb1b56135c0100dd376"
+  },
+  "browser": {
+    "clockOffsetsMilliseconds": [
+      -500,
+      -60000,
+      60000,
+      0
+    ],
+    "allClockCases": "요청 대기 중",
+    "sourceError": {
+      "lastKnownRetained": true,
+      "errorVisible": true,
+      "recovered": true
+    },
+    "networkFailure": {
+      "lastKnownRetained": true,
+      "errorVisible": true,
+      "recovered": true
+    },
+    "timeout": {
+      "lastKnownRetained": true,
+      "title": "최신 관측 확인 불가",
+      "reason": "조회 시간 초과",
+      "recovered": true
+    },
+    "mobile": {
+      "width": 390,
+      "overflow": false,
+      "nestedButtons": 0
+    },
+    "assetVersionUrlsVerified": true,
+    "expectedNetworkErrorsInjected": true
+  },
+  "service": {
+    "phase": "Serving",
+    "node": "etri-dev0005-jetagx",
+    "observationError": null
+  },
+  "runtimeOperatorImageUnchanged": true,
+  "noServiceLoadOrApprovalActionsPerformed": true,
+  "limitation": "User PC clock was not measured; this verifies a reproduced clock-comparison defect and observation failure/recovery behavior, not a unique proven cause for every reported flicker."
+}
