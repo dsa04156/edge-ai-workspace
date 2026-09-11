@@ -1,0 +1,43 @@
+{
+  "id": "5b32ebd33979430da81c875d42734c4b",
+  "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+  "name": "llama-inference",
+  "label": "Nano \u2192 Orin \u2192 Spark \u00b7 \ub2e8\uacc4\ubcc4 \uc2b9\uc778 Llama \ubd80\ud558 \uc2dc\ud5d8",
+  "mode": "single",
+  "phase": "Completed",
+  "stage": "single",
+  "createdAt": 1789111264.0399864,
+  "finishedAt": 1789111264.4733639,
+  "sent": 1,
+  "succeeded": 1,
+  "failed": 0,
+  "unknown": 0,
+  "lastResult": "{\"request_id\": \"demo-2422a4d60b78ca565e715148-0\", \"node_id\": \"etri-dev0001-jetorn\", \"role\": \"nano\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b-instruct-q8_0\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.022, \"ttft_ms\": 104.946, \"tokens_per_second\": 28.053, \"inference_ms\": 391.972, \"actual_e2e_ms\": 391.994, \"eval_count\": 8}",
+  "routeHistory": [
+    {
+      "at": 1789111264.043703,
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "reason": "initial_or_unhealthy_or_policy_changed"
+    }
+  ],
+  "recentRequests": [
+    {
+      "id": "demo-2422a4d60b78ca565e715148-0",
+      "state": "completed",
+      "status": 200,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "elapsedMilliseconds": 420.64154599938774
+    }
+  ],
+  "startNode": "etri-dev0001-jetorn",
+  "startRole": "edge",
+  "currentNode": "etri-dev0001-jetorn",
+  "returned": false,
+  "retiring": 0,
+  "reason": "requests_and_route_verified",
+  "stopRequested": false,
+  "targetNode": null,
+  "targetLabel": null,
+  "cancelled": 0
+}

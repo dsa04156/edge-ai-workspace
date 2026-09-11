@@ -1,0 +1,71 @@
+{
+  "id": "04af1644f7d041a692e0b84bbc4ba6e4",
+  "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+  "name": "llama-inference",
+  "label": "Nano \u2192 Orin \u2192 Spark \u00b7 \ub2e8\uacc4\ubcc4 \uc2b9\uc778 Llama \ubd80\ud558 \uc2dc\ud5d8",
+  "mode": "node-load",
+  "phase": "Stopped",
+  "stage": "recovery",
+  "createdAt": 1789111087.8614068,
+  "finishedAt": 1789111113.881268,
+  "sent": 70,
+  "succeeded": 65,
+  "failed": 0,
+  "unknown": 0,
+  "lastResult": "{\"request_id\": \"demo-ce4d6c3aaea4169368f950cc-69\", \"node_id\": \"etri-dev0001-jetorn\", \"role\": \"nano\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b-instruct-q8_0\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.021, \"ttft_ms\": 67.061, \"tokens_per_second\": 38.759, \"inference_ms\": 271.159, \"actual_e2e_ms\": 271.181, \"eval_count\": 8}",
+  "routeHistory": [
+    {
+      "at": 1789111087.868373,
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "reason": "sustained_low_load_return"
+    }
+  ],
+  "recentRequests": [
+    {
+      "id": "demo-ce4d6c3aaea4169368f950cc-65",
+      "state": "completed",
+      "status": 200,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "elapsedMilliseconds": 227.207289000944
+    },
+    {
+      "id": "demo-ce4d6c3aaea4169368f950cc-66",
+      "state": "completed",
+      "status": 200,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "elapsedMilliseconds": 221.10021799744572
+    },
+    {
+      "id": "demo-ce4d6c3aaea4169368f950cc-67",
+      "state": "completed",
+      "status": 200,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "elapsedMilliseconds": 219.0255329987849
+    },
+    {
+      "id": "demo-ce4d6c3aaea4169368f950cc-68",
+      "state": "completed",
+      "status": 200,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "elapsedMilliseconds": 680.1464770032908
+    },
+    {
+      "id": "demo-ce4d6c3aaea4169368f950cc-69",
+      "state": "completed",
+      "status": 200,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "elapsedMilliseconds": 1177.3220239992952
+    }
+  ],
+  "startNode": "etri-dev0001-jetorn",
+  "startRole": "edge",
+  "currentNode": "etri-dev0001-jetorn",
+  "returned": false,
+  "retiring": 0,
+  "reason": "operator_stopped_demo",
+  "stopRequested": true,
+  "targetNode": "etri-dev0001-jetorn",
+  "targetLabel": "Nano",
+  "cancelled": 5
+}

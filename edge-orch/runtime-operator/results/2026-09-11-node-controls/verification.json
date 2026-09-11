@@ -1,0 +1,60 @@
+{
+  "checked_at": "2026-09-11T07:21:05.958410+00:00",
+  "tests": {
+    "operator_pytest": 75,
+    "aggregator_pytest": 10,
+    "ui_node_tests": 17
+  },
+  "pods": [
+    {
+      "name": "state-aggregator-66cb5656b4-zrq2w",
+      "image": "192.168.0.56:5000/state-aggregator@sha256:88d7296f6af9a7d8d7f3a764fb80b85fd956b51e8f25e55d5c19eed41e7ce3dd",
+      "source_hashes_match": true
+    },
+    {
+      "name": "runtime-operator-78b565b694-4xspf",
+      "image": "192.168.0.56:5000/runtime-operator@sha256:742171f9e0b5e9289c390d22991dd504078db0b1cbdba963c461dbb0970f5368",
+      "source_hashes_match": true
+    }
+  ],
+  "argocd": {
+    "sync": "Synced",
+    "health": "Healthy",
+    "revision": "ec34e73e69292f751b3aed00a0f463c20e4edd1d"
+  },
+  "browser": {
+    "desktop": [
+      1440,
+      1000
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "horizontal_overflow": false,
+    "nested_buttons": 0,
+    "console_errors": 0,
+    "console_warnings": 0,
+    "clicked": [
+      "Nano에 부하 주기",
+      "Nano 부하 제거",
+      "서비스 중지",
+      "서비스 실행"
+    ]
+  },
+  "sensor_pods": [
+    {
+      "name": "device-sensehat-raspi-995f8896b-qdjkv",
+      "uid": "9441c4d6-6aa0-4e89-b857-e1dcf3add9ce",
+      "ready": true
+    },
+    {
+      "name": "device-serial-jetson-76b6c976fd-pg9gl",
+      "uid": "9e196eb1-c9f1-43e7-83f5-47b4590878bf",
+      "ready": true
+    }
+  ],
+  "limits": [
+    "Actual augmentation approval was not clicked; Orin routing and load fencing verified in unit tests."
+  ]
+}

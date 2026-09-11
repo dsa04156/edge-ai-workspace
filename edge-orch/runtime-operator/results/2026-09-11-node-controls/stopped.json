@@ -1,0 +1,302 @@
+{
+  "augmentationStages": [
+    {
+      "step": 1,
+      "label": "Nano",
+      "variant": "resident-llama-nano",
+      "node": "etri-dev0001-jetorn",
+      "eligible": false,
+      "qualifiedRps": 2.0,
+      "qualifiedP95Milliseconds": 701.935
+    },
+    {
+      "step": 2,
+      "label": "Orin",
+      "variant": "resident-llama-agx",
+      "node": "etri-dev0005-jetagx",
+      "eligible": false,
+      "qualifiedRps": 4.8,
+      "qualifiedP95Milliseconds": 531.578
+    },
+    {
+      "step": 3,
+      "label": "Spark",
+      "variant": "resident-llama-spark",
+      "node": "etri-ser0003-cg0ms0",
+      "eligible": false,
+      "qualifiedRps": 6.0,
+      "qualifiedP95Milliseconds": 456.092
+    }
+  ],
+  "name": "llama-inference",
+  "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+  "phase": "Suspended",
+  "reason": "healthy_current_placement",
+  "serving": false,
+  "checkedAt": 1789111177.4159353,
+  "active": null,
+  "target": null,
+  "retiring": [],
+  "lastTransition": {
+    "fromNode": "etri-dev0005-jetagx",
+    "toNode": "etri-dev0001-jetorn",
+    "at": 1789110160.1715145,
+    "reason": "sustained_low_load_return"
+  },
+  "lastRelease": {
+    "node": "etri-dev0001-jetorn",
+    "at": 1789111143.448458,
+    "modelVramMiB": 0.0,
+    "reservationRetained": true
+  },
+  "excludedCandidates": [
+    {
+      "node": "etri-dev0001-jetorn",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0001-jetorn",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0002-raspi5",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ]
+    },
+    {
+      "node": "etri-dev0002-raspi5",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ]
+    },
+    {
+      "node": "etri-dev0002-raspi5",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "node_not_ready",
+        "node_pressure_or_unknown",
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch",
+        "untolerated_taint"
+      ]
+    },
+    {
+      "node": "etri-dev0003-raspi5",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0003-raspi5",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0003-raspi5",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0004-tedger",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0004-tedger",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0004-tedger",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0005-jetagx",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0005-jetagx",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0006-raspi5",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0006-raspi5",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-dev0006-raspi5",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0001-cg0msb",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0001-cg0msb",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0001-cg0msb",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0002-cgnmsb",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0002-cgnmsb",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0002-cgnmsb",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0003-cg0ms0",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0003-cg0ms0",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0004-cgnms0",
+      "variant": "resident-llama-nano",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0004-cgnms0",
+      "variant": "resident-llama-agx",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    },
+    {
+      "node": "etri-ser0004-cgnms0",
+      "variant": "resident-llama-spark",
+      "reasons": [
+        "resident_on_different_node",
+        "selector_or_architecture_mismatch"
+      ]
+    }
+  ],
+  "eligibleCandidates": [],
+  "observation_error": null,
+  "latency": null,
+  "load": null,
+  "approvalRequired": true,
+  "aiInference": true,
+  "proposal": null,
+  "lastApproval": {
+    "id": "94ec0c750c1142b79e275fec02119dc1",
+    "createdAt": 1789110069.6672313,
+    "expiresAt": 1789110129.6672313,
+    "sourceNode": "etri-dev0001-jetorn",
+    "node": "etri-dev0005-jetagx",
+    "role": "edge",
+    "variant": "resident-llama-agx",
+    "reason": "sustained_pressure",
+    "qualifiedRps": 4.8,
+    "qualifiedP95Milliseconds": 531.578,
+    "status": "Applied",
+    "approvedAt": 1789110077.7621927,
+    "startedAt": 1789110079.8583815,
+    "finishedAt": 1789110105.4763904
+  }
+}

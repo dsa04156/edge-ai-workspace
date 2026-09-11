@@ -184,3 +184,19 @@ Nano는 `llama-continuity-test/llama-nano`에 별도 GPU 예약 resident contain
 approvalRequired AI 계약으로 한정한다. 대시보드는 기존 same-origin·JSON·X-Runtime-Demo
 제약의 proxy이며 Kubernetes 권한을 새로 추가하지 않는다. 센서 수집과 서비스 설계 dry-run은
 이번 제어와 별개다. 검증은 `tests/test_node_controls.py`, proxy/UI 회귀와 운영 재현 근거를 따른다.
+
+### 위 버튼의 운영 검증 (2026-09-11 16:21 KST)
+
+- 서비스 실행/중지와 각 노드 부하/제거 버튼을 운영 대시보드에 배포했다.
+- 실제 Nano 부하 버튼→제거: 전송70, 성공65, dispatch 전 취소5, 실패0, 미확인0.
+  `Stopped`, 서비스 실행 유지. 제거 후 새 요청이 계속 발생하지 않음을 원장으로 확인했다.
+- 실제 서비스 중지: `Suspended`, serving=false, retiring=[], 모델 메모리0MiB.
+  15초 이상 중지 후에도 최신 중지 관측과 시작 버튼을 유지한다.
+- 재실행: Nano ACTIVE, 모델1348.45MiB, 단일 추론1/1성공(원장 경과 약421ms).
+- operator75, aggregator API10, UI17 =102개 테스트 통과. UID 충돌/타깃 변경,
+  대기 취소, 모델 drain/재시작, 동일 ID 및 노드 경계와 기존 증강 승인을 회귀 검증했다.
+- 1440px·390px 화면과 실제 클릭, 가로 넘침 없음·중첩 버튼0·콘솔 오류0 확인.
+  두 운영 이미지/소스 해시 일치, 대시보드 Argo Synced/Healthy, EdgeX 센서2Pod Ready 유지.
+- Orin으로 실제 증강 승인 클릭은 이번 검증에서 수행하지 않았다. 경로 변경 후 기존 노드
+  부하가 새 노드에 전달되지 않는 조건은 단위시험에서 검증했다.
+- 근거: `edge-orch/runtime-operator/results/2026-09-11-node-controls/`.
