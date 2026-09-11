@@ -192,6 +192,9 @@ spec:
                     - automatic
                     - preferred
                     type: string
+                  approvalRequired:
+                    default: false
+                    type: boolean
                   preferredRole:
                     default: edge
                     enum:

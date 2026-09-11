@@ -2,6 +2,7 @@
 import asyncio
 import copy
 import time
+import uuid
 
 import httpx
 
@@ -27,6 +28,7 @@ class Controller:
         self.snapshot = None
         self.lifecycle_tasks = {}
         self.latencies = LatencyWindow()
+        self.reconcile_lock = asyncio.Lock()
         # Never serve a persisted route until the current cluster and service are revalidated.
         for state in self.states.values():
             state["serving"] = False
@@ -34,6 +36,11 @@ class Controller:
             state["latencyHighSince"] = None
             state["latencyLowSince"] = None
             state.pop("latency", None)
+            state["proposal"] = None
+            approval = state.get("lastApproval")
+            if approval and approval["status"] == "Approved":
+                approval.update(status="Interrupted", reason="controller_restarted_before_execution")
+                self.journal.save(state["uid"], state, "approval_interrupted")
 
     def save(self, uid, state, event=None):
         self.journal.save(uid, state, event)
@@ -176,6 +183,8 @@ class Controller:
                  "switchedAt": 0, "highSince": None, "lowSince": None,
                  **copy.deepcopy(self.states.get(uid, {}))}
         state["observedGeneration"] = resource["metadata"].get("generation", 1)
+        state["approvalRequired"] = spec.policy.approvalRequired
+        state["aiInference"] = spec.inference is not None
         policy_key = spec.policy.model_dump_json()
         if state.get("policyKey") != policy_key:
             state.update(policyKey=policy_key, highSince=None, lowSince=None,
@@ -188,6 +197,7 @@ class Controller:
         state["serving"] = False
         state["phase"] = "Reconciling"
         if spec.suspended or resource["metadata"].get("deletionTimestamp"):
+            state["proposal"] = None
             had_admission = bool(state.get("active") or state.get("target"))
             for key in ("active", "target"):
                 if state.get(key):
@@ -243,7 +253,12 @@ class Controller:
         current = next((c for c in eligible if active and self.target(resource, spec, c)["name"] == active["name"]), None)
         load = (self.inflight.get(active["name"], 0) if active else 0) + self.pending.get(uid, 0)
         utilization = load / active["capacity"] if active else 0
-        state["load"] = {"inFlightAndPending": load, "utilization": utilization}
+        state["load"] = {"inFlightAndPending": load, "utilization": utilization,
+                         "pending": self.pending.get(uid, 0),
+                         "inFlight": self.inflight.get(active["name"], 0) if active else 0,
+                         "capacity": active["capacity"] if active else None,
+                         "qualifiedRps": active.get("qualifiedRps") if active else None,
+                         "at": self.clock()}
         now = self.clock()
         latency_policy = spec.policy.latency
         observed_latency = self.latencies.observe(uid, active["name"], now, latency_policy,
@@ -308,9 +323,43 @@ class Controller:
         if choice and any(t["name"] == self.target(resource, spec, choice)["name"] for t in state["retiring"]):
             choice = None
             reason = "candidate_still_draining"
+        # A recommendation never prepares a model. Only the persisted approval
+        # for this exact service generation, source and candidate can do that.
+        gated = (spec.policy.approvalRequired and choice and active and not state.get("target")
+                 and reason in {"sustained_pressure", "sustained_latency_breach"})
+        if gated:
+            proposed = self.target(resource, spec, choice)
+            fingerprint = (state["observedGeneration"], active["name"], proposed["name"], reason)
+            proposal = state.get("proposal")
+            if (not proposal or tuple(proposal["fingerprint"]) != fingerprint
+                    or now > proposal["expiresAt"]):
+                proposal = {"id": uuid.uuid4().hex, "fingerprint": list(fingerprint),
+                            "createdAt": now, "expiresAt": now + 60,
+                            "sourceNode": active["node"], "node": choice.node,
+                            "role": choice.role, "variant": choice.variant.name, "reason": reason,
+                            "qualifiedRps": choice.variant.qualifiedRps,
+                            "qualifiedP95Milliseconds": choice.variant.qualifiedP95Milliseconds}
+                state["proposal"] = proposal
+                self.save(uid, state, "augmentation_recommended")
+            approval = state.get("lastApproval")
+            if approval and approval["status"] == "Approved" and approval["id"] != proposal["id"]:
+                approval.update(status="Expired", reason="recommendation_conditions_changed")
+            if not (approval and approval["id"] == proposal["id"] and approval["status"] == "Approved"):
+                choice = None
+                reason = "augmentation_approval_required"
+            else:
+                approval.update(status="Preparing", startedAt=now)
+        else:
+            state["proposal"] = None
+            approval = state.get("lastApproval")
+            if approval and approval["status"] == "Approved":
+                approval.update(status="Expired", reason="recommendation_conditions_changed")
         if choice and not state.get("target") and now >= state.get("retryAfter", 0):
             state["target"] = self.target(resource, spec, choice)
             state["target"]["triggerReason"] = reason
+            if gated and state.get("lastApproval", {}).get("status") == "Preparing":
+                state["target"]["approvalId"] = state["lastApproval"]["id"]
+                state["proposal"] = None
             self.save(uid, state, "prepare")
         target = state.get("target")
         if target:
@@ -321,6 +370,8 @@ class Controller:
                 state["target"] = None
                 state["retryAfter"] = now + spec.policy.cooldownSeconds
                 reason = "candidate_invalid_or_prepare_timeout"
+                if target.get("approvalId") and target["approvalId"] == state.get("lastApproval", {}).get("id"):
+                    state["lastApproval"].update(status="Failed", reason=reason)
             else:
                 if not target.get("resident"):
                     await asyncio.to_thread(self.kube.ensure, resource, spec, candidate, target["name"])
@@ -340,6 +391,8 @@ class Controller:
                                  latency=None, latencyHighSince=None, latencyLowSince=None)
                     self.save(uid, state, "route_switched")
                     reason = "target_ready_route_switched"
+                    if target.get("approvalId") and target["approvalId"] == state.get("lastApproval", {}).get("id"):
+                        state["lastApproval"].update(status="Applied", finishedAt=self.clock())
                 else:
                     reason = "waiting_for_pod_and_application_ready"
         # Refresh in-memory routing before yielding to network drain probes.
@@ -350,6 +403,31 @@ class Controller:
         self.save(uid, state)
 
     async def tick(self):
+        async with self.reconcile_lock:
+            await self._tick()
+
+    async def approve(self, name, uid, proposal_id):
+        from fastapi import HTTPException
+        async with self.reconcile_lock:
+            prior = self.states.get(uid, {})
+            if prior.get("name") != name:
+                raise HTTPException(409, "service_identity_changed")
+            if prior.get("lastApproval", {}).get("id") == proposal_id:
+                return copy.deepcopy(prior["lastApproval"])
+            await self._tick()
+            state = copy.deepcopy(self.states.get(uid, {}))
+            proposal = state.get("proposal")
+            if (self.last_error or self.stopping or not state.get("serving")
+                    or not state.get("approvalRequired") or not state.get("aiInference")
+                    or not proposal or proposal["id"] != proposal_id
+                    or not 0 <= self.clock() - state.get("checkedAt", 0) < 15
+                    or self.clock() > proposal["expiresAt"]):
+                raise HTTPException(409, "augmentation_recommendation_stale")
+            state["lastApproval"] = {**proposal, "status": "Approved", "approvedAt": self.clock()}
+            self.save(uid, state, "augmentation_approved")
+            return copy.deepcopy(state["lastApproval"])
+
+    async def _tick(self):
         self.latencies.prune(self.clock())
         try:
             snapshot = await asyncio.to_thread(self.kube.snapshot)
@@ -388,7 +466,7 @@ class Controller:
                 self.save(uid, state)
             state = self.states.get(uid)
             if state:
-                status = {k: state[k] for k in ("phase", "reason", "observedGeneration", "eligibleCandidates", "excludedCandidates", "load", "latency") if k in state}
+                status = {k: state[k] for k in ("phase", "reason", "observedGeneration", "eligibleCandidates", "excludedCandidates", "load", "latency", "proposal", "lastApproval") if k in state}
                 status.update(active={k: state["active"][k] for k in ("name", "node", "variant")} if state.get("active") else {},
                               retiring=[t["name"] for t in state.get("retiring", [])])
                 try:

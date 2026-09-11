@@ -1,0 +1,27 @@
+{
+  "state-aggregator": {
+    "base": "sha256:d6163a3203dcf25d710bfddc87bf5f8c5e10fd3b3187b4a5e6a4ec6dae1ee182",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:22784b9eea2a4c83415e18f85d39183af16e2f574718da35585e7ebcb9558026",
+    "tag": "augmentation-20260911T031844",
+    "files": {
+      "edge-orch/state-aggregator/app/common_runtime.py": "sha256:ada9358eaefd13da3b02fef89b9c458db71d0984301b17f79dc109f89ae6d206",
+      "edge-orch/state-aggregator/app/common_runtime_demo.py": "sha256:4b922b0a4ce694a3331341b7c10261fad6c0627c48f4d1a9e9a061b2263036de",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:8e9d075112694037178c732d70fcd1c2e13d9e888005d7c3693b98280fa9d677",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime-demo.js": "sha256:e4cdd55706f03423fcf93544d4dd54013bd8efa7d4afa3844c809e6808543fb1",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.css": "sha256:c4638183b60486ea08ffd5b3b7b31459e71d817c13dcd3f4867fbb5c16ebeea1",
+      "edge-orch/state-aggregator/app/static/nexus/live-ui.js": "sha256:7bbb3d4703aa5a7dc74a91c466649951f47a5a9539348f31747674ddd91d7231"
+    }
+  },
+  "runtime-operator": {
+    "base": "sha256:4bb7abaad26b1cbc99783fc7b15c221c4b945a895f4c25f3df8d28cecee07edb",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:ba019d5a3a504f6ad7124929df7738657b217b46cbb4902ed13a993bdd099a82",
+    "tag": "augmentation-20260911T031844",
+    "files": {
+      "edge-orch/runtime-operator/runtime_operator/api.py": "sha256:5dff873210f0acc3033d23c5e9f3cc4cc86811a8ba9a4f52a2d3efc5f45015e9",
+      "edge-orch/runtime-operator/runtime_operator/contract.py": "sha256:76c1ec7fa74b40246b3503785fe86e810e822f17ea9f7a19d4d31561e98e1f45",
+      "edge-orch/runtime-operator/runtime_operator/controller.py": "sha256:78bb35d3f2f32944352988cd7f5e767b69f4a3ddb136f4613440f190a2b3fbe8",
+      "edge-orch/runtime-operator/runtime_operator/demo.py": "sha256:c102ea38fcd9f2c837747892491ca840713cdf485ff25696798e9a925532151d",
+      "edge-orch/runtime-operator/runtime_operator/latency.py": "sha256:11f2e2b3e7766b5ce714da27218de2923bf04a300000ad2c655bee3677a82fcb"
+    }
+  }
+}

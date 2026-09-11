@@ -27,3 +27,15 @@ test('latency sample shortage, request failure and stale observations are not SL
  assert.match(R.latencyView(s,100,true),/지연 판단 대기/);
  assert.doesNotMatch(R.latencyView(s,100,true),/요청 p95/);
 });
+
+test('only AI services expose fresh exact-candidate approval and real metric units',()=>{
+ const s={name:'AI test',uid:'ai-uid',aiInference:true,approvalRequired:true,serving:true,active:target,checkedAt:99,
+  load:{pending:5,inFlight:1,capacity:1,qualifiedRps:4.8},latency:{at:99,p95Milliseconds:1200,maxP95Milliseconds:900,arrivalRps:4.5,completedRps:4,failures:0,samples:30,valid:true,windowSeconds:20},
+  proposal:{id:'a'.repeat(32),sourceNode:'edge',node:'server',reason:'sustained_pressure',expiresAt:160,qualifiedRps:6,qualifiedP95Milliseconds:456}};
+ const html=R.augmentationView(s,100,true);
+ assert.match(html,/1,200/);assert.match(html,/4.8/);assert.match(html,/증강 승인/);assert.doesNotMatch(html,/disabled/);
+ assert.match(R.augmentationView(s,200,false),/disabled/);
+ assert.doesNotMatch(R.augmentationView(s,200,false),/1,200/);
+ assert.match(R.augmentationView({...s,target:{}},100,true),/disabled/);
+ assert.equal(R.augmentationView({...s,aiInference:false},100,true),'');
+});

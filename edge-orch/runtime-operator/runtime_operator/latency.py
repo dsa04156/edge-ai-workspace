@@ -6,6 +6,10 @@ import math
 class LatencyWindow:
     def __init__(self):
         self.samples = {}
+        self.arrivals = {}
+
+    def arrival(self, uid, target, at):
+        self.arrivals.setdefault((uid, target), deque(maxlen=4096)).append(at)
 
     def record(self, uid, target, at, milliseconds, success):
         if not math.isfinite(milliseconds) or milliseconds < 0:
@@ -13,6 +17,11 @@ class LatencyWindow:
         self.samples.setdefault((uid, target), deque(maxlen=2048)).append((at, milliseconds, success))
 
     def prune(self, now):
+        for key, rows in list(self.arrivals.items()):
+            while rows and (rows[0] < now - 600 or rows[0] > now):
+                rows.popleft()
+            if not rows:
+                del self.arrivals[key]
         for key, samples in list(self.samples.items()):
             while samples and (samples[0][0] < now - 600 or samples[0][0] > now):
                 samples.popleft()
@@ -26,6 +35,10 @@ class LatencyWindow:
         failures = len(rows) - len(successes)
         valid = len(successes) >= policy.minSamples and failures == 0
         return {"at": now, "target": target, "samples": len(rows), "successfulSamples": len(successes),
+                "completedRps": len(successes) / policy.windowSeconds,
+                "arrivalRps": sum(max(since, now - policy.windowSeconds) <= at <= now
+                                  for at in self.arrivals.get((uid, target), ())) / policy.windowSeconds,
+                "failureRatio": failures / len(rows) if rows else None,
                 "failures": failures, "p95Milliseconds": successes[math.ceil(.95 * len(successes)) - 1] if successes else None,
                 "valid": valid, "reason": "recent_request_failure" if failures else "measured" if valid else "insufficient_samples",
                 "windowSeconds": policy.windowSeconds, "maxP95Milliseconds": policy.maxP95Milliseconds,

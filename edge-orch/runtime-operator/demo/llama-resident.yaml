@@ -73,6 +73,7 @@ spec:
     qualifiedP95Milliseconds: 456.092
   policy:
     mode: automatic
+    approvalRequired: true
     preferredRole: edge
     allowedRoles:
     - edge
@@ -94,6 +95,6 @@ spec:
       max_tokens: 8
     maxRequests: 512
     concurrency: 6
-    pressureSeconds: 25
+    pressureSeconds: 40
     recoverySeconds: 120
     recoveryIntervalSeconds: 1

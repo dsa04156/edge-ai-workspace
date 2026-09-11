@@ -85,6 +85,7 @@ class LatencyPolicy(Contract):
 
 class Policy(Contract):
     mode: Literal["automatic", "preferred"] = "automatic"
+    approvalRequired: bool = False
     preferredRole: Literal["edge", "server"] = "edge"
     allowedRoles: list[Literal["edge", "server"]] = Field(default_factory=lambda: ["edge", "server"], min_length=1)
     nodeSelector: dict[str, str] = Field(default_factory=dict)
@@ -136,6 +137,8 @@ class ServiceSpec(Contract):
 
     @model_validator(mode="after")
     def unique_variants(self):
+        if self.policy.approvalRequired and (not self.inference or not self.demo):
+            raise ValueError("approval requires an opted-in AI inference demo")
         if len({v.name for v in self.variants}) != len(self.variants):
             raise ValueError("duplicate variant")
         if any(v.resident for v in self.variants):

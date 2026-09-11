@@ -68,6 +68,37 @@ class LatencyObservation(BaseModel):
     windowSeconds: float = Field(gt=0)
     scope: Literal["gateway_queue_and_worker_response"]
     processLocal: bool
+    completedRps: float | None = Field(default=None, ge=0)
+    arrivalRps: float | None = Field(default=None, ge=0)
+    failureRatio: float | None = Field(default=None, ge=0, le=1)
+
+
+class RuntimeLoad(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+    inFlightAndPending: int = Field(ge=0)
+    utilization: float = Field(ge=0)
+    pending: int | None = Field(default=None, ge=0)
+    inFlight: int | None = Field(default=None, ge=0)
+    capacity: int | None = None
+    qualifiedRps: float | None = None
+    at: float | None = None
+
+
+class AugmentationProposal(BaseModel):
+    id: str
+    createdAt: float
+    expiresAt: float
+    sourceNode: str
+    node: str
+    role: str
+    variant: str
+    reason: str
+    qualifiedRps: float | None = None
+    qualifiedP95Milliseconds: float | None = None
+    status: str | None = None
+    approvedAt: float | None = None
+    startedAt: float | None = None
+    finishedAt: float | None = None
 
 
 class RuntimeItem(BaseModel):
@@ -85,6 +116,11 @@ class RuntimeItem(BaseModel):
     excludedCandidates: list[Exclusion] = Field(default_factory=list)
     observation_error: str | None = None
     latency: LatencyObservation | None = None
+    load: RuntimeLoad | None = None
+    approvalRequired: bool = False
+    aiInference: bool = False
+    proposal: AugmentationProposal | None = None
+    lastApproval: AugmentationProposal | None = None
 
 
 class RuntimeState(BaseModel):
@@ -111,6 +147,10 @@ def project(payload: dict, now: float) -> RuntimeState:
         if result.observation_error or not current:
             item.observation_error = result.observation_error or "runtime_service_observation_stale"
             item.serving = False
+            item.load = None
+            item.proposal = None
+        if item.load and (item.load.at is None or not 0 <= now - item.load.at < 15):
+            item.load = None
         if (item.latency and (item.observation_error or not item.active
                 or item.latency.target != item.active.name or not 0 <= now - item.latency.at < 15)):
             item.latency = None

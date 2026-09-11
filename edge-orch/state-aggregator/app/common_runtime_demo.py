@@ -5,6 +5,7 @@ from typing import Literal
 import httpx
 from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
+from .common_runtime import AugmentationProposal
 
 
 class DemoItem(BaseModel):
@@ -40,7 +41,7 @@ class DemoRun(BaseModel):
     uid: str
     name: str
     label: str
-    mode: Literal["single", "round-trip"]
+    mode: Literal["single", "round-trip", "load"]
     phase: Literal["Running", "Stopping", "Stopped", "Completed", "Incomplete", "Interrupted"]
     stage: str
     createdAt: float
@@ -72,12 +73,16 @@ class DemoState(BaseModel):
 class DemoStart(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
-    mode: Literal["single", "round-trip"]
+    mode: Literal["single", "round-trip", "load"]
 
 
 class DemoStop(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
+
+
+class ApprovalRequest(DemoStop):
+    recommendationId: str = Field(pattern=r"^[a-f0-9]{32}$")
 
 
 def create_common_demo_router(settings, *, transport=None, clock=time.time):
@@ -149,5 +154,16 @@ def create_common_demo_router(settings, *, transport=None, clock=time.time):
             return DemoRun.model_validate(await upstream("POST", f"/demos/{name}/runs/{run_id}/stop", body.model_dump()))
         except ValueError:
             raise HTTPException(503, "demo_response_invalid") from None
+
+    @router.post("/api/runtime-demos/{name}/augmentation/approve", status_code=202,
+                 response_model=AugmentationProposal)
+    async def approve(body: ApprovalRequest, request: Request,
+                      name: str = Path(pattern=r"^[a-z0-9-]{1,63}$")):
+        authorize(request)
+        try:
+            return AugmentationProposal.model_validate(await upstream(
+                "POST", f"/services/{name}/augmentation/approve", body.model_dump()))
+        except ValueError:
+            raise HTTPException(503, "augmentation_response_invalid") from None
 
     return router

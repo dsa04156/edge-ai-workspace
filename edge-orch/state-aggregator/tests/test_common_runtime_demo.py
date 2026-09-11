@@ -65,3 +65,25 @@ def test_disabled_demo_and_source_failures_are_explicit_without_following_redire
                     assert data["observation_error"] == "demo_source_unavailable" and len(calls) == 1
                     assert "private" not in response.text
     asyncio.run(run())
+
+
+def test_augmentation_approval_preserves_identity_and_requires_same_origin():
+    async def run():
+        calls = []
+        def handler(request):
+            calls.append(request)
+            return httpx.Response(202, json={"id":"a"*32,"createdAt":100,"expiresAt":160,
+                "sourceNode":"edge","node":"server","role":"server","variant":"model",
+                "reason":"sustained_pressure","status":"Approved"})
+        app=FastAPI()
+        app.include_router(create_common_demo_router(SimpleNamespace(common_runtime_demo_enabled=True,
+            common_runtime_url="http://operator"),transport=httpx.MockTransport(handler)))
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url="http://nexus") as client:
+            path="/api/runtime-demos/llama/augmentation/approve"
+            body={"serviceUid":"service-uid","recommendationId":"a"*32}
+            assert (await client.post(path,json=body)).status_code==403
+            assert not calls
+            response=await client.post(path,json=body,headers={"Origin":"http://nexus","X-Runtime-Demo":"1"})
+            assert response.status_code==202 and response.json()["status"]=="Approved"
+            assert calls[0].url.path=="/services/llama/augmentation/approve"
+    asyncio.run(run())

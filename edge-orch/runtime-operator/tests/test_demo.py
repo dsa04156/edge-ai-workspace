@@ -177,3 +177,16 @@ def test_global_limit_and_shutdown_before_first_request_preserve_durable_interru
         assert not c.journal.demo_list(active=True)
         assert all(r["phase"] == "Interrupted" and r["sent"] == 0 for r in c.journal.demo_list())
     asyncio.run(run())
+
+
+def test_load_mode_rejects_non_AI_fixture(rig):
+    async def run():
+        c,k,_,_,_=rig
+        enable(k)
+        await activate(c,k)
+        app=create_app(c)
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url="http://local") as client:
+            response=await client.post("/demos/unrelated-service-name/runs/load-test",json={"serviceUid":k.resource["metadata"]["uid"],"mode":"load"})
+            assert response.status_code==403
+            assert not app.state.demo_runner.tasks
+    asyncio.run(run())

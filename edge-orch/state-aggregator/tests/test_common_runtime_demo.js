@@ -22,3 +22,13 @@ test('plain HTTP UUID fallback needs no secure-context randomUUID',()=>{
  const first=D.newId(crypto),second=D.newId(crypto);
  assert.match(first,/^[0-9a-f]{32}$/);assert.notEqual(first,second);
 });
+
+test('approval-mode AI load is distinct from automatic round-trip',()=>{
+ const html=D.actions(data,'u',true,false,true);
+ assert.match(html,/data-demo-mode="load"/);assert.match(html,/AI 추론 부하 주기/);
+ assert.doesNotMatch(html,/왕복 시험/);
+ const run={id:'load',name:'AI',label:'fixed AI',mode:'load',phase:'Completed',createdAt:99,
+ sent:20,succeeded:20,failed:0,unknown:0,returned:false,retiring:0,routeHistory:[]};
+ assert.match(D.panel({...data,runs:[run]},null,[],100),/부하 시험 완료/);
+ assert.doesNotMatch(D.panel({...data,runs:[run]},null,[],100),/검증 통과/);
+});

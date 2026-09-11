@@ -16,6 +16,13 @@ from .journal import Journal
 from .kube import Kube
 from . import resident
 from .demo import router as demo_router
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class AugmentationApproval(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
+    recommendationId: str = Field(pattern=r"^[a-f0-9]{32}$")
 
 
 def create_app(controller=None):
@@ -54,6 +61,10 @@ def create_app(controller=None):
         c = app.state.controller
         return {"services": list(c.states.values()), "lastError": c.last_error,
                 "snapshotAgeSeconds": c.clock() - c.last_snapshot}
+
+    @app.post("/services/{name}/augmentation/approve", status_code=202)
+    async def approve(name: str, body: AugmentationApproval):
+        return await app.state.controller.approve(name, body.serviceUid, body.recommendationId)
 
     @app.get("/services/{name}/requests/{request_id}")
     async def request_status(name: str, request_id: str):
@@ -114,6 +125,7 @@ def create_app(controller=None):
         key = (uid, request_id)
         if key in c.pending_ids:
             return JSONResponse({"reason": "request_id_pending"}, status_code=409)
+        c.latencies.arrival(uid, state["active"]["name"], c.clock())
         if c.pending.get(uid, 0) >= 128:
             c.latencies.record(uid, state["active"]["name"], c.clock(), 0, False)
             return JSONResponse({"reason": "queue_full", "accepted": False}, status_code=429)

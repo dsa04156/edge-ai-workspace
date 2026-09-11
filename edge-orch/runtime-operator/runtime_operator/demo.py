@@ -16,7 +16,7 @@ from .contract import ServiceSpec
 class StartRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
-    mode: Literal["single", "round-trip"]
+    mode: Literal["single", "round-trip", "load"]
 
 
 class StopRequest(BaseModel):
@@ -66,6 +66,8 @@ class DemoRunner:
                 raise HTTPException(409, "run_id_conflict")
             return public(existing)
         spec = self.definition(name, body.serviceUid)
+        if body.mode == "load" and (not spec.inference or not spec.policy.approvalRequired):
+            raise HTTPException(403, "load_requires_approval_enabled_AI_service")
         state = c.states.get(body.serviceUid, {})
         if not state.get("serving") or not state.get("active") or state.get("target") or state.get("retiring"):
             raise HTTPException(409, "service_not_stable_for_demo")
@@ -145,6 +147,21 @@ class DemoRunner:
                 if run["mode"] == "single":
                     await invoke()
                 else:
+                    if run["mode"] == "load":
+                        # Low-rate baseline lets an already remote service return
+                        # by its normal policy before applying pressure.
+                        run["stage"] = "baseline"
+                        until = time.monotonic() + config["recoverySeconds"]
+                        while time.monotonic() < until and not run["stopRequested"]:
+                            state = c.states.get(run["uid"], {})
+                            spec = self.definition(run["name"], run["uid"])
+                            if (state.get("active", {}).get("role") == spec.policy.preferredRole
+                                    and not state.get("target") and not state.get("retiring")):
+                                break
+                            if not await invoke():
+                                break
+                            await asyncio.sleep(config["recoveryIntervalSeconds"])
+                        run["stage"] = "pressure"
                     until = time.monotonic() + config["pressureSeconds"]
                     async def pressure():
                         while time.monotonic() < until:
@@ -165,10 +182,11 @@ class DemoRunner:
                         await asyncio.sleep(config["recoveryIntervalSeconds"])
                 self.observe(run)
                 run["phase"] = ("Stopped" if run["stopRequested"] else "Completed"
-                    if run["sent"] == run["succeeded"] and (run["mode"] == "single" or run["returned"])
+                    if run["sent"] == run["succeeded"] and (run["mode"] in {"single", "load"} or run["returned"])
                     else "Incomplete")
                 run["reason"] = ("operator_stopped_demo" if run["stopRequested"] else "requests_and_route_verified"
-                    if run["phase"] == "Completed" else "request_or_round_trip_gate_not_met")
+                    if run["phase"] == "Completed" and run["mode"] != "load"
+                    else "bounded_load_completed" if run["phase"] == "Completed" else "request_or_round_trip_gate_not_met")
         except asyncio.CancelledError:
             run.update(phase="Interrupted", reason="controller_shutdown_no_automatic_replay")
         except Exception as exc:
