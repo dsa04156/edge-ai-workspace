@@ -86,3 +86,8 @@ Synced/Healthy였고, 대시보드와 runtime-operator의 Ready Pod imageID가
 집중 부하·중단, 승인 후 준비·적용, 조회 실패 시 애니메이션 0개, 갱신 후 노드 선택과
 focus 유지, 모바일 390px 가로 넘침 없음 확인. 이 UI 변경의 검증에서는 실제 부하와
 실제 증강 승인을 호출하지 않았다.
+
+후속 운영 배포 `5297a142`에서 Argo Synced/Healthy, 응답 중인 Ready Pod의 imageID와
+변경 정적 파일 hash 일치를 확인했다. 실제 화면에서 AGX·Spark 노드 2개, 무부하의
+`요청 대기 중`, 1440×900 한 화면 배치, 브라우저 오류 0건과 390px 가로 넘침 없음도
+확인했다. [후속 검증 기록](../edge-orch/runtime-operator/results/2026-09-11-augmentation/interactive-map-verification.json).
