@@ -51,3 +51,15 @@ Spark 실측에서 `memory.used`/`memory.free`는 `[N/A]`다. UMA 시스템의 G
 미지원·NaN·범위 오류와 명령 실패/타임아웃 후 이전 값 미재사용을 검증한다.
 운영 검증 순서는 label→DaemonSet Ready→/metrics→Prometheus→/state/nodes→화면이다.
 검증 근거는 `results/2026-09-11.json`에 보관한다.
+
+## 운영 반영 결과 (2026-09-11 15:59 KST)
+
+- 라벨 전 DaemonSet desired=0 → Spark 라벨 후 desired=1/Ready=1, restart=0.
+- Prometheus `up=1`, collector_success=1; GPU 온도 37°C, 유휴 GPU 사용률 0%, GPU 전력 약 4.5W.
+- 실제 PromQL에서 수집 실패 또는 scrape 실패 조건이면 GPU 값이 제외되는지 확인했다.
+  읽기 전용 쿼리 변환 검증으로 운영 수집기는 중지하지 않았다.
+- `/state/nodes` Spark에 GPU 온도·사용률·전력 연결, 미지원 VRAM 생략.
+- 1440px 운영 화면에서 3단계 지도 및 노드 상태 GPU 온도 37.0°C·사용률 0.0% 확인,
+  브라우저 오류·경고 0. Argo CD Synced/Healthy와 Ready Pod 소스 해시 일치.
+- exporter 3건 + aggregator Prometheus/normalizer 12건 통과. 기존 EdgeX 센서 Pod 2개 Ready 유지.
+- 이번 작업은 GPU 계측 설치 검증이며 AI 서비스 부하·증강 승인을 실행하지 않았다.

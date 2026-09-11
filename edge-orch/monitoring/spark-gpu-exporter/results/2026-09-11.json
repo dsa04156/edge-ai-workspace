@@ -1,0 +1,212 @@
+{
+  "checked_at": "2026-09-11T06:57:23.328877+00:00",
+  "implementation_commit": "99e77b08ccd7a2ca91caae949c0095a2b22aa164",
+  "images": {
+    "state-aggregator": {
+      "base": "sha256:ab3621edb1ff3ce544b0f17f555f6d28ca6c4611af218e714f21054efcd524ff",
+      "image": "192.168.0.56:5000/state-aggregator@sha256:ed6a2ebd6032eed250c777e7f00cd09de04125389101b18fa414df16bdd714c4",
+      "tag": "spark-gpu-20260911T065315",
+      "files": {
+        "edge-orch/state-aggregator/app/prometheus.py": "sha256:a7c8031a60ced19ae32954a24b8c2201b966a6aab301a0e94f19da427e2af55f"
+      }
+    }
+  },
+  "tests": {
+    "exporter_unittest": 3,
+    "aggregator_prometheus_normalizer_pytest": 12
+  },
+  "daemonset_status": {
+    "currentNumberScheduled": 1,
+    "desiredNumberScheduled": 1,
+    "numberAvailable": 1,
+    "numberMisscheduled": 0,
+    "numberReady": 1,
+    "observedGeneration": 1,
+    "updatedNumberScheduled": 1
+  },
+  "label_before_desired": 0,
+  "label_after_desired": 1,
+  "selector": {
+    "kubernetes.io/arch": "arm64",
+    "kubernetes.io/os": "linux",
+    "monitoring.jinuk.io/gpu-collector": "spark-nvidia-smi"
+  },
+  "collector_pod": {
+    "name": "spark-gpu-exporter-zcljm",
+    "node": "etri-ser0003-cg0ms0",
+    "containers": [
+      {
+        "containerID": "containerd://d0ad71f665b466565b8c102572a9e5c24ebcc319a87a47f4a77feb64a06d450c",
+        "image": "docker.io/library/python:3.11-slim",
+        "imageID": "docker.io/library/python@sha256:6c5ae9d998f4cc06f892f428d7af53a566c24ad0dc29fa572696b647cf2762a7",
+        "lastState": {},
+        "name": "exporter",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-11T06:51:57Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/app",
+            "name": "code",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  "prometheus": {
+    "gpu_utilization": [
+      {
+        "metric": {
+          "__name__": "spark_gpu_utilization_percent",
+          "container": "exporter",
+          "endpoint": "metrics",
+          "gpu": "0",
+          "instance": "10.77.0.9:9100",
+          "job": "spark-gpu-exporter",
+          "namespace": "kube-system",
+          "node": "etri-ser0003-cg0ms0",
+          "pod": "spark-gpu-exporter-zcljm",
+          "service": "spark-gpu-exporter"
+        },
+        "value": [
+          1789109848.181,
+          "0"
+        ]
+      }
+    ],
+    "gpu_temperature_celsius": [
+      {
+        "metric": {
+          "instance": "10.77.0.9:9100"
+        },
+        "value": [
+          1789109858.355,
+          "37"
+        ]
+      }
+    ],
+    "gpu_power_watts": [
+      {
+        "metric": {
+          "__name__": "spark_gpu_power_watts",
+          "container": "exporter",
+          "endpoint": "metrics",
+          "gpu": "0",
+          "instance": "10.77.0.9:9100",
+          "job": "spark-gpu-exporter",
+          "namespace": "kube-system",
+          "node": "etri-ser0003-cg0ms0",
+          "pod": "spark-gpu-exporter-zcljm",
+          "service": "spark-gpu-exporter"
+        },
+        "value": [
+          1789109863.376,
+          "4.41"
+        ]
+      }
+    ],
+    "spark_gpu_collector_success": [
+      {
+        "metric": {
+          "__name__": "spark_gpu_collector_success",
+          "container": "exporter",
+          "endpoint": "metrics",
+          "instance": "10.77.0.9:9100",
+          "job": "spark-gpu-exporter",
+          "namespace": "kube-system",
+          "node": "etri-ser0003-cg0ms0",
+          "pod": "spark-gpu-exporter-zcljm",
+          "service": "spark-gpu-exporter"
+        },
+        "value": [
+          1789109868.117,
+          "1"
+        ]
+      }
+    ],
+    "up{job=\"spark-gpu-exporter\"}": [
+      {
+        "metric": {
+          "__name__": "up",
+          "container": "exporter",
+          "endpoint": "metrics",
+          "instance": "10.77.0.9:9100",
+          "job": "spark-gpu-exporter",
+          "namespace": "kube-system",
+          "node": "etri-ser0003-cg0ms0",
+          "pod": "spark-gpu-exporter-zcljm",
+          "service": "spark-gpu-exporter"
+        },
+        "value": [
+          1789109868.968,
+          "1"
+        ]
+      }
+    ]
+  },
+  "read_only_failure_gate_checks": [
+    "collector_failure_absent",
+    "scrape_failure_absent"
+  ],
+  "dashboard_node": {
+    "hostname": "etri-ser0003-cg0ms0",
+    "instance": "10.77.0.9:9100",
+    "node_type": "cloud_server",
+    "collected_at": "2026-09-11T06:57:27.649752Z",
+    "raw_metrics": {
+      "up": 1.0,
+      "cpu_utilization": 0.006190740740739442,
+      "memory_usage_ratio": 0.02423377567555396,
+      "load_average": 0.2,
+      "network_rx_rate": 66786.0,
+      "network_tx_rate": 15135.574074074075,
+      "cpu_logical_cores": 20.0,
+      "load_per_cpu_ratio": 0.01,
+      "gpu_utilization": 0.0,
+      "system_temperature_celsius": 39.7,
+      "gpu_temperature_celsius": 37.0,
+      "gpu_power_watts": 4.49
+    },
+    "compute_pressure": "low",
+    "memory_pressure": "low",
+    "network_pressure": "low",
+    "node_health": "healthy"
+  },
+  "argocd": {
+    "sync": "Synced",
+    "health": "Healthy",
+    "revision": "99e77b08ccd7a2ca91caae949c0095a2b22aa164"
+  },
+  "aggregator_ready_source_sha256": "a7c8031a60ced19ae32954a24b8c2201b966a6aab301a0e94f19da427e2af55f",
+  "sensor_pods": [
+    {
+      "name": "device-sensehat-raspi-995f8896b-qdjkv",
+      "uid": "9441c4d6-6aa0-4e89-b857-e1dcf3add9ce",
+      "ready": true
+    },
+    {
+      "name": "device-serial-jetson-76b6c976fd-pg9gl",
+      "uid": "9e196eb1-c9f1-43e7-83f5-47b4590878bf",
+      "ready": true
+    }
+  ],
+  "browser": {
+    "url": "http://aggregator.192.168.0.56.sslip.io/#resources",
+    "map_spark_gpu_temperature": "37.0 °C",
+    "node_status_spark_gpu_temperature": "37.0 °C",
+    "spark_gpu_utilization": "0.0%",
+    "console_errors": 0,
+    "console_warnings": 0,
+    "visual_checked_viewport": [
+      1440,
+      1000
+    ]
+  }
+}
