@@ -3,8 +3,19 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set +o xtrace
+
+case "${1:-}" in
+  --apply) ;;
+  ""|--check)
+    echo "Preview only: creates a NEW WireGuard interface; existing configurations are preserved."
+    echo "Apply: $0 --apply (root); existing peers: python3 wireguard_peer.py --help"
+    exit 0 ;;
+  *) echo "usage: $0 [--check|--apply]" >&2; exit 2 ;;
+esac
 
 WG_IF="${WG_IF:-wg0}"
+WG_MTU="${WG_MTU:-1380}"
 WG_ADDRESS="${WG_ADDRESS:?set WG_ADDRESS, for example 10.77.0.3/32}"
 CLOUD_PUBLIC_KEY="${CLOUD_PUBLIC_KEY:?set CLOUD_PUBLIC_KEY}"
 CLOUD_ENDPOINT="${CLOUD_ENDPOINT:-192.168.0.56:51820}"
@@ -49,6 +60,7 @@ function ensure_keys() {
 		wg pubkey < "$WG_PRIVATE_KEY_FILE" > "$WG_PUBLIC_KEY_FILE"
 	fi
 
+	wg pubkey < "$WG_PRIVATE_KEY_FILE" > "$WG_PUBLIC_KEY_FILE"
 	chmod 0600 "$WG_PRIVATE_KEY_FILE"
 	chmod 0644 "$WG_PUBLIC_KEY_FILE"
 }
@@ -62,6 +74,7 @@ function write_config() {
 Address = ${WG_ADDRESS}
 PrivateKey = ${private_key}
 SaveConfig = false
+MTU = ${WG_MTU}
 
 [Peer]
 PublicKey = ${CLOUD_PUBLIC_KEY}
@@ -93,6 +106,30 @@ function print_summary() {
 }
 
 ensure_root
+if [[ -e "$WG_CONF" || -L "$WG_CONF" ]]; then
+  echo "Preserving existing $WG_CONF. No changes made; use wireguard_peer.py for peer changes."
+  exit 0
+fi
+export WG_IF WG_MTU WG_ADDRESS CLOUD_PUBLIC_KEY CLOUD_ENDPOINT WG_ALLOWED_IPS
+python3 - <<'PYVALIDATE'
+import ipaddress, os, re, base64
+assert len(base64.b64decode(os.environ['CLOUD_PUBLIC_KEY'], validate=True)) == 32
+assert re.fullmatch(r'[A-Za-z0-9.-]+:[0-9]{1,5}', os.environ['CLOUD_ENDPOINT'])
+assert 1 <= int(os.environ['CLOUD_ENDPOINT'].rsplit(':', 1)[1]) <= 65535
+for value in os.environ['WG_ALLOWED_IPS'].split(','):
+    assert ipaddress.IPv4Network(value.strip()).prefixlen > 0
+assert re.fullmatch(r'[a-zA-Z0-9_-]{1,15}', os.environ['WG_IF']), 'invalid interface'
+assert 1280 <= int(os.environ['WG_MTU']) <= 1420, 'invalid MTU'
+a = ipaddress.IPv4Interface(os.environ['WG_ADDRESS'])
+assert not (a.ip.is_loopback or a.ip.is_multicast or a.ip.is_unspecified), 'invalid address'
+PYVALIDATE
+install -d -m 0700 "$WG_DIR"
+exec 9>"$WG_DIR/.setup.lock"
+flock -n 9 || { echo 'another WireGuard initialization is running' >&2; exit 2; }
+if [[ -e "$WG_CONF" || -L "$WG_CONF" ]]; then
+  echo "Preserving concurrently created $WG_CONF; no changes made."
+  exit 0
+fi
 install_wireguard
 ensure_keys
 write_config

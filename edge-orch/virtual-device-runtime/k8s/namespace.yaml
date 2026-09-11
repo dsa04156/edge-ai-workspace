@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: virtual-device-test
+  labels:
+    edge-ai.io/scope: virtual-device-test

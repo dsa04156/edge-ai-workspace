@@ -26,3 +26,9 @@ cd edgex/adapter-controller && PYTHONPATH=. pytest -q
 cd ../device-discovery-agent && PYTHONPATH=. pytest -q
 cd ../device-serial && go test ./...
 ```
+
+
+통합 운영 대시보드 확장 내용과 현재 가능/부분 구현/미구현 구분은
+[통합 운영 대시보드 고도화](docs/통합-운영-대시보드-고도화.md)를 참고한다.
+기존 NEXUS에서 서비스 입력·실행 위치·자원·판단·이력을 연결하고, 실제 서버 설계 버전과
+시험 원장을 저장한다. 범용 offloading/controller 실행과 공식 KPI 실측은 별도 미완료다.

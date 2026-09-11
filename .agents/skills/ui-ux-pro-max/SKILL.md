@@ -47,7 +47,7 @@ Extract key information from user request:
 
 ### Step 2: Generate Design System (REQUIRED)
 
-**Always start with `--design-system`** to get comprehensive recommendations with reasoning:
+**For a new UI or substantial redesign, start with `--design-system`** to get comprehensive recommendations with reasoning. For small changes, reuse the existing project tokens/components and query only the missing detail:
 
 ```bash
 python3 skills/ui-ux-pro-max/scripts/search.py "<product_type> <industry> <keywords>" --design-system [-p "Project Name"]

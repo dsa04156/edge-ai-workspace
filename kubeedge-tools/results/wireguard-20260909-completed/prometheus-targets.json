@@ -1,0 +1,44 @@
+[
+  {
+    "url": "http://10.77.0.6:9100/metrics",
+    "health": "up",
+    "last_error": "",
+    "last_scrape": "2026-09-09T10:02:46.776488401Z"
+  },
+  {
+    "url": "http://10.77.0.1:9100/metrics",
+    "health": "up",
+    "last_error": "",
+    "last_scrape": "2026-09-09T10:02:47.982814779Z"
+  },
+  {
+    "url": "http://10.77.0.8:9100/metrics",
+    "health": "up",
+    "last_error": "",
+    "last_scrape": "2026-09-09T10:02:40.255544604Z"
+  },
+  {
+    "url": "http://10.77.0.5:9100/metrics",
+    "health": "up",
+    "last_error": "",
+    "last_scrape": "2026-09-09T10:02:48.076175115Z"
+  },
+  {
+    "url": "http://192.168.0.7:9100/metrics",
+    "health": "up",
+    "last_error": "",
+    "last_scrape": "2026-09-09T10:02:30.968527007Z"
+  },
+  {
+    "url": "http://10.77.0.4:9100/metrics",
+    "health": "up",
+    "last_error": "",
+    "last_scrape": "2026-09-09T10:02:55.641886422Z"
+  },
+  {
+    "url": "http://10.77.0.3:9100/metrics",
+    "health": "up",
+    "last_error": "",
+    "last_scrape": "2026-09-09T10:02:46.651619838Z"
+  }
+]

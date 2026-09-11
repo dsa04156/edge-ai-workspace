@@ -1,0 +1,10 @@
+{
+  "pid": 411426,
+  "identity": "26987449",
+  "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+  "handoff_from": "/home/jinuk/codex-work/jinuk/qualification/llama-boundaries/results/multimodel-three-devices-20260910-b",
+  "at": 1789046389.7649372,
+  "new_watchdog_pid": 486870,
+  "old_watchdog_pid": 301229,
+  "reason": "Nano continuation owns final restoration; prevent parent watchdog from restoring during active continuation"
+}

@@ -1,0 +1,8 @@
+# Partial network values only. Preserve the live image, certificates and runtime config.
+cloudCore:
+  modules:
+    cloudHub:
+      advertiseAddress:
+        - 192.168.0.56
+        - 10.254.192.217
+        - 10.77.0.1

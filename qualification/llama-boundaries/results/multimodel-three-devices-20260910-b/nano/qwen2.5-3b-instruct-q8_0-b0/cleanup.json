@@ -1,0 +1,6 @@
+{
+  "process_exited": false,
+  "port_released": false,
+  "export_error": "Command '['rtk', 'proxy', 'kubectl', '--context=kubernetes-admin@kubernetes', '-n', 'llama-offload-eval', 'cp', 'llama-worker-nano-799fc9d6c5-kcbdd:/dev/shm/multimodel-three-devices-20260910-b-nano-qwen2.5-3b-instruct-q8_0-b0/workload', 'qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/nano/qwen2.5-3b-instruct-q8_0-b0/workload', '-c', 'api']' returned non-zero exit status 1.",
+  "error": "Command '['rtk', 'proxy', 'kubectl', '--context=kubernetes-admin@kubernetes', '-n', 'llama-offload-eval', 'exec', 'llama-worker-nano-799fc9d6c5-kcbdd', '-c', 'inference-runtime', '--', 'cat', '/dev/shm/multimodel-three-devices-20260910-b-nano-qwen2.5-3b-instruct-q8_0-b0.pid']' returned non-zero exit status 1."
+}

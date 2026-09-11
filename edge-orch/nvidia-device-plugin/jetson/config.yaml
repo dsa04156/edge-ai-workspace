@@ -1,0 +1,15 @@
+version: v1
+flags:
+  migStrategy: none
+  failOnInitError: true
+  deviceDiscoveryStrategy: tegra
+  plugin:
+    deviceListStrategy: [envvar]
+    deviceIDStrategy: index
+sharing:
+  timeSlicing:
+    renameByDefault: true
+    failRequestsGreaterThanOne: true
+    resources:
+      - name: nvidia.com/gpu
+        replicas: 2

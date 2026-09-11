@@ -1,0 +1,16 @@
+{
+  "source": "comparison.json",
+  "source_sha256": "f363976a2da98882ae252d5bf6e6b581c9c11ce62d7b7ea23fc9ef6918bd280e",
+  "matplotlib": "3.10.6",
+  "numpy": "2.5.2",
+  "figure_inches": [
+    13,
+    6
+  ],
+  "dpi": 180,
+  "estimator": "C1 median with all observations; C8 pooled linear-interpolation p95",
+  "missing": "gaps, never zero; incomplete three-block groups omitted",
+  "confidence_intervals": "none; three blocks only",
+  "audience": "project experiment report",
+  "publisher": "not a journal submission"
+}

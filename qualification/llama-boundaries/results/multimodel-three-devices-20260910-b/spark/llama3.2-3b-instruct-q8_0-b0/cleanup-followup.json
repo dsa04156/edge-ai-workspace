@@ -1,0 +1,6 @@
+{
+  "at": 1789044070.4655085,
+  "gpu_processes": "",
+  "port_released": true,
+  "note": "25s initial exit check timed out; later read-only inspection confirms GPU process and port absent"
+}

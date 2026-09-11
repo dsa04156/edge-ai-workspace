@@ -1,0 +1,62 @@
+{
+  "expected_cells": 54,
+  "observed_cells": 54,
+  "complete_cells": 54,
+  "planned_measured_requests": 972,
+  "observed_measured_requests": 972,
+  "successful_measured_requests": 972,
+  "all_tokens_cache_valid": true,
+  "all_unique_requests": true,
+  "all_case_counts_valid": true,
+  "all_physical_nodes_valid": true,
+  "warmup_requests": 54,
+  "all_q8_verified": true,
+  "all_gpu_verified": true,
+  "all_cleanup_verified": true,
+  "same_model_fixtures_match_all_devices_blocks": {
+    "llama3.2:1b-instruct-q8_0": true,
+    "llama3.2:3b-instruct-q8_0": true,
+    "qwen2.5:0.5b-instruct-q8_0": true,
+    "qwen2.5:1.5b-instruct-q8_0": true,
+    "qwen2.5:3b-instruct-q8_0": true,
+    "gemma2:2b-instruct-q8_0": true
+  },
+  "service_restored": true,
+  "production_policy_validated": false,
+  "quality_evaluated": false,
+  "final_device_cleanup_verified": true,
+  "final_pod_identity_preserved": true,
+  "final_nodes_ready": true,
+  "additional_aborted_attempts": {
+    "observed_measured": 26,
+    "success": 24,
+    "failed_or_timeout": 2,
+    "planned": 36,
+    "not_sent": 9,
+    "interrupted_without_terminal_record": 1,
+    "cells": [
+      [
+        "nano",
+        "qwen2.5:3b-instruct-q8_0",
+        0
+      ],
+      [
+        "spark",
+        "llama3.2:3b-instruct-q8_0",
+        0
+      ]
+    ],
+    "reason": "Spark thermal guard and Nano management connection interruption; retained separately"
+  },
+  "thermal_conditioned_cells": 27,
+  "pod_uid_preserved": {
+    "nano": true,
+    "agx": true,
+    "spark": true
+  },
+  "restart_counts_preserved": {
+    "nano": true,
+    "agx": true,
+    "spark": true
+  }
+}

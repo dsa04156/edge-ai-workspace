@@ -1,0 +1,131 @@
+{
+  "context": "kubernetes-admin@kubernetes",
+  "nodes": [
+    {
+      "name": "etri-dev0001-jetorn",
+      "addresses": [
+        {
+          "address": "192.168.0.3",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-dev0001-jetorn",
+          "type": "Hostname"
+        }
+      ],
+      "pod_cidr": "10.244.2.0/24",
+      "ready": "True",
+      "flannel_ip": "192.168.0.3",
+      "kernel": "5.15.148-tegra",
+      "kubelet": "v1.32.10-kubeedge-v1.23.0"
+    },
+    {
+      "name": "etri-dev0002-raspi5",
+      "addresses": [
+        {
+          "address": "192.168.0.4",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-dev0002-raspi5",
+          "type": "Hostname"
+        }
+      ],
+      "pod_cidr": "10.244.1.0/24",
+      "ready": "True",
+      "flannel_ip": "192.168.0.4",
+      "kernel": "6.12.75+rpt-rpi-2712",
+      "kubelet": "v1.32.10-kubeedge-v1.23.0"
+    },
+    {
+      "name": "etri-dev0003-raspi5",
+      "addresses": [
+        {
+          "address": "192.168.0.6",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-dev0003-raspi5",
+          "type": "Hostname"
+        }
+      ],
+      "pod_cidr": "10.244.4.0/24",
+      "ready": "True",
+      "flannel_ip": "192.168.0.6",
+      "kernel": "6.12.75+rpt-rpi-2712",
+      "kubelet": "v1.32.10-kubeedge-v1.23.0"
+    },
+    {
+      "name": "etri-dev0004-tedger",
+      "addresses": [
+        {
+          "address": "192.168.0.7",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-dev0004-tedger",
+          "type": "Hostname"
+        }
+      ],
+      "pod_cidr": "10.244.3.0/24",
+      "ready": "True",
+      "flannel_ip": "192.168.0.7",
+      "kernel": "4.4.194",
+      "kubelet": "v1.32.10-kubeedge-v1.23.0"
+    },
+    {
+      "name": "etri-dev0005-jetagx",
+      "addresses": [
+        {
+          "address": "192.168.0.8",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-dev0005-jetagx",
+          "type": "Hostname"
+        }
+      ],
+      "pod_cidr": "10.244.6.0/24",
+      "ready": "True",
+      "flannel_ip": "192.168.0.8",
+      "kernel": "6.8.12-1021-tegra",
+      "kubelet": "v1.32.10-kubeedge-v1.23.0"
+    },
+    {
+      "name": "etri-ser0001-cg0msb",
+      "addresses": [
+        {
+          "address": "192.168.0.56",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-ser0001-cg0msb",
+          "type": "Hostname"
+        }
+      ],
+      "pod_cidr": "10.244.0.0/24",
+      "ready": "True",
+      "flannel_ip": "192.168.0.56",
+      "kernel": "7.0.0-31-generic",
+      "kubelet": "v1.31.14"
+    },
+    {
+      "name": "etri-ser0002-cgnmsb",
+      "addresses": [
+        {
+          "address": "192.168.0.5",
+          "type": "InternalIP"
+        },
+        {
+          "address": "etri-ser0002-cgnmsb",
+          "type": "Hostname"
+        }
+      ],
+      "pod_cidr": "10.244.8.0/24",
+      "ready": "True",
+      "flannel_ip": "192.168.0.5",
+      "kernel": "7.0.0-29-generic",
+      "kubelet": "v1.31.14"
+    }
+  ]
+}

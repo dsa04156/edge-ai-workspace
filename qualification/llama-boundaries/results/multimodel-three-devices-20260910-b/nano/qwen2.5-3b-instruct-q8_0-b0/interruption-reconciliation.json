@@ -1,0 +1,11 @@
+{
+  "planned": 18,
+  "terminal_records": 9,
+  "terminal_success": 9,
+  "in_flight_without_terminal_record": 1,
+  "not_started": 8,
+  "interrupted_case": "i2048-o128-c1",
+  "evidence": "server.log ends during 2048-token prompt response; client journal ends after previous 8-request wave; ordered workload plan identifies remaining cases",
+  "latency_for_interrupted_request": null,
+  "cause": "management exec connection interruption; actual native process found alive, no observed OOM"
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "node": "etri-dev0004-tedger",
+    "instance": "192.168.0.7:9100",
+    "up": 1.0,
+    "collected_at": "2026-09-09T10:02:54.806319Z",
+    "health": "healthy"
+  },
+  {
+    "node": "etri-dev0002-raspi5",
+    "instance": "10.77.0.4:9100",
+    "up": 1.0,
+    "collected_at": "2026-09-09T10:02:54.806319Z",
+    "health": "healthy"
+  },
+  {
+    "node": "etri-dev0003-raspi5",
+    "instance": "10.77.0.6:9100",
+    "up": 1.0,
+    "collected_at": "2026-09-09T10:02:54.806319Z",
+    "health": "healthy"
+  },
+  {
+    "node": "etri-ser0002-cgnmsb",
+    "instance": "10.77.0.5:9100",
+    "up": 1.0,
+    "collected_at": "2026-09-09T10:02:54.806319Z",
+    "health": "healthy"
+  },
+  {
+    "node": "etri-ser0001-cg0msb",
+    "instance": "10.77.0.1:9100",
+    "up": 1.0,
+    "collected_at": "2026-09-09T10:02:54.806319Z",
+    "health": "healthy"
+  },
+  {
+    "node": "etri-dev0005-jetagx",
+    "instance": "10.77.0.8:9100",
+    "up": 1.0,
+    "collected_at": "2026-09-09T10:02:54.806319Z",
+    "health": "healthy"
+  },
+  {
+    "node": "etri-dev0001-jetorn",
+    "instance": "10.77.0.3:9100",
+    "up": 1.0,
+    "collected_at": "2026-09-09T10:02:54.806319Z",
+    "health": "healthy"
+  }
+]

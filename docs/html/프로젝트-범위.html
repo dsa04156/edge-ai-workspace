@@ -72,6 +72,7 @@
 <li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
 <li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
 <li><a href="Llama-장비별-GPU-성능측정.html">Llama 장비별 GPU 성능측정</a></li>
+<li><a href="2026-09-10-다중모델-3장비-실험결과.html">다중 모델 성능측정 기술 메모(TM) — Orin Nano·AGX Orin·DGX Spark</a></li>
 <li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
 <li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
 <li><a href="저장소-구조.html">저장소 구조</a></li>
@@ -86,8 +87,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-09-11 16:08</span>
-            <span class="badge">HTML 생성: 2026-09-11 16:09</span>
+            <span class="badge">수정: 2026-09-11 16:51</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:52</span>
           </div>
         </header>
         <div class="doc-body">
@@ -321,6 +322,9 @@
 <p>운영 소유자는 기존 runtime-operator(원장·모델 수명주기)와 state-aggregator(화면·동일 출처 제한 API)다. 검증 기준은 승인 전 무전환, 만료/중복/재시작/후보 변경 처리, 제한 부하의 중지·요청 원장, 승인 후 실제 경로·결과 확인이다. 자동시험·브라우저 검증과 실장비 승인 실행 증거를 구분하며 실제 증강 승인은 사용자 클릭으로 수행한다. 상세는 <a href="AI-서비스-증강-승인.html">AI 서비스 증강 승인</a>을 따른다.</p>
 <h3 id="2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</h3>
 <p>사용자 승인 범위를 Orin Nano(<code>etri-dev0001-jetorn</code>) → AGX Orin(<code>etri-dev0005-jetagx</code>) → DGX Spark(<code>etri-ser0003-cg0ms0</code>)로 확대한다. <code>edge-orch/runtime-operator</code>의 명시적 단계 순서와 <code>examples/llama-three-tier</code>의 Llama 계약·Nano resident runtime을 사용한다. 부하/지연에 따른 증강은 바로 다음 단계만 추천하고 운영자가 매번 승인한다. 저부하 복귀는 기존 자동 정책 안에서 단계별로 수행한다. 장애 시 가용 후보 복구는 별도 사유로 표시한다. 센서 수집과 기존 legacy controller 중지 상태는 유지한다. Nano 모델 digest·GPU 실제 실행·동일 8-token 입력의 처리 성능·자원 예약, 3단계 순서 및 승인·중지 회귀 테스트, 실제 노드 지도와 API를 검증해야 운영 완료로 보고한다. 런타임/계약 소유자는 runtime-operator 운영자이며 대시보드는 기존 Argo CD 배포를 따른다. 3단계 계약·지도 배포와 Nano GPU/gateway 응답, 센서 Device Service Ready를 확인했다. 단계별 승인·역순 복귀는 자동시험으로 검증했다. 운영에서 두 번의 승인 클릭을 포함한 실장비 왕복은 아직 수행하지 않았으며 사용자가 실행한다. 상세 실측과 경계는 <code>docs/AI-서비스-증강-승인.md</code>를 따른다.</p>
+<h3 id="llama-서비스-실행-중지-및-노드별-부하-버튼-2026-09-11">Llama 서비스 실행·중지 및 노드별 부하 버튼 (2026-09-11)</h3>
+<p>사용자 요청으로 기존 Llama 승인 증강 데모의 <code>spec.suspended</code> 시작·중지 제어와 현재 실행 노드별 <code>node-load</code>/제거를 운영 범위에 추가한다. Nano 부하 → 사용자 증강 승인 → Orin 부하 흐름이며 노드가 바뀌면 기존 노드 부하는 종료한다. 대기 취소·진행 요청 drain· 모델 해제·중지 후 재시작 검증과 운영 책임은 <a href="AI-서비스-증강-승인.html">AI 서비스 증강 승인</a>의 서비스 실행과 노드별 부하 제어 절을 따른다. 센서나 범용 서비스 제어로 확대하지 않는다.</p>
+<p>2026-09-11 후속 수정(코드·테스트·운영 배포 및 40초 초과 실행/수동 제거 검증 완료): 노드별 <code>node-load</code>는 부하 제거 또는 실행 노드 변경까지 고정 동시성으로 유지한다. 기존 전체 경로 시험의 시간·요청 수 제한은 유지한다. 서비스 중지·관측 실패·제어기 재시작 시 종료하며 자동 재실행하지 않는다. 검증 기준은 시간·요청 수 제한 초과 실행, 수동 제거, 기존 노드 요청의 새 경로 전달 방지와 원장 메모리 경계다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#공통-ai-서비스-계약-기준">공통 AI 서비스 계약 기준</a></li>

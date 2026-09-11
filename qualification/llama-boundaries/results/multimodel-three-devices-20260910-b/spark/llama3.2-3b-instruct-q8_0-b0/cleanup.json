@@ -1,0 +1,5 @@
+{
+  "process_exited": false,
+  "port_released": false,
+  "error": "Command '['rtk', 'proxy', 'kubectl', '--context=kubernetes-admin@kubernetes', '-n', 'llama-continuity-test', 'exec', 'llama-spark-5458cd78f4-dtcqm', '-c', 'inference-runtime', '--', 'timeout', '--signal=TERM', '--kill-after=15s', '900', 'sh', '-c', 'set -e; echo $$ > /dev/shm/multimodel-three-devices-20260910-b-spark-llama3.2-3b-instruct-q8_0-b0.pid; exec env LD_LIBRARY_PATH=/usr/lib/ollama:/usr/lib/ollama/cuda_v13:/usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/tegra GGML_BACKEND_PATH=/usr/lib/ollama/cuda_v13/libggml-cuda.so /usr/lib/ollama/llama-server --model /models/blobs/sha256-ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688 --host 127.0.0.1 --port 18200 --threads 4 --ctx-size 4096 --batch-size 512 --ubatch-size 128 --parallel 1 --gpu-layers 99 --cache-type-k f16 --cache-type-v f16 --flash-attn off --cache-ram 0 --cache-reuse 0 --metrics --verbose']' timed out after 25 seconds"
+}

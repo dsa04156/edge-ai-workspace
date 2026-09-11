@@ -1,0 +1,549 @@
+{
+  "captured_at": "2026-09-11T02:45:49.377593+00:00",
+  "registry_latest_digest": "sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f",
+  "registry_manifest": {
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "config": {
+      "mediaType": "application/vnd.oci.image.config.v1+json",
+      "size": 10894,
+      "digest": "sha256:8f1ed0bfafa64be66b1c1181c75cebd60241d4deddf9a298a9831f9f3f447ec0"
+    },
+    "layers": [
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 3642247,
+        "digest": "sha256:f18232174bc91741fdf3da96d85011092101a032a93a388b79e99e69c2d5c870"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 1791436,
+        "digest": "sha256:61ca4f733c802afd9e05a32f0de0361b6d713b8b53292dc15fb093229f648674"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 629,
+        "digest": "sha256:b464cfdf2a6319875aeb27359ec549790ce14d8214fcb16ef915e4530e5ed235"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 955,
+        "digest": "sha256:d7e5070240863957ebb0b5a44a5729963c3462666baa2947d00628cb5f2d5773"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 402,
+        "digest": "sha256:81bd8ed7ec6789b0cb7f1b47ee731c522f6dba83201ec73cd6bca1350f582948"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 1209,
+        "digest": "sha256:197eb75867ef4fcecd4724f17b0972ab0489436860a594a9445f8eaff8155053"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 1397,
+        "digest": "sha256:34a64644b756511a2e217f0508e11d1a572085d66cd6dc9a555a082ad49a3102"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 15522356,
+        "digest": "sha256:39c2ddfd6010082a4a646e7ca44e95aca9bf3eaebc00f17f7ccc2954004f2a7d"
+      },
+      {
+        "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+        "size": 2344964,
+        "digest": "sha256:619a8c1a061a6ab4159d0a4e58d58f7a8014c8f4c47057ad06e6575f9f9985ee"
+      }
+    ],
+    "annotations": {
+      "com.docker.official-images.bashbrew.arch": "amd64",
+      "org.opencontainers.image.base.digest": "sha256:816d6a9736a3ccb74b5b0eb915c4ffb37bf6b7a98e7aaa715001ce3235a8a019",
+      "org.opencontainers.image.base.name": "nginx:1.27.5-alpine-slim",
+      "org.opencontainers.image.created": "2025-04-16T14:50:31Z",
+      "org.opencontainers.image.revision": "eaf8875a1967d24cea6ed8b37109075e39ed9e43",
+      "org.opencontainers.image.source": "https://github.com/nginx/docker-nginx.git#eaf8875a1967d24cea6ed8b37109075e39ed9e43:mainline/alpine",
+      "org.opencontainers.image.url": "https://hub.docker.com/_/nginx",
+      "org.opencontainers.image.version": "1.27.5-alpine"
+    }
+  },
+  "application": {
+    "apiVersion": "argoproj.io/v1alpha1",
+    "kind": "Application",
+    "metadata": {
+      "annotations": {
+        "argocd-image-updater.argoproj.io/docs-html.force-update": "true",
+        "argocd-image-updater.argoproj.io/docs-html.update-strategy": "digest",
+        "argocd-image-updater.argoproj.io/image-list": "docs-html=192.168.0.56:5000/docs-html:latest",
+        "argocd-image-updater.argoproj.io/write-back-method": "argocd",
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Application\",\"metadata\":{\"annotations\":{\"argocd-image-updater.argoproj.io/docs-html.force-update\":\"true\",\"argocd-image-updater.argoproj.io/docs-html.update-strategy\":\"digest\",\"argocd-image-updater.argoproj.io/image-list\":\"docs-html=192.168.0.56:5000/docs-html:latest\",\"argocd-image-updater.argoproj.io/write-back-method\":\"argocd\"},\"name\":\"docs-html\",\"namespace\":\"argocd\"},\"spec\":{\"destination\":{\"namespace\":\"default\",\"server\":\"https://kubernetes.default.svc\"},\"project\":\"default\",\"source\":{\"kustomize\":{},\"path\":\"docs-site\",\"repoURL\":\"https://github.com/dsa04156/edge-ai-workspace.git\",\"targetRevision\":\"main\"},\"syncPolicy\":{\"automated\":{\"prune\":true,\"selfHeal\":true}}}}\n"
+      },
+      "creationTimestamp": "2026-05-21T06:18:32Z",
+      "generation": 43602,
+      "name": "docs-html",
+      "namespace": "argocd",
+      "resourceVersion": "28507638",
+      "uid": "1c6f317e-72bf-497f-96ab-7597ce3e9153"
+    },
+    "spec": {
+      "destination": {
+        "namespace": "default",
+        "server": "https://kubernetes.default.svc"
+      },
+      "project": "default",
+      "source": {
+        "kustomize": {
+          "images": [
+            "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f"
+          ]
+        },
+        "path": "docs-site",
+        "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+        "targetRevision": "agent/edgex-central-docs"
+      },
+      "syncPolicy": {
+        "automated": {
+          "prune": true,
+          "selfHeal": true
+        }
+      }
+    },
+    "status": {
+      "controllerNamespace": "argocd",
+      "health": {
+        "lastTransitionTime": "2026-09-10T09:47:59Z",
+        "status": "Healthy"
+      },
+      "history": [
+        {
+          "deployStartedAt": "2026-09-10T02:29:52Z",
+          "deployedAt": "2026-09-10T02:29:52Z",
+          "id": 171,
+          "initiatedBy": {},
+          "revision": "982145eec66982c3c19e5ff1c09f4db43894b8c8",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html@sha256:76399b720aa760c843e1cebbb350b6876791770997fac406a9a44788b686d373"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T04:08:38Z",
+          "deployedAt": "2026-09-10T04:08:39Z",
+          "id": 172,
+          "initiatedBy": {},
+          "revision": "9a8b8711b8cb284ecb6236702e89edb2ef0cd65e",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html@sha256:e3d5495169ea209caebc45526bd9b475147657113cebc7e6a395168304b12292"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T05:53:25Z",
+          "deployedAt": "2026-09-10T05:53:26Z",
+          "id": 173,
+          "initiatedBy": {},
+          "revision": "25e7cb7c0b483780b74c737cc05e47ddf6195583",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html@sha256:f36417024a2194ef0cc52b4dbb5e4bc8b76d8fa004aeecebda8a8966dd65bd00"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T06:25:43Z",
+          "deployedAt": "2026-09-10T06:25:43Z",
+          "id": 174,
+          "initiatedBy": {
+            "automated": true
+          },
+          "revision": "0b56e360abf473365df499e83d6f1fd944549fac",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html@sha256:2a5a97dfc692463df7822bd9883af897b2a598a8b96b69281b0df33059e02a88"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T06:31:07Z",
+          "deployedAt": "2026-09-10T06:31:07Z",
+          "id": 175,
+          "initiatedBy": {
+            "automated": true
+          },
+          "revision": "8186417a999e0a937c13b05c4a3deeec60785f41",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html@sha256:7bf1fdf2d7716c88ae2cd61e2df703b224d4818ab5cc8a2007bb146383a4e6d5"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T06:50:47Z",
+          "deployedAt": "2026-09-10T06:50:47Z",
+          "id": 176,
+          "initiatedBy": {
+            "automated": true
+          },
+          "revision": "1ab12dead14ea2b62a835d246313faf708f18a9c",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:bc7dcb171b5763d3b717056e021daa812be26ad345788ecba6e994554ab4002a"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T07:11:47Z",
+          "deployedAt": "2026-09-10T07:11:47Z",
+          "id": 177,
+          "initiatedBy": {
+            "automated": true
+          },
+          "revision": "89c6299f5d6bfdfe23af643c5b64b73823d1bbe5",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:c61c7ee652d1e253eec9bf2d6e89c9fec0cda2b4010e8b940336919a22664436"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T07:41:22Z",
+          "deployedAt": "2026-09-10T07:41:22Z",
+          "id": 178,
+          "initiatedBy": {
+            "automated": true
+          },
+          "revision": "27352d66efe6752dae1df907069f7d6b897ee8ae",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:70da922fc6225b22dbd724732ea1ef29afbd7faa200264d4326d6962e2f0809b"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T07:48:52Z",
+          "deployedAt": "2026-09-10T07:48:53Z",
+          "id": 179,
+          "initiatedBy": {
+            "automated": true
+          },
+          "revision": "2eb3fa4a361ddeccc7cbcba5930af8f495ca512e",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:206f6f5274182be60050ad30f395902fda7e7cd417fb958895fd06f371da7ebc"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        {
+          "deployStartedAt": "2026-09-10T09:47:53Z",
+          "deployedAt": "2026-09-10T09:47:54Z",
+          "id": 180,
+          "initiatedBy": {
+            "automated": true
+          },
+          "revision": "4c18af63d5b76d2bc3edbc63f0c52e678db76806",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        }
+      ],
+      "operationState": {
+        "finishedAt": "2026-09-10T09:47:54Z",
+        "message": "successfully synced (all tasks run)",
+        "operation": {
+          "initiatedBy": {
+            "automated": true
+          },
+          "retry": {
+            "limit": 5
+          },
+          "sync": {
+            "prune": true,
+            "revision": "4c18af63d5b76d2bc3edbc63f0c52e678db76806",
+            "source": {
+              "kustomize": {
+                "images": [
+                  "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f"
+                ]
+              },
+              "path": "docs-site",
+              "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+              "targetRevision": "agent/edgex-central-docs"
+            }
+          }
+        },
+        "phase": "Succeeded",
+        "startedAt": "2026-09-10T09:47:53Z",
+        "syncResult": {
+          "resources": [
+            {
+              "group": "",
+              "hookPhase": "Running",
+              "kind": "Service",
+              "message": "service/docs-html unchanged",
+              "name": "docs-html",
+              "namespace": "default",
+              "status": "Synced",
+              "syncPhase": "Sync",
+              "version": "v1"
+            },
+            {
+              "group": "apps",
+              "hookPhase": "Running",
+              "images": [
+                "192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f"
+              ],
+              "kind": "Deployment",
+              "message": "deployment.apps/docs-html configured",
+              "name": "docs-html",
+              "namespace": "default",
+              "status": "Synced",
+              "syncPhase": "Sync",
+              "version": "v1"
+            },
+            {
+              "group": "traefik.io",
+              "hookPhase": "Running",
+              "kind": "IngressRoute",
+              "message": "ingressroute.traefik.io/docs-html unchanged",
+              "name": "docs-html",
+              "namespace": "default",
+              "status": "Synced",
+              "syncPhase": "Sync",
+              "version": "v1alpha1"
+            }
+          ],
+          "revision": "4c18af63d5b76d2bc3edbc63f0c52e678db76806",
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        }
+      },
+      "reconciledAt": "2026-09-11T02:44:51Z",
+      "resourceHealthSource": "appTree",
+      "resources": [
+        {
+          "kind": "Service",
+          "name": "docs-html",
+          "namespace": "default",
+          "status": "Synced",
+          "version": "v1"
+        },
+        {
+          "group": "apps",
+          "kind": "Deployment",
+          "name": "docs-html",
+          "namespace": "default",
+          "status": "Synced",
+          "version": "v1"
+        },
+        {
+          "group": "traefik.io",
+          "kind": "IngressRoute",
+          "name": "docs-html",
+          "namespace": "default",
+          "status": "Synced",
+          "version": "v1alpha1"
+        }
+      ],
+      "sourceHydrator": {},
+      "sourceType": "Kustomize",
+      "summary": {
+        "images": [
+          "192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f"
+        ]
+      },
+      "sync": {
+        "comparedTo": {
+          "destination": {
+            "namespace": "default",
+            "server": "https://kubernetes.default.svc"
+          },
+          "source": {
+            "kustomize": {
+              "images": [
+                "192.168.0.56:5000/docs-html=192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f"
+              ]
+            },
+            "path": "docs-site",
+            "repoURL": "https://github.com/dsa04156/edge-ai-workspace.git",
+            "targetRevision": "agent/edgex-central-docs"
+          }
+        },
+        "revision": "6951f8989d951a62e312306813356ca23c289920",
+        "status": "Synced"
+      }
+    }
+  },
+  "deployment": {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "annotations": {
+        "argocd.argoproj.io/tracking-id": "docs-html:apps/Deployment:default/docs-html",
+        "deployment.kubernetes.io/revision": "188",
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{\"argocd.argoproj.io/tracking-id\":\"docs-html:apps/Deployment:default/docs-html\"},\"labels\":{\"app\":\"docs-html\"},\"name\":\"docs-html\",\"namespace\":\"default\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"docs-html\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"docs-html\"}},\"spec\":{\"containers\":[{\"image\":\"192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f\",\"imagePullPolicy\":\"Always\",\"name\":\"nginx\",\"ports\":[{\"containerPort\":80}],\"readinessProbe\":{\"httpGet\":{\"path\":\"/\",\"port\":80},\"initialDelaySeconds\":3,\"periodSeconds\":5}}],\"nodeSelector\":{\"kubernetes.io/arch\":\"amd64\"}}}}}\n"
+      },
+      "creationTimestamp": "2026-05-18T08:38:04Z",
+      "generation": 189,
+      "labels": {
+        "app": "docs-html"
+      },
+      "name": "docs-html",
+      "namespace": "default",
+      "resourceVersion": "28340871",
+      "uid": "3465ae88-8a4f-43a9-95df-e63f34d5aa76"
+    },
+    "spec": {
+      "progressDeadlineSeconds": 600,
+      "replicas": 1,
+      "revisionHistoryLimit": 10,
+      "selector": {
+        "matchLabels": {
+          "app": "docs-html"
+        }
+      },
+      "strategy": {
+        "rollingUpdate": {
+          "maxSurge": "25%",
+          "maxUnavailable": "25%"
+        },
+        "type": "RollingUpdate"
+      },
+      "template": {
+        "metadata": {
+          "annotations": {
+            "kubectl.kubernetes.io/restartedAt": "2026-05-26T20:07:20+09:00"
+          },
+          "creationTimestamp": null,
+          "labels": {
+            "app": "docs-html"
+          }
+        },
+        "spec": {
+          "containers": [
+            {
+              "image": "192.168.0.56:5000/docs-html@sha256:9fb58becb6ee1837227818a7ac16ff1edaebeb48df660108e9521359da91fc5f",
+              "imagePullPolicy": "Always",
+              "name": "nginx",
+              "ports": [
+                {
+                  "containerPort": 80,
+                  "protocol": "TCP"
+                }
+              ],
+              "readinessProbe": {
+                "failureThreshold": 3,
+                "httpGet": {
+                  "path": "/",
+                  "port": 80,
+                  "scheme": "HTTP"
+                },
+                "initialDelaySeconds": 3,
+                "periodSeconds": 5,
+                "successThreshold": 1,
+                "timeoutSeconds": 1
+              },
+              "resources": {},
+              "terminationMessagePath": "/dev/termination-log",
+              "terminationMessagePolicy": "File"
+            }
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "nodeSelector": {
+            "kubernetes.io/arch": "amd64"
+          },
+          "restartPolicy": "Always",
+          "schedulerName": "default-scheduler",
+          "securityContext": {},
+          "terminationGracePeriodSeconds": 30
+        }
+      }
+    },
+    "status": {
+      "availableReplicas": 1,
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-09-10T04:52:23Z",
+          "lastUpdateTime": "2026-09-10T04:52:23Z",
+          "message": "Deployment has minimum availability.",
+          "reason": "MinimumReplicasAvailable",
+          "status": "True",
+          "type": "Available"
+        },
+        {
+          "lastTransitionTime": "2026-05-18T08:38:04Z",
+          "lastUpdateTime": "2026-09-10T09:47:59Z",
+          "message": "ReplicaSet \"docs-html-6cc8f49475\" has successfully progressed.",
+          "reason": "NewReplicaSetAvailable",
+          "status": "True",
+          "type": "Progressing"
+        }
+      ],
+      "observedGeneration": 189,
+      "readyReplicas": 1,
+      "replicas": 1,
+      "updatedReplicas": 1
+    }
+  }
+}

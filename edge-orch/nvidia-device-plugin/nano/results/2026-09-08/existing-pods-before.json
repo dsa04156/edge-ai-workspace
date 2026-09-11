@@ -1,0 +1,176 @@
+[
+  {
+    "namespace": "edgex-edge",
+    "name": "device-serial-jetson-76b6c976fd-kmgc2",
+    "uid": "bb9d3c87-f9e3-4ec6-bea5-4cce0bd8ba80",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "device-serial-jetson",
+        "restartCount": 0,
+        "ready": true,
+        "containerID": "containerd://347c8ee556231c523b049210f1d33316cbd6347503a0595d67838b8123d12b9b"
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-device-discovery-9lrcx",
+    "uid": "f956637e-c8d3-43bd-ac84-b7c09f32d9b2",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "discovery",
+        "restartCount": 2,
+        "ready": true,
+        "containerID": "containerd://f3b0e16fe334488b1fc6660163919badcd5f524372a8cf9d033a98cc0763a779"
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-modbus-simulator-765b5b547b-47sk2",
+    "uid": "7c2fa23e-1f3d-4a74-86c3-83754e28a5a5",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "simulator",
+        "restartCount": 2,
+        "ready": true,
+        "containerID": "containerd://371d5956a43f72979aca409f5c67001fff98b503b6be576d00800edc772e003e"
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "sensor-anomaly-demo-579cdb4d76-9nnn8",
+    "uid": "3c8513a6-ce82-4fe6-a74c-9038b7bc7d26",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "sensor-anomaly-demo",
+        "restartCount": 0,
+        "ready": true,
+        "containerID": "containerd://303eccfcaf312debd3eff10236775a749bb4af6893b8fc568c9e6e234e142d78"
+      }
+    ]
+  },
+  {
+    "namespace": "kube-system",
+    "name": "kube-flannel-edge-ds-mtjtj",
+    "uid": "7ef4f063-8cb0-4617-af5f-3a1a99c2a31f",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "kube-flannel",
+        "restartCount": 11,
+        "ready": true,
+        "containerID": "containerd://5cc55fbf8b948ca36b89d2ffbbcce6ebcdd8edc1482502ff8858297515a07621"
+      }
+    ]
+  },
+  {
+    "namespace": "kube-system",
+    "name": "prometheus-prometheus-node-exporter-2d2jn",
+    "uid": "3c33cbf8-e8d8-4c41-8032-c63a82ee5eac",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "node-exporter",
+        "restartCount": 12,
+        "ready": true,
+        "containerID": "containerd://dd71c11d16ac21470f6a82062b1218444624e18700c5e7a0ba71b60f167edb0e"
+      }
+    ]
+  },
+  {
+    "namespace": "kubeedge",
+    "name": "edge-eclipse-mosquitto-w74j7",
+    "uid": "98f3a1a1-8648-4673-9948-9a04db9ca5b7",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "edge-eclipse-mosquitto",
+        "restartCount": 12,
+        "ready": true,
+        "containerID": "containerd://3cfec0a0ee89d6c3eeba60cd082c47dc8b6900049d0fbd5fb741b21acf603df5"
+      }
+    ]
+  },
+  {
+    "namespace": "kubeedge",
+    "name": "edgemesh-agent-gb4np",
+    "uid": "7205367e-f7fa-4943-b1b2-43db60f1d26e",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "edgemesh-agent",
+        "restartCount": 2,
+        "ready": true,
+        "containerID": "containerd://4c3612a4d1728d8bc20e9bc029c827e69e5097bb1553da6e701c0ca3fd5429dc"
+      }
+    ]
+  },
+  {
+    "namespace": "llama-offload-eval",
+    "name": "llama-worker-nano-799fc9d6c5-lzm5n",
+    "uid": "5ee77067-db06-4942-8115-9f2cf88f0993",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "api",
+        "restartCount": 0,
+        "ready": true,
+        "containerID": "containerd://55074a96aacc27cd9e3d519437c6a7e2555159b290ce59434b9de2a16c23a0c4"
+      },
+      {
+        "name": "inference-runtime",
+        "restartCount": 0,
+        "ready": true,
+        "containerID": "containerd://480d9677c1b9fcf460bba37ecb0a7d122876fa28bed4d82ebd20844baec97eee"
+      }
+    ]
+  },
+  {
+    "namespace": "offload-test",
+    "name": "j-local-analyzer-64446d9cb-29cnj",
+    "uid": "0df16570-1785-4179-a993-936feb91fb3f",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "j-local-analyzer",
+        "restartCount": 2,
+        "ready": true,
+        "containerID": "containerd://a18da904015112be4a85e45058600a2b11acdf7790d8d30d439888bcfba1fa5b"
+      }
+    ]
+  },
+  {
+    "namespace": "offload-test",
+    "name": "mqtt-temperature-reader-645c84bdb5-qjbk9",
+    "uid": "232ab21a-49bf-4ce0-ba98-2fec91da7181",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "mqtt-temperature-reader",
+        "restartCount": 2,
+        "ready": true,
+        "containerID": "containerd://caf65b32c1120f357cbd1dc7e8c0925b7613165bdf0d0d95da951ddb19a7a506"
+      }
+    ]
+  },
+  {
+    "namespace": "offload-test",
+    "name": "mqtt-vibration-reader-7b678764b8-kddg2",
+    "uid": "2a4eae46-b1f3-46e8-83bd-7674ac96430a",
+    "phase": "Running",
+    "containers": [
+      {
+        "name": "mqtt-vibration-reader",
+        "restartCount": 2,
+        "ready": true,
+        "containerID": "containerd://3fcbe61854b065237d07d7e7d74be9a608ee1a56edcb0e0f8a86babe369c6573"
+      }
+    ]
+  }
+]

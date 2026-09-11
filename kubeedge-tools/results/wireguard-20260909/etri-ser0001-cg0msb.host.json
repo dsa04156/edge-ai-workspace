@@ -1,0 +1,10 @@
+{
+  "node": "etri-ser0001-cg0msb",
+  "role": "control-plane",
+  "vpn_ip": "10.77.0.1",
+  "interface": "wg0",
+  "cloud_ip": "10.77.0.1",
+  "mtu": 1380,
+  "registry_namespace": "192.168.0.56:5000",
+  "registry_endpoint": "http://10.77.0.1:5000"
+}

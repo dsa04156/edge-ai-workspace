@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../jetson
+nameSuffix: -nano
+labels:
+  - pairs:
+      app.kubernetes.io/name: nvidia-jetson-device-plugin-nano
+    includeSelectors: true
+    includeTemplates: true
+patches:
+  - target:
+      kind: DaemonSet
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/nodeSelector/kubernetes.io~1hostname
+        value: etri-dev0001-jetorn

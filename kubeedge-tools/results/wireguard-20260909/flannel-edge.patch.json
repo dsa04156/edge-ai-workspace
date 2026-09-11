@@ -1,0 +1,49 @@
+{
+  "spec": {
+    "updateStrategy": {
+      "type": "OnDelete",
+      "rollingUpdate": null
+    },
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "name": "kube-flannel",
+            "command": [
+              "/bin/sh",
+              "-ec"
+            ],
+            "args": [
+              "set -eu; iface=$(cat \"/etc/kube-flannel-network/$NODE_NAME\"); test -n \"$iface\"; exec /opt/bin/flanneld --iface \"$iface\" --ip-masq --kube-subnet-mgr --kube-api-url=http://127.0.0.1:10550"
+            ],
+            "env": [
+              {
+                "name": "NODE_NAME",
+                "valueFrom": {
+                  "fieldRef": {
+                    "fieldPath": "spec.nodeName"
+                  }
+                }
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "network-interfaces",
+                "mountPath": "/etc/kube-flannel-network",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "network-interfaces",
+            "configMap": {
+              "name": "kube-flannel-network-interfaces"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+[
+  "llama3.2-3b-instruct-q8_0-b0",
+  "qwen2.5-3b-instruct-q8_0-b1",
+  "llama3.2-3b-instruct-q8_0-b1",
+  "qwen2.5-1.5b-instruct-q8_0-b1",
+  "gemma2-2b-instruct-q8_0-b1",
+  "qwen2.5-0.5b-instruct-q8_0-b1",
+  "llama3.2-1b-instruct-q8_0-b1",
+  "llama3.2-3b-instruct-q8_0-b2",
+  "qwen2.5-1.5b-instruct-q8_0-b2",
+  "llama3.2-1b-instruct-q8_0-b2",
+  "qwen2.5-3b-instruct-q8_0-b2",
+  "qwen2.5-0.5b-instruct-q8_0-b2",
+  "gemma2-2b-instruct-q8_0-b2"
+]

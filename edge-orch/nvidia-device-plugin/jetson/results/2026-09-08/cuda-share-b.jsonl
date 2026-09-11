@@ -1,0 +1,14 @@
+{"event": "started", "pod": "cuda-share-b", "time": 1788842817.721044, "gpu": "Orin", "uuid": "375b321a186258ce8355062de84a605f", "visible_devices": "void"}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842817.7923634, "iterations": 1, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842822.6164126, "iterations": 25, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842827.642699, "iterations": 50, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842832.6700342, "iterations": 75, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842837.696194, "iterations": 100, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842842.7206044, "iterations": 125, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842847.7443938, "iterations": 150, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842852.7716067, "iterations": 175, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842857.7948976, "iterations": 200, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842862.8172348, "iterations": 225, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842867.8390086, "iterations": 250, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-b", "time": 1788842872.8637435, "iterations": 275, "checksum": 32896}
+{"event": "passed", "pod": "cuda-share-b", "time": 1788842877.8871853, "iterations": 299, "checksum": 32896}

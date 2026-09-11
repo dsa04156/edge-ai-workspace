@@ -6,7 +6,12 @@ set -o pipefail
 
 source ./tools.sh
 
-KUBEEDGE_VERSION="${KUBEEDGE_VERSION:-v1.22.0}"
+KUBEEDGE_VERSION="${KUBEEDGE_VERSION:?set KUBEEDGE_VERSION explicitly, for example v1.23.0}"
+
+if [[ ! "${KUBEEDGE_VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "KUBEEDGE_VERSION must look like v1.23.0" >&2
+    exit 1
+fi
 
 function ensure_root() {
     if [[ "$(id -u)" -ne 0 ]]; then
@@ -17,8 +22,13 @@ function ensure_root() {
 
 function install_keadm_binary() {
     if command -v keadm >/dev/null 2>&1; then
-        echo "keadm already installed: $(keadm version 2>/dev/null || true)"
-        return
+        local current_version
+        current_version="$(keadm version 2>/dev/null || true)"
+        if grep -Fq "${KUBEEDGE_VERSION#v}" <<<"$current_version"; then
+            echo "keadm already matches ${KUBEEDGE_VERSION}: ${current_version}"
+            return
+        fi
+        echo "replace mismatched keadm with ${KUBEEDGE_VERSION}: ${current_version:-unknown}"
     fi
 
     local arch=$1
@@ -28,13 +38,16 @@ function install_keadm_binary() {
     fi
 
     local url="https://github.com/kubeedge/kubeedge/releases/download/${KUBEEDGE_VERSION}/keadm-${KUBEEDGE_VERSION}-linux-${pkg_arch}.tar.gz"
-    local tmp="/tmp/keadm-${KUBEEDGE_VERSION}-linux-${pkg_arch}.tar.gz"
+    local tmp_dir
+    local archive
+    tmp_dir="$(mktemp -d -t keadm-install.XXXXXXXX)"
+    archive="${tmp_dir}/keadm-${KUBEEDGE_VERSION}-linux-${pkg_arch}.tar.gz"
 
     echo "download keadm: $url"
-    wget -O "$tmp" "$url"
-    tar -xzf "$tmp" -C /tmp
-    install -m 0755 /tmp/keadm/keadm /usr/local/bin/keadm
-    rm -rf /tmp/keadm "$tmp"
+    wget -O "$archive" "$url"
+    tar -xzf "$archive" -C "$tmp_dir"
+    install -m 0755 "$tmp_dir/keadm/keadm" /usr/local/bin/keadm
+    rm -rf "$tmp_dir"
 }
 
 function prepare_k8s_master_node_common() {

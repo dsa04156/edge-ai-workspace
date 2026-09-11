@@ -1,0 +1,2 @@
+{"event": "activation_started", "timestamp": 1789043535.0496073}
+{"event": "gpu_health_ready", "timestamp": 1789043537.9769833, "activation_health_ms": 2927.6826809509657, "layers": ["27", "27"], "pid": "2970"}

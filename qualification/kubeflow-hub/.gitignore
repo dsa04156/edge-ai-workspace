@@ -1,0 +1,4 @@
+artifacts/*.onnx
+results/*.json
+__pycache__/
+*.pyc

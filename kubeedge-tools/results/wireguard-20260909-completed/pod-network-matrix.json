@@ -1,0 +1,32 @@
+[
+  {
+    "host": "3",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0001-jetorn\", \"pid\": \"5629\", \"code\": 0, \"out\": \"DNS 169.254.96.16 answers 1\\nClusterIP HTTP bytes 14490 fresh devices 12\\n\", \"err\": \"\"}\nPod DF 1330 10.244.8.159 0\nPod DF 1330 10.244.0.26 0\nPod DF 1330 10.244.1.16 0\nPod DF 1330 10.244.4.168 0\nPod DF 1330 10.244.2.110 0\nPod DF 1330 10.244.6.10 0\n",
+    "err": ""
+  },
+  {
+    "host": "4",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0002-raspi5\", \"pid\": \"3696\", \"code\": 0, \"out\": \"DNS 169.254.96.16 answers 1\\nClusterIP HTTP bytes 14490 fresh devices 12\\n\", \"err\": \"\"}\nPod DF 1330 10.244.8.159 0\nPod DF 1330 10.244.0.26 0\nPod DF 1330 10.244.1.16 0\nPod DF 1330 10.244.4.168 0\nPod DF 1330 10.244.2.110 0\nPod DF 1330 10.244.6.10 0\n",
+    "err": "time=\"2026-09-09T17:43:16+09:00\" level=warning msg=\"DEPRECATION: CRI API v1alpha2 is deprecated since containerd v1.7 and removed in containerd v2.0. Use CRI API v1 instead.\"\n"
+  },
+  {
+    "host": "5",
+    "code": 0,
+    "out": "{\"node\": \"etri-ser0002-cgnmsb\", \"pid\": \"15371\", \"code\": 0, \"out\": \"DNS 10.96.0.10 answers 1\\nClusterIP HTTP bytes 14490 fresh devices 12\\n\", \"err\": \"\"}\nPod DF 1330 10.244.8.159 0\nPod DF 1330 10.244.0.26 0\nPod DF 1330 10.244.1.16 0\nPod DF 1330 10.244.4.168 0\nPod DF 1330 10.244.2.110 0\nPod DF 1330 10.244.6.10 0\n",
+    "err": ""
+  },
+  {
+    "host": "6",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0003-raspi5\", \"pid\": \"4407\", \"code\": 0, \"out\": \"DNS 169.254.96.16 answers 1\\nClusterIP HTTP bytes 14490 fresh devices 12\\n\", \"err\": \"\"}\nPod DF 1330 10.244.8.159 0\nPod DF 1330 10.244.0.26 0\nPod DF 1330 10.244.1.16 0\nPod DF 1330 10.244.4.168 0\nPod DF 1330 10.244.2.110 0\nPod DF 1330 10.244.6.10 0\n",
+    "err": "time=\"2026-09-09T17:43:16+09:00\" level=warning msg=\"DEPRECATION: CRI API v1alpha2 is deprecated since containerd v1.7 and removed in containerd v2.0. Use CRI API v1 instead.\"\n"
+  },
+  {
+    "host": "8",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0005-jetagx\", \"pid\": \"98403\", \"code\": 0, \"out\": \"DNS 169.254.96.16 answers 1\\nClusterIP HTTP bytes 14490 fresh devices 12\\n\", \"err\": \"\"}\nPod DF 1330 10.244.8.159 0\nPod DF 1330 10.244.0.26 0\nPod DF 1330 10.244.1.16 0\nPod DF 1330 10.244.4.168 0\nPod DF 1330 10.244.2.110 0\nPod DF 1330 10.244.6.10 0\n",
+    "err": "bash: warning: setlocale: LC_ALL: cannot change locale (ko_KR.UTF-8)\n"
+  }
+]

@@ -5,7 +5,7 @@
 이 저장소는 KubeEdge node/workload 관리와 EdgeX 물리 디바이스 연동을 결합한 혼합 디바이스 엣지 AI 플랫폼 PoC다.
 현재 목표는 복잡한 동적 오케스트레이션을 먼저 완성하는 것이 아니라, 디바이스와 서비스를 실제로 연결하고 이를 대시보드에서 운영 관점으로 보이게 만드는 것이다.
 
-작업 전 아래 문서를 기준으로 판단한다.
+아래 문서는 해당 주제를 구현·변경·설명할 때 필요한 것만 읽는다. 이미 확인한 동일 상태의 문서는 재사용한다.
 
 - `docs/프로젝트-범위.md`: 현재 구현, 후속 설계와 명시적 제외 범위의 최상위 기준
 - `docs/저장소-구조.md`: 현재 구현 경로, 배포 소유권과 legacy 경계
@@ -67,43 +67,11 @@
 
 ## 구현 규칙
 
-- 물리 디바이스는 EdgeX Core Metadata의 Device Profile과 Device로 사전 등록한다.
-- EdgeX Device Service가 MQTT/Serial/Modbus/OPC-UA/RTSP endpoint의 연결, 표준화, 상태와 지원 command를 독점 관리한다.
-- 일반 `edge-device-discovery`는 지정된 모든 edge node에서 USB Serial의 `/dev/serial/by-id/*`를 읽기 전용으로 수동적(passive) 관측한다. dev0003의 별도 I2C Agent만 allowlist bus/address와 read-only chip identity를 확인한다. 발견 후보는 승인 전 임시 정보이며 EdgeX inventory, Device Service 통신 성공 또는 센서 응답 근거가 아니다.
-- MQTT/Modbus/OPC-UA/RTSP/REST 네트워크 endpoint는 광역 probe하지 않고 대시보드에서 후보로 직접 선언한다. 후보에는 비밀번호, token, URL userinfo와 임의 image/command/hostPath를 저장하지 않는다.
-- 발견 후보의 `accepted`는 검토 상태일 뿐 자동 Device 등록이나 workload 배포가 아니다. exact node/protocol/path가 검증된 Git Adapter Catalog binding과 일치한 후보만 기존 EdgeX 등록 마법사로 넘길 수 있다.
-- 발견 후보, 상태 이력, 승인과 등록 Saga는 Adapter Controller의 PVC SQLite에 보관한다. 기존 `edgex-device-discovery-registry` ConfigMap은 최초 기동의 1회 migration 입력일 뿐 권위 저장소가 아니며 최종 Device/Profile/state/Event 권위는 계속 EdgeX다.
-- 발견 DaemonSet의 read-only `/dev`, `/sys` host mount는 고정된 수동 관측 agent에만 허용한다. 이 예외를 Device Service workload나 UI 입력형 hostPath로 확장하지 않는다.
-- 중앙 EdgeX Core Keeper, Core Metadata, Core Data, Core Command, 내부 MessageBus,
-  PostgreSQL과 ingest gateway는 `etri-ser0002-cgnmsb`에 한 세트만 배치한다.
-- 중앙 내부 `edgex-messagebus`는 ClusterIP로 분리하며 고정 ClusterIP/PodIP/node IP를 데이터 경로에 사용하지 않는다.
-- MQTT broker는 MQTT-only 장비 또는 명시적 local pub/sub가 필요한 노드에만 둔다. Modbus, OPC-UA, Serial, I2C 직접 Device Service에는 MQTT를 요구하지 않는다.
-- `edgex-edge`에는 공식 EdgeX Device SDK 기반 `device-serial-jetson`과
-  `device-sensehat-raspi`가 배포되어 각각 `etri-dev0001-jetorn`의 Arduino Serial과
-  `etri-dev0003-raspi5`의 Sense HAT I2C를 직접 수집한다. 이전 `edgex-edge-agent-*`,
-  outbox PVC와 Agent 전용 Metadata bootstrap은 퇴역 상태다.
-- 현재 검증된 수직 슬라이스는 `arduino-001` → `device-serial-jetson`과
-  `sensehat-001` → `device-sensehat-raspi`다. 세부 EdgeX Device 목록과 resource 계약은
-  `docs/프로젝트-범위.md`를 따르며, 중앙 Core Data Event와 dashboard freshness까지 같은
-  물리 source identity로 연결한다.
-- RTSP frame은 Core Data로 운반하지 않고 승인된 소비 서비스 Pod가 요청 시 직접
-  구독한다. 상태·분석 결과 metadata만 EdgeX Event로 전달할 수 있다.
-- Device Profile의 read-only command GET은 현재값 조회에 사용한다. write command, actuator mutation, runtime migration/offloading은 별도 승인과 검증 전까지 비활성이다.
-- KubeEdge는 엣지 노드와 워크로드 관리에만 사용하며 KubeEdge Device/DeviceModel/DeviceStatus를 물리 디바이스 권위나 병행 plane으로 사용하지 않는다.
-- EdgeX 운영 배포의 단일 진입점은 root `edgex/k8s/kustomization.yaml`이며 Argo CD Application `edgex-telemetry`가 동기화한다.
-- `edgex/telemetry-plane/`의 edge Agent 코드는 운영 경로가 아니다. 중앙 ingest gateway는 유지되지만 현재 Serial Device Service 데이터 경로에는 참여하지 않는다.
-- 운영 namespace는 중앙 `edgex-system`과 물리 노드 Device Service용 `edgex-edge`로 분리한다.
-- `mappers/mqttvirtual/`, mapper direct-to-Influx, `command`/`heartbeat` topic은 legacy test/integration 경로이며 fallback이 아니다.
-- 대시보드 분류상 물리 디바이스 노드 availability는 Kubernetes/KubeEdge와 Prometheus
-  node snapshot으로 판단한다.
-- 센서 디바이스 availability는 중앙 EdgeX `adminState`, `operatingState`, Core Data
-  최신 Event freshness로 판단하며 Kubernetes node placement를 gate로 사용하지 않는다.
-- transport 연결 복구는 `docs/디바이스-연결-복구-표준.md`의 공통 상태와 측정 경계를
-  따른다. `RecoveryStrategy`는 의미 기반 allowlist로 선언하고 Device Service adapter가
-  고정 동작으로 구현한다. 대시보드나 등록 입력에서 임의 Serial byte, MQTT topic 또는
-  command를 받지 않는다. protocol 행이나 설계 계약만 존재하는 기능을 구현 완료로
-  설명하지 않고 실제 adapter·binding·자동시험·실장비 반복시험을 모두 확인한다.
+- 물리 inventory/state/telemetry/command 권위는 EdgeX, KubeEdge는 node/workload 관리다. legacy mapper를 병행 plane이나 fallback으로 쓰지 않는다.
+- 광역 network probe·자동 등록·임의 command/hostPath를 추가하지 않는다. write command·actuator·runtime migration/offloading은 별도 승인과 검증 전까지 비활성이다.
+- 운영 배포는 `edgex/k8s/kustomization.yaml`과 Argo CD `edgex-telemetry`를 따른다. 발견 후보나 설계 문서를 실제 연동 성공으로 보고하지 않는다.
 
+디바이스·telemetry·배포·상태·연결 복구를 구현·변경·설명하거나 운영을 진단할 때 [.instruction-guides/implementation-policy.md](.instruction-guides/implementation-policy.md)를 읽고 따른다. 같은 작업에서 이미 확인했고 변경되지 않았다면 재사용한다.
 
 ## Legacy / Archive Boundary
 
@@ -156,8 +124,6 @@
 
 ## Semantica 영속 기억
 
-- 중요한 작업을 시작할 때 Semantica 그래프 요약을 확인하고, 현재 작업과 관련된 과거 결정 및 미해결 위험을 조회한 뒤 계획한다.
-- 기존 아키텍처, 범위, 제약 또는 인터페이스를 변경하려는 시점에는 관련 선행 결정을 다시 조회해 충돌 여부를 확인한다.
-- 중요한 작업의 최종 답변을 작성하기 전에 이번 작업에서 확정된 요구사항, 설계 결정과 근거, 검증 결과, 남은 위험을 Semantica에 기록한다.
-- 대화 전문, 임시 추론, 자격 증명, 비밀정보, 개인정보 또는 검증되지 않은 주장은 저장하지 않는다.
-- 저장할 영속 정보가 없으면 기록을 만들지 않는다. Semantica를 사용할 수 없으면 기록한 것처럼 말하지 말고 최종 답변에 해당 사실을 알린다.
+- 중요한 작업 시작 시 관련 결정·미해결 위험을 조회한다. 같은 범위에서 이미 확인한 내용은 재사용하고, 범위·계약 변경이나 충돌이 생기면 다시 조회한다.
+- 종료 전 새로 확정된 요구·결정·근거·검증·남은 위험만 기록한다. 새 영속 정보가 없으면 쓰지 않는다. 작업 방식 개선은 관찰 로그, UI 토큰은 디자인 문서에 두며 전문을 중복 저장하지 않는다.
+- 비밀·개인정보·대화 전문·임시 추론·미검증 주장은 저장하지 않는다. 도구를 사용할 수 없으면 로컬 기록을 남기고 그 한계를 알린다.

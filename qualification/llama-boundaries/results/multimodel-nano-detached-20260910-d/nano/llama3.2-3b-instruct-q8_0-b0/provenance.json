@@ -1,0 +1,112 @@
+{
+  "node": "nano",
+  "physical_node": "etri-dev0001-jetorn",
+  "pod_uid": "fe53b9fc-d0a3-429f-b7fd-c267945a8219",
+  "config": {
+    "schema_version": 1,
+    "experiment_only": true,
+    "automatic_production_switching": false,
+    "model": {
+      "family": "llama3.2:3b-instruct-q8_0",
+      "quantization": "Q8_0",
+      "sha256": "ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688",
+      "path": "/root/.ollama/models/blobs/sha256-ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688"
+    },
+    "runtime": {
+      "binary": "/usr/lib/ollama/llama-server",
+      "library_path": "/usr/lib/ollama:/usr/lib/ollama/cuda_jetpack6:/usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/tegra",
+      "backend_path": "/usr/lib/ollama/cuda_jetpack6/libggml-cuda.so",
+      "reported_revision": "d222767c7",
+      "distribution": "Same immutable Ollama 0.33.2 multiarch image; architecture-specific CUDA backend",
+      "host": "127.0.0.1",
+      "port": 18200,
+      "threads": 4,
+      "context": 4096,
+      "batch": 512,
+      "ubatch": 128,
+      "parallel_slots": 1,
+      "gpu_layers": 99,
+      "kv_type": "f16",
+      "flash_attention": "off",
+      "image_digest": "sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2"
+    },
+    "workload": {
+      "input_tokens": 512,
+      "output_tokens": 128,
+      "seed": 20260907,
+      "cache_prompt": false,
+      "ignore_eos": true
+    },
+    "safety": {
+      "request_timeout_s": 30,
+      "activation_timeout_s": 90,
+      "max_smoke_requests": 3,
+      "max_smoke_duration_s": 180,
+      "max_temperature_c": 80,
+      "min_available_ram_mib": 1024
+    },
+    "policy_proposals_not_validated": {
+      "slo_ttft_ms": null,
+      "slo_latency_ms": null,
+      "minimum_gain_fraction": 0.15,
+      "cooldown_s": 30
+    },
+    "ramp_concurrency": [
+      2,
+      4
+    ]
+  },
+  "model": {
+    "model": "llama3.2:3b-instruct-q8_0",
+    "slug": "llama3.2-3b-instruct-q8_0",
+    "quantization": "Q8_0",
+    "sha256": "ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688",
+    "size_bytes": 3421898976,
+    "path": "/home/jinuk/codex-work/jinuk/qualification/llama-boundaries/.models-20260910/ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688.gguf",
+    "source": "https://registry.ollama.ai/v2/library/llama3.2/manifests/3b-instruct-q8_0",
+    "manifest_sha256": "e410b836fe6132b8c5e09bd83156dab0ce2c19f371e0bce2d77e993f8a65241a",
+    "manifest": {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.docker.container.image.v1+json",
+        "digest": "sha256:eb854b581f548d79e2c3c37475009a2ff5d7f71a985a97d54c482d60c97d4c82",
+        "size": 559
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.ollama.image.model",
+          "digest": "sha256:ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688",
+          "size": 3421898976
+        },
+        {
+          "mediaType": "application/vnd.ollama.image.template",
+          "digest": "sha256:966de95ca8a62200913e3f8bfbf84c8494536f1b94b49166851e76644e966396",
+          "size": 1429
+        },
+        {
+          "mediaType": "application/vnd.ollama.image.license",
+          "digest": "sha256:fcc5a6bec9daf9b561a68827b67ab6088e1dba9d1fa2a50d7bbcc8384e0a265d",
+          "size": 7711
+        },
+        {
+          "mediaType": "application/vnd.ollama.image.license",
+          "digest": "sha256:a70ff7e570d97baaf4e62ac6e6ad9975e04caa6d900d3742d37698494479e0cd",
+          "size": 6016
+        },
+        {
+          "mediaType": "application/vnd.ollama.image.params",
+          "digest": "sha256:56bb8bd477a519ffa694fc449c2413c6f0e1d3b1c88fa7e3c9d88d3ae49d4dcb",
+          "size": 96
+        }
+      ]
+    },
+    "upstream_revision": null,
+    "verified_at": 1789042444.1729379
+  },
+  "version": "version: 0.3.0-dev (build 1, commit d222767c7)\nbuilt with Clang 21.1.8 for Linux aarch64\n",
+  "block": 0,
+  "timing_scope": "device-local API sidecar to native loopback; detached processes; logs on tmpfs",
+  "thermal_conditioning": "all observed host thermal zones <=60C before each case",
+  "quality_evaluation": false
+}

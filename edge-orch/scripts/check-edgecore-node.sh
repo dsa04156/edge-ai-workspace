@@ -13,7 +13,7 @@ if [[ -z "${NODE_NAME}" ]]; then
 fi
 
 DEBUG_IMAGE="${DEBUG_IMAGE:-busybox:latest}"
-KUBE_DNS_IP="${KUBE_DNS_IP:-10.96.0.10}"
+KUBE_DNS_IP="${KUBE_DNS_IP:-169.254.96.16}"
 
 PASS_COUNT=0
 WARN_COUNT=0

@@ -1,0 +1,106 @@
+{
+  "node": "spark",
+  "physical_node": "etri-ser0003-cg0ms0",
+  "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca",
+  "config": {
+    "schema_version": 1,
+    "experiment_only": true,
+    "automatic_production_switching": false,
+    "model": {
+      "family": "qwen2.5:1.5b-instruct-q8_0",
+      "quantization": "Q8_0",
+      "sha256": "144ea9981a90447fb1dbbd8f0a872e3dea0f6eed3db2adde402f22b752ea1caa",
+      "path": "/models/blobs/sha256-144ea9981a90447fb1dbbd8f0a872e3dea0f6eed3db2adde402f22b752ea1caa"
+    },
+    "runtime": {
+      "binary": "/usr/lib/ollama/llama-server",
+      "library_path": "/usr/lib/ollama:/usr/lib/ollama/cuda_v13:/usr/lib/aarch64-linux-gnu/nvidia:/usr/lib/aarch64-linux-gnu/tegra",
+      "backend_path": "/usr/lib/ollama/cuda_v13/libggml-cuda.so",
+      "reported_revision": "d222767c7",
+      "distribution": "Same immutable Ollama 0.33.2 multiarch image; architecture-specific CUDA backend",
+      "host": "127.0.0.1",
+      "port": 18200,
+      "threads": 4,
+      "context": 4096,
+      "batch": 512,
+      "ubatch": 128,
+      "parallel_slots": 1,
+      "gpu_layers": 99,
+      "kv_type": "f16",
+      "flash_attention": "off",
+      "image_digest": "sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2"
+    },
+    "workload": {
+      "input_tokens": 512,
+      "output_tokens": 128,
+      "seed": 20260907,
+      "cache_prompt": false,
+      "ignore_eos": true
+    },
+    "safety": {
+      "request_timeout_s": 30,
+      "activation_timeout_s": 90,
+      "max_smoke_requests": 3,
+      "max_smoke_duration_s": 180,
+      "max_temperature_c": 80,
+      "min_available_ram_mib": 1024
+    },
+    "policy_proposals_not_validated": {
+      "slo_ttft_ms": null,
+      "slo_latency_ms": null,
+      "minimum_gain_fraction": 0.15,
+      "cooldown_s": 30
+    },
+    "ramp_concurrency": [
+      2,
+      4
+    ]
+  },
+  "version": "version: 0.3.0-dev (build 1, commit d222767c7)\nbuilt with Clang 21.1.8 for Linux aarch64\n",
+  "model": {
+    "model": "qwen2.5:1.5b-instruct-q8_0",
+    "slug": "qwen2.5-1.5b-instruct-q8_0",
+    "quantization": "Q8_0",
+    "sha256": "144ea9981a90447fb1dbbd8f0a872e3dea0f6eed3db2adde402f22b752ea1caa",
+    "size_bytes": 1646573056,
+    "path": "/home/jinuk/codex-work/jinuk/qualification/llama-boundaries/.models-20260910/144ea9981a90447fb1dbbd8f0a872e3dea0f6eed3db2adde402f22b752ea1caa.gguf",
+    "source": "https://registry.ollama.ai/v2/library/qwen2.5/manifests/1.5b-instruct-q8_0",
+    "manifest_sha256": "b19683a34698365318287452c1711a7dd94253eba73c1f834e09a09c2b8d9415",
+    "manifest": {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.docker.container.image.v1+json",
+        "digest": "sha256:f573a68391c5aba2d226be36cfcf7c71b88453c98f780f8326e340f4cd62fcb0",
+        "size": 485
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.ollama.image.model",
+          "digest": "sha256:144ea9981a90447fb1dbbd8f0a872e3dea0f6eed3db2adde402f22b752ea1caa",
+          "size": 1646573056
+        },
+        {
+          "mediaType": "application/vnd.ollama.image.system",
+          "digest": "sha256:66b9ea09bd5b7099cbb4fc820f31b575c0366fa439b08245566692c6784e281e",
+          "size": 68
+        },
+        {
+          "mediaType": "application/vnd.ollama.image.template",
+          "digest": "sha256:eb4402837c7829a690fa845de4d7f3fd842c2adee476d5341da8a46ea9255175",
+          "size": 1482
+        },
+        {
+          "mediaType": "application/vnd.ollama.image.license",
+          "digest": "sha256:832dd9e00a68dd83b3c3fb9f5588dad7dcf337a0db50f7d9483f310cd292e92e",
+          "size": 11343
+        }
+      ]
+    },
+    "upstream_revision": null,
+    "verified_at": 1789042433.6267571
+  },
+  "block": 0,
+  "timing_scope": "device-local API sidecar to runtime loopback",
+  "quality_evaluation": false
+}

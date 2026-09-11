@@ -1,0 +1,12 @@
+{
+  "retained_failed_pods": [
+    {
+      "pod": "llama-continuity-test/llama-agx-6fbd4fd799-zz9fx",
+      "reason": "UnexpectedAdmissionError",
+      "message": "Pod was rejected: Allocate failed due to no healthy devices present; cannot allocate unhealthy devices nvidia.com/gpu.shared, which is unexpected"
+    }
+  ],
+  "agx_deployment_available": 1,
+  "recovery": "ReplicaSet replaced GPU-admission-failed old Pod; current API health passed",
+  "benchmark_readiness": "Old EmptyDir results mount had zero links and no files; exact Pod recreated from unchanged Deployment; no inference/benchmark run submitted"
+}

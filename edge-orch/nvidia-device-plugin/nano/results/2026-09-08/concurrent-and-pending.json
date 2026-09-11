@@ -1,0 +1,210 @@
+{
+  "observedAt": "2026-09-08T05:05:34.695642+00:00",
+  "pods": [
+    {
+      "name": "cuda-no-request",
+      "uid": "59540ef4-bf85-47d7-b0d7-59ae18c8a192",
+      "node": "etri-dev0001-jetorn",
+      "phase": "Succeeded",
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:05:02Z",
+          "status": "False",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:35Z",
+          "reason": "PodCompleted",
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:05:00Z",
+          "reason": "PodCompleted",
+          "status": "False",
+          "type": "Ready"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:05:00Z",
+          "reason": "PodCompleted",
+          "status": "False",
+          "type": "ContainersReady"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:32Z",
+          "status": "True",
+          "type": "PodScheduled"
+        }
+      ],
+      "containers": [
+        {
+          "containerID": "containerd://0d08f8bceea4b02ce6dd5474036e9419d6dcc87b8f180a2f26a364dbc093a89a",
+          "image": "sha256:4f8d1afed6d58037c680221ca6dd9fb4737b7ecfa7d4809ca809fdc0c7d9b786",
+          "imageID": "docker.io/library/python@sha256:3949e4271b0a3ff82afac7306764c313dcc8edeeb89c0376a3c2ac6007c66b1d",
+          "lastState": {},
+          "name": "probe",
+          "ready": false,
+          "restartCount": 0,
+          "started": false,
+          "state": {
+            "terminated": {
+              "containerID": "containerd://0d08f8bceea4b02ce6dd5474036e9419d6dcc87b8f180a2f26a364dbc093a89a",
+              "exitCode": 0,
+              "finishedAt": "2026-09-08T05:04:55Z",
+              "reason": "Completed",
+              "startedAt": "2026-09-08T05:04:52Z"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "cuda-share-a",
+      "uid": "da11c81c-1453-4e3f-aca0-4ae9356b1cf9",
+      "node": "etri-dev0001-jetorn",
+      "phase": "Running",
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:05:17Z",
+          "status": "True",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:12Z",
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:05:17Z",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:05:17Z",
+          "status": "True",
+          "type": "ContainersReady"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:09Z",
+          "status": "True",
+          "type": "PodScheduled"
+        }
+      ],
+      "containers": [
+        {
+          "containerID": "containerd://d78f930b0612b022a9302cfa29d8fd780ab778d24fc819d834e2a747922ed359",
+          "image": "sha256:4f8d1afed6d58037c680221ca6dd9fb4737b7ecfa7d4809ca809fdc0c7d9b786",
+          "imageID": "docker.io/library/python@sha256:3949e4271b0a3ff82afac7306764c313dcc8edeeb89c0376a3c2ac6007c66b1d",
+          "lastState": {},
+          "name": "probe",
+          "ready": true,
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-09-08T05:05:16Z"
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/probe",
+              "name": "probe",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cuda-share-b",
+      "uid": "abde698e-8571-4b4b-bfe5-8eea1cb7bab2",
+      "node": "etri-dev0001-jetorn",
+      "phase": "Running",
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:56Z",
+          "status": "True",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:12Z",
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:56Z",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:56Z",
+          "status": "True",
+          "type": "ContainersReady"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:09Z",
+          "status": "True",
+          "type": "PodScheduled"
+        }
+      ],
+      "containers": [
+        {
+          "containerID": "containerd://d76c38f26512a883945aafe2b6f492343813abb5c5fdf634a036a5989d4faa72",
+          "image": "sha256:4f8d1afed6d58037c680221ca6dd9fb4737b7ecfa7d4809ca809fdc0c7d9b786",
+          "imageID": "docker.io/library/python@sha256:3949e4271b0a3ff82afac7306764c313dcc8edeeb89c0376a3c2ac6007c66b1d",
+          "lastState": {},
+          "name": "probe",
+          "ready": true,
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-09-08T05:04:55Z"
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/probe",
+              "name": "probe",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cuda-share-c",
+      "uid": "7d89fb39-dccf-4675-8b8f-a0de9a39d256",
+      "node": null,
+      "phase": "Pending",
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-09-08T05:04:32Z",
+          "message": "0/7 nodes are available: 1 Insufficient nvidia.com/gpu.shared, 6 node(s) didn't match Pod's node affinity/selector. preemption: 0/7 nodes are available: 1 No preemption victims found for incoming pod, 6 Preemption is not helpful for scheduling.",
+          "reason": "Unschedulable",
+          "status": "False",
+          "type": "PodScheduled"
+        }
+      ],
+      "containers": null
+    }
+  ]
+}

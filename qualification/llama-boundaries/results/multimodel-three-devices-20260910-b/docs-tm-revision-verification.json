@@ -1,0 +1,25 @@
+{
+  "verified_at": "2026-09-11T05:30:55.178465+00:00",
+  "tm_id": "TM-LLM-20260910-01",
+  "revision": "1.1",
+  "docs_tests_passed": 21,
+  "unchanged_source_attachments": 12,
+  "static_html_links_checked": 44,
+  "all_original_table_rows_preserved": true,
+  "references": [
+    {
+      "title": "NASA Publications Guide for Authors",
+      "report": "NASA/SP-2015-7602 Rev.2",
+      "url": "https://ntrs.nasa.gov/api/citations/20150013303/downloads/20150013303.pdf",
+      "consulted": "Chapter 4, pp.14-18",
+      "access": "insane-search curl_cffi PDF extraction"
+    },
+    {
+      "title": "NPR 2200.2D",
+      "url": "https://nodis3.gsfc.nasa.gov/displayAll.cfm?Internal_ID=N_PR_2200_002D_&page_name=all",
+      "consulted": "Appendix D.1.3",
+      "access": "web"
+    }
+  ],
+  "source_markdown_sha256": "8c96c3dce2709d963d3908ea54f1e4b278aeee68c89d7eb5160bc23759f4ee72"
+}

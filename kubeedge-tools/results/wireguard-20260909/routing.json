@@ -1,0 +1,21 @@
+{
+  "hub": "etri-ser0001-cg0msb",
+  "spoke_allowed_ips": [
+    "10.77.0.0/24",
+    "192.168.0.7/32"
+  ],
+  "hub_peer_allowed_ips": {
+    "etri-ser0002-cgnmsb": "10.77.0.5/32",
+    "etri-dev0001-jetorn": "10.77.0.3/32",
+    "etri-dev0002-raspi5": "10.77.0.4/32",
+    "etri-dev0003-raspi5": "10.77.0.6/32",
+    "etri-dev0005-jetagx": "10.77.0.8/32"
+  },
+  "lan_return_routes": {
+    "etri-dev0004-tedger": {
+      "destination": "10.77.0.0/24",
+      "via": "192.168.0.56"
+    }
+  },
+  "default_route_changed": false
+}

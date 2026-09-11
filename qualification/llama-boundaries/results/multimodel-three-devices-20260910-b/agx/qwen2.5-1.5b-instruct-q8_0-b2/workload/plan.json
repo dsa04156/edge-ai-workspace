@@ -1,0 +1,45 @@
+{
+  "cases": [
+    [
+      128,
+      64,
+      1
+    ],
+    [
+      512,
+      128,
+      4
+    ],
+    [
+      512,
+      256,
+      1
+    ],
+    [
+      512,
+      128,
+      2
+    ],
+    [
+      512,
+      128,
+      8
+    ],
+    [
+      2048,
+      128,
+      1
+    ],
+    [
+      512,
+      128,
+      1
+    ]
+  ],
+  "block": 2,
+  "request_timeout_s": 180,
+  "workload_seed": 20260908,
+  "ignore_eos": true,
+  "quality_evaluation": false,
+  "production_enabled": false
+}

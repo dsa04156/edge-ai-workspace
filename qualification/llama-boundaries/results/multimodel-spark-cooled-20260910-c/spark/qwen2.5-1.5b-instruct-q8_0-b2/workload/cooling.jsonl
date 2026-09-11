@@ -1,0 +1,8 @@
+{"wait_s": 2.0014366710092872, "readings": [{"at": 1789044586.2236207, "maximum_temperature_c": 60.7}, {"at": 1789044588.2245262, "maximum_temperature_c": 58.8}]}
+{"wait_s": 2.0020175899990136, "readings": [{"at": 1789044589.551054, "maximum_temperature_c": 66.5}, {"at": 1789044591.5521588, "maximum_temperature_c": 59.3}]}
+{"wait_s": 2.002818043998559, "readings": [{"at": 1789044592.0891201, "maximum_temperature_c": 61.1}, {"at": 1789044594.0909946, "maximum_temperature_c": 59.0}]}
+{"wait_s": 4.004512644009083, "readings": [{"at": 1789044598.5664608, "maximum_temperature_c": 72.1}, {"at": 1789044600.5682368, "maximum_temperature_c": 61.1}, {"at": 1789044602.5700076, "maximum_temperature_c": 59.9}]}
+{"wait_s": 4.004137517011259, "readings": [{"at": 1789044604.7772164, "maximum_temperature_c": 66.5}, {"at": 1789044606.778393, "maximum_temperature_c": 60.6}, {"at": 1789044608.7803113, "maximum_temperature_c": 59.6}]}
+{"wait_s": 4.00421593899955, "readings": [{"at": 1789044610.976817, "maximum_temperature_c": 69.0}, {"at": 1789044612.9785345, "maximum_temperature_c": 60.5}, {"at": 1789044614.979976, "maximum_temperature_c": 59.8}]}
+{"wait_s": 8.004366788998595, "readings": [{"at": 1789044623.9813418, "maximum_temperature_c": 72.6}, {"at": 1789044625.9825797, "maximum_temperature_c": 62.9}, {"at": 1789044627.9836361, "maximum_temperature_c": 61.4}, {"at": 1789044629.984637, "maximum_temperature_c": 60.8}, {"at": 1789044631.9852235, "maximum_temperature_c": 60.0}]}
+{"wait_s": 4.002280308995978, "readings": [{"at": 1789044633.4587982, "maximum_temperature_c": 66.7}, {"at": 1789044635.4595118, "maximum_temperature_c": 60.8}, {"at": 1789044637.4605482, "maximum_temperature_c": 59.9}]}

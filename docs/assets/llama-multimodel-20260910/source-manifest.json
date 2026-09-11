@@ -1,0 +1,66 @@
+{
+  "measurement_date": "2026-09-10",
+  "documentation_date": "2026-09-11",
+  "files": [
+    {
+      "file": "model-comparison.png",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/model-comparison.png",
+      "sha256": "2b57309073c625c6e8a931eda7610b3cc819b5242d654e0292212e6a25f8a29f"
+    },
+    {
+      "file": "model-comparison.svg",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/model-comparison.svg",
+      "sha256": "3ec41653fa60bc6fbdd152bdb5883b5180c8d3468a3f6ba15fb5c75514c076cf"
+    },
+    {
+      "file": "comparison.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/comparison.json",
+      "sha256": "f363976a2da98882ae252d5bf6e6b581c9c11ce62d7b7ea23fc9ef6918bd280e"
+    },
+    {
+      "file": "models.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/models.json",
+      "sha256": "f913ef44c8a6b3a1ec7b186b6d4815c170f8cbca429ba3675348dc0fc753ffc1"
+    },
+    {
+      "file": "hardware.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/hardware.json",
+      "sha256": "174ab9e80e8c43709172a922c0b5814ca492d57823f3dbf046482b6e5db44fd0"
+    },
+    {
+      "file": "requests.csv",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/requests.csv",
+      "sha256": "b9b1d019ec2d9ca7794985a2d569e35e6e4da247e003f69823c309c02a316c93"
+    },
+    {
+      "file": "verification.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/verification.json",
+      "sha256": "2b4aa22e51e0edd5b363612d39f83f1bbdbdf17775bc05addc6dcad31ad4d9e0"
+    },
+    {
+      "file": "aborted-attempt-requests.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/aborted-attempt-requests.json",
+      "sha256": "e14c94f720d9e949b53b17b200889b7869c0163a10007ae6c059e8d5e3ab6b4c"
+    },
+    {
+      "file": "service-restored.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/service-restored.json",
+      "sha256": "752ebbb12ec037af357cad53768f563711649b624bca7e651f2a4aa78ce0b216"
+    },
+    {
+      "file": "final-state.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/final-state.json",
+      "sha256": "23c99e3156f48109d6aefacc6e5713272d86d2a043663587ce00fdd663ef169a"
+    },
+    {
+      "file": "analysis-crosscheck.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/analysis-crosscheck.json",
+      "sha256": "9ec241b9e4eebed2c5d5a935b357017c1e4e82fb22ba564d165ebb535d018195"
+    },
+    {
+      "file": "figure-provenance.json",
+      "source": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/figure-provenance.json",
+      "sha256": "9105866caf82565f9fa0661d0bd998489cc2c50f28088ee9ff31db72afa3f412"
+    }
+  ]
+}

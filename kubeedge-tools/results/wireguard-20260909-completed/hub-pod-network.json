@@ -1,0 +1,16 @@
+{
+  "node": "etri-ser0001-cg0msb",
+  "dns": "10.96.0.10",
+  "dns_answers": 1,
+  "cluster_ip_http_bytes": 14489,
+  "physical_devices_fresh": 12,
+  "df_ip_bytes": 1330,
+  "pod_targets_passed": [
+    "10.244.8.159",
+    "10.244.0.26",
+    "10.244.1.16",
+    "10.244.4.168",
+    "10.244.2.110",
+    "10.244.6.10"
+  ]
+}

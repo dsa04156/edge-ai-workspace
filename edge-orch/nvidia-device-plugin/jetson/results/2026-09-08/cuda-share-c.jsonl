@@ -1,0 +1,4 @@
+{"event": "started", "pod": "cuda-share-c", "time": 1788842882.9210498, "gpu": "Orin", "uuid": "375b321a186258ce8355062de84a605f", "visible_devices": "void"}
+{"event": "kernel_ok", "pod": "cuda-share-c", "time": 1788842882.9219515, "iterations": 1, "checksum": 32896}
+{"event": "kernel_ok", "pod": "cuda-share-c", "time": 1788842887.7488468, "iterations": 25, "checksum": 32896}
+{"event": "passed", "pod": "cuda-share-c", "time": 1788842887.9492426, "iterations": 25, "checksum": 32896}

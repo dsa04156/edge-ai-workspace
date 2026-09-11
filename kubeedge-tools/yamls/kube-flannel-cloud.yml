@@ -1,86 +1,4 @@
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: flannel
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-- apiGroups:
-  - ""
-  resources:
-  - nodes
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - nodes/status
-  verbs:
-  - patch
----
-kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: flannel
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: flannel
-subjects:
-- kind: ServiceAccount
-  name: flannel
-  namespace: kube-system
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: flannel
-  namespace: kube-system
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: kube-flannel-cfg
-  namespace: kube-system
-  labels:
-    tier: node
-    app: flannel
-data:
-  cni-conf.json: |
-    {
-      "name": "cbr0",
-      "cniVersion": "0.3.1",
-      "plugins": [
-        {
-          "type": "flannel",
-          "delegate": {
-            "hairpinMode": true,
-            "isDefaultGateway": true
-          }
-        },
-        {
-          "type": "portmap",
-          "capabilities": {
-            "portMappings": true
-          }
-        }
-      ]
-    }
-  net-conf.json: |
-    {
-      "Network": "10.244.0.0/16",
-      "EnableNFTables": false,
-      "Backend": {
-        "Type": "vxlan"
-      }
-    }
----
+# Apply through ../install-flannel-cloud.sh or the network kustomization.
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -147,21 +65,24 @@ spec:
       - name: kube-flannel
         image: ghcr.io/flannel-io/flannel:v0.28.3
         command:
-        - /opt/bin/flanneld
+        - /bin/sh
+        - -ec
         args:
-        - --ip-masq
-        - --kube-subnet-mgr
+        - set -eu; iface=$(cat "/etc/kube-flannel-network/$NODE_NAME"); test -n "$iface";
+          exec /opt/bin/flanneld --iface "$iface" --ip-masq --kube-subnet-mgr
         resources:
           requests:
-            cpu: "100m"
-            memory: "50Mi"
+            cpu: 100m
+            memory: 50Mi
           limits:
-            cpu: "100m"
-            memory: "50Mi"
+            cpu: 100m
+            memory: 50Mi
         securityContext:
           privileged: false
           capabilities:
-            add: ["NET_ADMIN", "NET_RAW"]
+            add:
+            - NET_ADMIN
+            - NET_RAW
         env:
         - name: POD_NAME
           valueFrom:
@@ -172,9 +93,13 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: EVENT_QUEUE_DEPTH
-          value: "5000"
+          value: '5000'
         - name: CONT_WHEN_CACHE_NOT_READY
-          value: "false"
+          value: 'false'
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         volumeMounts:
         - name: run
           mountPath: /run/flannel
@@ -182,6 +107,9 @@ spec:
           mountPath: /etc/kube-flannel/
         - name: xtables-lock
           mountPath: /run/xtables.lock
+        - name: network-interfaces
+          mountPath: /etc/kube-flannel-network
+          readOnly: true
       volumes:
       - name: run
         hostPath:
@@ -199,3 +127,8 @@ spec:
         hostPath:
           path: /run/xtables.lock
           type: FileOrCreate
+      - name: network-interfaces
+        configMap:
+          name: kube-flannel-network-interfaces
+  updateStrategy:
+    type: OnDelete

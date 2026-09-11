@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-09-09T10:43:54.497866+00:00",
+  "readyNodeCount": 9,
+  "workers": {
+    "etri-ser0003-cg0ms0": "10.77.0.9",
+    "etri-ser0004-cgnms0": "10.77.0.10"
+  },
+  "kubernetesVersion": "v1.31.14",
+  "freshPhysicalDeviceCount": 12,
+  "checks": [
+    "ARM64 smoke Pod",
+    "DNS and Service HTTP",
+    "logs and exec",
+    "existing 6 hosts to Spark Pod HTTP200",
+    "Spark Pod namespace to existing 6 Pod addresses DF1330",
+    "Spark to Mobilint WG DF1380",
+    "Tinker ping",
+    "registry CRI pull",
+    "Prometheus and dashboard healthy",
+    "network configuration tests 41 passed"
+  ],
+  "limits": [
+    "GPU/NPU device plugins and inference not configured",
+    "actual reboot not tested"
+  ]
+}

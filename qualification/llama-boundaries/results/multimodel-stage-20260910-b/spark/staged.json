@@ -1,0 +1,32 @@
+[
+  {
+    "model": "llama3.2:1b-instruct-q8_0",
+    "sha256": "74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45",
+    "path": "/models/blobs/sha256-74701a8c35f6c8d9a4b91f3f3497643001d63e0c7a84e085bed452548fa88d45"
+  },
+  {
+    "model": "llama3.2:3b-instruct-q8_0",
+    "sha256": "ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688",
+    "path": "/models/blobs/sha256-ed5cd7dbde6e2b5fb2d9926857ecf0f73ae3509ac1efd119ee54584d7a724688"
+  },
+  {
+    "model": "qwen2.5:0.5b-instruct-q8_0",
+    "sha256": "4829649671bf775152642cfbbe771ef8b87a68a94e31a8e8995e1c6e5167edb2",
+    "path": "/models/blobs/sha256-4829649671bf775152642cfbbe771ef8b87a68a94e31a8e8995e1c6e5167edb2"
+  },
+  {
+    "model": "qwen2.5:1.5b-instruct-q8_0",
+    "sha256": "144ea9981a90447fb1dbbd8f0a872e3dea0f6eed3db2adde402f22b752ea1caa",
+    "path": "/models/blobs/sha256-144ea9981a90447fb1dbbd8f0a872e3dea0f6eed3db2adde402f22b752ea1caa"
+  },
+  {
+    "model": "qwen2.5:3b-instruct-q8_0",
+    "sha256": "4420ccb0f1d9e12811d04ae2a28ec881469305f813c62d86c10e595ef8e0111d",
+    "path": "/models/blobs/sha256-4420ccb0f1d9e12811d04ae2a28ec881469305f813c62d86c10e595ef8e0111d"
+  },
+  {
+    "model": "gemma2:2b-instruct-q8_0",
+    "sha256": "9a31a1608e139e7ba6ceb61db8c49022eb26886d715363b21a01943f93fbc0d6",
+    "path": "/models/blobs/sha256-9a31a1608e139e7ba6ceb61db8c49022eb26886d715363b21a01943f93fbc0d6"
+  }
+]

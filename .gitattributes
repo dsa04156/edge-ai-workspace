@@ -4,6 +4,7 @@ edgex/core-data/patches/*.patch -whitespace
 qualification/llama-boundaries/results/** -text -whitespace
 qualification/llama-offloading/results/** -text -whitespace
 docs/assets/llama-sweep-20260908/*.csv -text whitespace=cr-at-eol
+docs/assets/llama-multimodel-20260910/** -text -whitespace
 
 # Preserve unified-diff context in the archived driver compatibility patch.
 edge-orch/mobilint-demo/plugin/*.patch -whitespace

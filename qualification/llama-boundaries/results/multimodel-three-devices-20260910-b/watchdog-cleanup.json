@@ -1,0 +1,6 @@
+{
+  "at": "2026-09-10T13:55:59.084577+00:00",
+  "pid": 486870,
+  "terminated_after_verified_restoration": true,
+  "reason": "Watchdog was sleeping in its post-owner grace period with restoration receipt already present"
+}

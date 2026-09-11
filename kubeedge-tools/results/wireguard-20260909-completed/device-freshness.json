@@ -1,0 +1,98 @@
+[
+  {
+    "name": "virtual-temperature-001",
+    "physical_device_id": "arduino-001",
+    "node_name": "etri-dev0001-jetorn",
+    "latest_event_timestamp": "2026-09-09T10:02:54.880845Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "virtual-light-001",
+    "physical_device_id": "arduino-001",
+    "node_name": "etri-dev0001-jetorn",
+    "latest_event_timestamp": "2026-09-09T10:02:54.872830Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "virtual-magnetic-001",
+    "physical_device_id": "arduino-001",
+    "node_name": "etri-dev0001-jetorn",
+    "latest_event_timestamp": "2026-09-09T10:02:54.884995Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "virtual-acceleration-x-001",
+    "physical_device_id": "arduino-001",
+    "node_name": "etri-dev0001-jetorn",
+    "latest_event_timestamp": "2026-09-09T10:02:55.892454Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "virtual-acceleration-y-001",
+    "physical_device_id": "arduino-001",
+    "node_name": "etri-dev0001-jetorn",
+    "latest_event_timestamp": "2026-09-09T10:02:55.892454Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "virtual-acceleration-z-001",
+    "physical_device_id": "arduino-001",
+    "node_name": "etri-dev0001-jetorn",
+    "latest_event_timestamp": "2026-09-09T10:02:55.892454Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "env-sensehat-temperature-01",
+    "physical_device_id": "sensehat-001",
+    "node_name": "etri-dev0003-raspi5",
+    "latest_event_timestamp": "2026-09-09T10:02:55.288532Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "env-sensehat-humidity-01",
+    "physical_device_id": "sensehat-001",
+    "node_name": "etri-dev0003-raspi5",
+    "latest_event_timestamp": "2026-09-09T10:02:55.288532Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "env-sensehat-pressure-01",
+    "physical_device_id": "sensehat-001",
+    "node_name": "etri-dev0003-raspi5",
+    "latest_event_timestamp": "2026-09-09T10:02:56.288604Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "imu-sensehat-compass-01",
+    "physical_device_id": "sensehat-001",
+    "node_name": "etri-dev0003-raspi5",
+    "latest_event_timestamp": "2026-09-09T10:02:56.288604Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "imu-sensehat-orientation-01",
+    "physical_device_id": "sensehat-001",
+    "node_name": "etri-dev0003-raspi5",
+    "latest_event_timestamp": "2026-09-09T10:02:56.288604Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  },
+  {
+    "name": "imu-sensehat-gyroscope-01",
+    "physical_device_id": "sensehat-001",
+    "node_name": "etri-dev0003-raspi5",
+    "latest_event_timestamp": "2026-09-09T10:02:56.288604Z",
+    "telemetry_freshness": "fresh",
+    "overall_status": "available"
+  }
+]

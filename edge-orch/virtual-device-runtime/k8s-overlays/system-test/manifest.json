@@ -1,0 +1,169 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {
+        "labels": {
+          "edge-ai.io/scope": "virtual-device-test"
+        },
+        "name": "virtual-device-test"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "data": {
+        "MODEL_ADAPTER": "nearest-centroid",
+        "MODEL_PATH": "/app/models/iris-centroids.json",
+        "VD_ID": "vd-demo-001"
+      },
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "vd-demo-001-settings",
+        "namespace": "virtual-device-test"
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "name": "vd-demo-001",
+        "namespace": "virtual-device-test"
+      },
+      "spec": {
+        "ports": [
+          {
+            "name": "http",
+            "port": 8080,
+            "targetPort": "http"
+          }
+        ],
+        "selector": {
+          "edge-ai.io/virtual-device-id": "vd-demo-001"
+        },
+        "type": "ClusterIP"
+      }
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "labels": {
+          "edge-ai.io/virtual-device-id": "vd-demo-001"
+        },
+        "name": "vd-demo-001",
+        "namespace": "virtual-device-test"
+      },
+      "spec": {
+        "replicas": 0,
+        "revisionHistoryLimit": 2,
+        "selector": {
+          "matchLabels": {
+            "edge-ai.io/virtual-device-id": "vd-demo-001"
+          }
+        },
+        "strategy": {
+          "type": "Recreate"
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "edge-ai.io/virtual-device-id": "vd-demo-001"
+            }
+          },
+          "spec": {
+            "automountServiceAccountToken": false,
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "POD_UID",
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.uid"
+                      }
+                    }
+                  }
+                ],
+                "envFrom": [
+                  {
+                    "configMapRef": {
+                      "name": "vd-demo-001-settings"
+                    }
+                  }
+                ],
+                "image": "192.168.0.56:5000/virtual-device-runtime@sha256:e752b4e791796e908ba892572cf901aff5cf8646b6e075b6cb6a1971e2704315",
+                "imagePullPolicy": "IfNotPresent",
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/healthz",
+                    "port": "http"
+                  },
+                  "periodSeconds": 10
+                },
+                "name": "inference",
+                "ports": [
+                  {
+                    "containerPort": 8080,
+                    "name": "http"
+                  }
+                ],
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/readyz",
+                    "port": "http"
+                  },
+                  "periodSeconds": 2
+                },
+                "resources": {
+                  "requests": {
+                    "cpu": "100m",
+                    "memory": "64Mi"
+                  },
+                  "limits": {
+                    "cpu": "1",
+                    "memory": "256Mi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  },
+                  "readOnlyRootFilesystem": true
+                }
+              }
+            ],
+            "nodeSelector": {
+              "kubernetes.io/hostname": "etri-ser0002-cgnmsb"
+            },
+            "securityContext": {
+              "runAsGroup": 10001,
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "terminationGracePeriodSeconds": 35
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "virtual-device-registry",
+        "namespace": "virtual-device-test"
+      },
+      "data": {
+        "virtual_devices.json": "{\n  \"schemaVersion\": 1,\n  \"resources\": [\n    {\n      \"apiVersion\": \"augmentation.edge-ai.io/v1alpha1\",\n      \"kind\": \"AugmentationResource\",\n      \"metadata\": {\n        \"name\": \"vd-demo-001\"\n      },\n      \"spec\": {\n        \"displayName\": \"CPU Iris 분류 시험 디바이스\",\n        \"resourceType\": \"cpu\",\n        \"nodeSelector\": {\n          \"kubernetes.io/hostname\": \"etri-ser0002-cgnmsb\"\n        },\n        \"stageTypes\": [\n          \"ai_inference\"\n        ],\n        \"capabilities\": [\n          \"iris_classification\"\n        ],\n        \"runtimeRef\": {\n          \"namespace\": \"virtual-device-test\",\n          \"workloadRef\": {\n            \"kind\": \"Deployment\",\n            \"name\": \"vd-demo-001\"\n          },\n          \"podSelector\": {\n            \"edge-ai.io/virtual-device-id\": \"vd-demo-001\"\n          },\n          \"port\": 8080\n        },\n        \"model\": {\n          \"id\": \"iris-centroid\",\n          \"version\": \"1.0.0\"\n        }\n      }\n    }\n  ],\n  \"connections\": [\n    {\n      \"apiVersion\": \"augmentation.edge-ai.io/v1alpha1\",\n      \"kind\": \"DeviceAugmentation\",\n      \"metadata\": {\n        \"name\": \"jetson-vd-demo\"\n      },\n      \"spec\": {\n        \"targetDevice\": {\n          \"kind\": \"EdgeNode\",\n          \"name\": \"etri-dev0001-jetorn\"\n        },\n        \"bindings\": {\n          \"inferenceResource\": \"vd-demo-001\"\n        },\n        \"workloadPolicy\": {\n          \"mode\": \"manual_test\",\n          \"automaticOffloading\": false,\n          \"runtimeMigration\": false\n        }\n      }\n    }\n  ]\n}"
+      }
+    }
+  ]
+}

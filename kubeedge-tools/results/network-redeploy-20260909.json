@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-09-09T08:55:54.775095+00:00",
+  "scope": "redeploy configuration only; no live apply or Pod restart",
+  "context": "kubernetes-admin@kubernetes",
+  "tests_passed": 41,
+  "flannel_server_dry_run": [
+    "cloud",
+    "edge",
+    "kustomization"
+  ],
+  "flannel_live_spec_equal_ignoring_named_list_order": true,
+  "helm_server_dry_run": [
+    "cloudcore",
+    "edgemesh"
+  ],
+  "helm_revisions": {
+    "cloudcore": "3",
+    "edgemesh": "9"
+  },
+  "sha256": {
+    "kustomization.yaml": "f0f283316e31f008ccb9b34946cfb0b351428d34e9dfd6641c104105a8b888e6",
+    "yamls/kube-flannel-common.yml": "8362a6ccfa38449a1f643f11140113e79625e9a59203a1c2416fe63bf2fed838",
+    "yamls/kube-flannel-cloud.yml": "aba03939bd65bdd196ed5dd18988b2d959f2c8cf5ae92eb791e6159446c7bb5b",
+    "yamls/kube-flannel-edge.yml": "d1d88103340f34c072d29dc15698272e6c6d1fc4f61b110d12ec200399b912f8",
+    "config/flannel-interfaces.yaml": "cd473e2e42ac4c3d16e70da7d120bd9ebd37a40a827fb8bcb3b7c6cb50c60522",
+    "config/cloudcore-network-values.yaml": "b4d8c2afc72e8378d5bf50691045fb647975d5abc016b1fc1b6b95fdb106fea0",
+    "config/edgemesh-values.yaml": "99b200c7c3214eaf46575c7428b61770ac8433095c99252ad609fcbb0e3d1cbb",
+    "redeploy_network_helm.py": "4e7480181e80a50937225ab9f0925201cd0fc9a73cc1d5e3a324934187e227f5",
+    "install-flannel-cloud.sh": "292daeae3e8d559a9842a2d512280e3ad597abc4ecd6c983ac4257beb2b11040",
+    "install-flannel-edge.sh": "dc0c3ae88aafa1729158d4d26b7c34244e984a524e382ea51188cfa27d4da368",
+    "tools.sh": "a75f06f1daae264f8c8688e42f10d55bcca8ae8a4534e7adca428b094bc2a547"
+  }
+}

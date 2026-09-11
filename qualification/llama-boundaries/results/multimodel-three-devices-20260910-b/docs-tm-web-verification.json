@@ -1,0 +1,289 @@
+{
+  "verified_at": "2026-09-11T05:32:05.969262+00:00",
+  "url": "http://docs.192.168.0.56.sslip.io/2026-09-10-다중모델-3장비-실험결과.html",
+  "tm_id": "TM-LLM-20260910-01",
+  "revision": "1.1",
+  "unique_tag": "20260911-multimodel-tm-v1",
+  "image_digest": "sha256:5bb78171f6b834633bd71cfe3103894ae2fe3c31aae069a28be7e4bf5bcfba81",
+  "registry_latest_matches": true,
+  "argocd_sync": "Synced",
+  "argocd_health": "Healthy",
+  "pods": [
+    {
+      "pod": "docs-html-b466b5d44-rnwc9",
+      "uid": "4f99118c-eb8a-41a3-b137-6a381855df00",
+      "imageID": "192.168.0.56:5000/docs-html@sha256:5bb78171f6b834633bd71cfe3103894ae2fe3c31aae069a28be7e4bf5bcfba81",
+      "ready": true
+    }
+  ],
+  "search_entries": 28,
+  "docs_tests_passed": 21,
+  "http_files": [
+    {
+      "path": "현재-구현-상태.html",
+      "status": 200,
+      "sha256": "87fcf97dea91dd8d5ebe446d6cbf9a9e23b234990ccc708cb8b1f0fc325637da",
+      "bytes": 22547
+    },
+    {
+      "path": "통합-운영-대시보드-고도화.html",
+      "status": 200,
+      "sha256": "4b5ab3dae2384db2beff13d823a4d993a4fc6d74674fe71371c22f86d805e4b9",
+      "bytes": 32241
+    },
+    {
+      "path": "옥동-생산성-kpi.html",
+      "status": 200,
+      "sha256": "0787e2206c6d182c7b09c819e40a83deda1b8df52965ce7c5c23cb4b092bf0bc",
+      "bytes": 9726
+    },
+    {
+      "path": "디바이스-연결-복구-표준.html",
+      "status": 200,
+      "sha256": "8c63941a50047a2789f349f19ced6fd7738d3179eda9f4c2016440735dc7873f",
+      "bytes": 15865
+    },
+    {
+      "path": "AI-서비스-등록-가이드.html",
+      "status": 200,
+      "sha256": "1619129af3a773507b4856ce8b2c5635c0546c4b7bfc6b09013c69868c57185a",
+      "bytes": 13829
+    },
+    {
+      "path": "옥동-데이터-계약.html",
+      "status": 200,
+      "sha256": "c97634440b07c25461b4e0a4332866a132547658609baa8b4f492850a0566779",
+      "bytes": 18373
+    },
+    {
+      "path": "단계별-추진계획.html",
+      "status": 200,
+      "sha256": "f86e11aa76e232028fc94e5bd06716e0a8995af48002a1414c1b650966436d17",
+      "bytes": 18690
+    },
+    {
+      "path": "2026-09-10-다중모델-3장비-실험결과.html",
+      "status": 200,
+      "sha256": "cc23a8c5c5a0c1e2b5d87a0bcce83fe339c61b3af18bdb3611beda4a5114dc8c",
+      "bytes": 36953
+    },
+    {
+      "path": "search-index.json",
+      "status": 200,
+      "sha256": "b5269e8ebea1cfd046bb53b02a6b02045e5364dd5d85dfb5e7c5194d6419b314",
+      "bytes": 313791
+    },
+    {
+      "path": "문서-안내.html",
+      "status": 200,
+      "sha256": "6ad751e573136f06b1d42c226a0219332ec682d7433bb668515a025bf490db69",
+      "bytes": 12375
+    },
+    {
+      "path": "플랫폼-개요.html",
+      "status": 200,
+      "sha256": "058dc03f7fc2092053c5b88001fab141fdf14934dc893a4203a19a96a37164fd",
+      "bytes": 10813
+    },
+    {
+      "path": "프로젝트-범위.html",
+      "status": 200,
+      "sha256": "01aab825bd3b989af9353fe57f9cd0b7e925c5eee25ab3885a234f0cafdc947c",
+      "bytes": 46164
+    },
+    {
+      "path": "대시보드-판단-정책.html",
+      "status": 200,
+      "sha256": "992b72ba99a3b4d161f5ebc8566da212eb3ecb7ff2b3f55077f434631adbf3ad",
+      "bytes": 23195
+    },
+    {
+      "path": "펌프-모터-이상감지-서비스.html",
+      "status": 200,
+      "sha256": "ea962aa449d4ce9f6d2b4f582b8b36a1b7dd557c8c2ba0cdcaca3817c2e0be09",
+      "bytes": 13526
+    },
+    {
+      "path": "2026-09-08-Nano-AGX-서비스-연속성-실험결과.html",
+      "status": 200,
+      "sha256": "fefadf9040a4fab524af2ad0d01ff170c778d18a4efa2c5e9a587f185360fac0",
+      "bytes": 20113
+    },
+    {
+      "path": "저장소-구조.html",
+      "status": 200,
+      "sha256": "28d7a1c9899475e13aaedac9bde7a1d5634760358c6d5dee1e372cb1e927a41a",
+      "bytes": 31866
+    },
+    {
+      "path": "서버-엣지-반복-오프로딩.html",
+      "status": 200,
+      "sha256": "89e5ac5b57a74c3cf33ef3b46b78bcb898a9acaa88dc78622280fa6d9e47890c",
+      "bytes": 28667
+    },
+    {
+      "path": "index.html",
+      "status": 200,
+      "sha256": "c79f89ab337bf97c6063cbad8bf7200c2bc35cecc2799f013bd0495ae61e8e21",
+      "bytes": 10535
+    },
+    {
+      "path": "Llama-장비별-GPU-성능측정.html",
+      "status": 200,
+      "sha256": "ec90eb18626947ddf9c5ab6abf296e7ea1f4eb5e783c73c193ed883dacdad932",
+      "bytes": 46053
+    },
+    {
+      "path": "처음부터-배우는-Edge-AI-시스템.html",
+      "status": 200,
+      "sha256": "1693f60286ac0d4af4b990d99ac2d2acb102f4308fcedcfce786944b414156d6",
+      "bytes": 20824
+    },
+    {
+      "path": "2026-09-02-성능지표8-주간-추진현황.html",
+      "status": 200,
+      "sha256": "1a5022393e5c820ebddb0affe56ed6fb249481903d4ecb310d7280173dd895a1",
+      "bytes": 14214
+    },
+    {
+      "path": "AI-서비스-자원-증강-부하-실험.html",
+      "status": 200,
+      "sha256": "984e18a47cf18a18c9e0fa532a17eecfa894160d1ea3a9bdd43c4ebf2e0ccc33",
+      "bytes": 57618
+    },
+    {
+      "path": "가상화-노드-오류-복구시간.html",
+      "status": 200,
+      "sha256": "c4fd93711d3e8f1e513b6cb5a045e11cf8d648676f8f3555a831ad63b55b7ce5",
+      "bytes": 35088
+    },
+    {
+      "path": "400ms-복구-체험하기.html",
+      "status": 200,
+      "sha256": "c6d49ac2d7af377f3ceae5e595601beec57b0ea3fc2f7de50149333099d281ac",
+      "bytes": 14278
+    },
+    {
+      "path": "Llama-오프로딩-부하-판단-기준.html",
+      "status": 200,
+      "sha256": "96ac34a52c6c9fda15a8ac7bd0d4b178579b322b5f850d02f15dc6e6d8f6be6e",
+      "bytes": 22767
+    },
+    {
+      "path": "디바이스-서비스-연결.html",
+      "status": 200,
+      "sha256": "c651876947e12ce8cf450124044b2bda9ec14788e043d7221fd03aaf9afa45f8",
+      "bytes": 11691
+    },
+    {
+      "path": "ops/대시보드-검증.html",
+      "status": 200,
+      "sha256": "716f8ba68072c6c9c896253a233fd99f7a5b19211ae4aac417082061db469622",
+      "bytes": 16797
+    },
+    {
+      "path": "ops/네트워크-문제해결.html",
+      "status": 200,
+      "sha256": "ef8b8888f6d97628849ceacf93a75a82c996e65ad7e93a4448089bcbbf80ed50",
+      "bytes": 12976
+    },
+    {
+      "path": "ops/대시보드-배포.html",
+      "status": 200,
+      "sha256": "6c18e3caf0c8ed0b2bfd5d345b038799e11621bd0e9629b9453c96c20d3cfecf",
+      "bytes": 15988
+    },
+    {
+      "path": "ops/현재-데모-운영-절차.html",
+      "status": 200,
+      "sha256": "43db61a53622a1faaf078ddefba8313aff9898e7fdf5be77d988b494e3b14360",
+      "bytes": 14198
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/figure-provenance.json",
+      "status": 200,
+      "sha256": "9105866caf82565f9fa0661d0bd998489cc2c50f28088ee9ff31db72afa3f412",
+      "bytes": 517
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/requests.csv",
+      "status": 200,
+      "sha256": "b9b1d019ec2d9ca7794985a2d569e35e6e4da247e003f69823c309c02a316c93",
+      "bytes": 658353
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/source-manifest.json",
+      "status": 200,
+      "sha256": "86e52ac6b44d5deeb9f62819e705b1dba9a58561e7ec3a0f14177a287c475963",
+      "bytes": 3041
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/aborted-attempt-requests.json",
+      "status": 200,
+      "sha256": "e14c94f720d9e949b53b17b200889b7869c0163a10007ae6c059e8d5e3ab6b4c",
+      "bytes": 39001
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/verification.json",
+      "status": 200,
+      "sha256": "2b4aa22e51e0edd5b363612d39f83f1bbdbdf17775bc05addc6dcad31ad4d9e0",
+      "bytes": 1619
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/final-state.json",
+      "status": 200,
+      "sha256": "23c99e3156f48109d6aefacc6e5713272d86d2a043663587ce00fdd663ef169a",
+      "bytes": 23331
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/comparison.json",
+      "status": 200,
+      "sha256": "f363976a2da98882ae252d5bf6e6b581c9c11ce62d7b7ea23fc9ef6918bd280e",
+      "bytes": 119684
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/model-comparison.png",
+      "status": 200,
+      "sha256": "2b57309073c625c6e8a931eda7610b3cc819b5242d654e0292212e6a25f8a29f",
+      "bytes": 154485
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/models.json",
+      "status": 200,
+      "sha256": "f913ef44c8a6b3a1ec7b186b6d4815c170f8cbca429ba3675348dc0fc753ffc1",
+      "bytes": 11062
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/service-restored.json",
+      "status": 200,
+      "sha256": "752ebbb12ec037af357cad53768f563711649b624bca7e651f2a4aa78ce0b216",
+      "bytes": 12366
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/model-comparison.svg",
+      "status": 200,
+      "sha256": "3ec41653fa60bc6fbdd152bdb5883b5180c8d3468a3f6ba15fb5c75514c076cf",
+      "bytes": 105241
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/analysis-crosscheck.json",
+      "status": 200,
+      "sha256": "9ec241b9e4eebed2c5d5a935b357017c1e4e82fb22ba564d165ebb535d018195",
+      "bytes": 299
+    },
+    {
+      "path": "assets/llama-multimodel-20260910/hardware.json",
+      "status": 200,
+      "sha256": "174ab9e80e8c43709172a922c0b5814ca492d57823f3dbf046482b6e5db44fd0",
+      "bytes": 6710
+    }
+  ],
+  "git_commit_push_performed": false,
+  "image_updater_confirmation": [
+    "time=\"2026-09-11T05:31:30Z\" level=debug msg=\"Considering this image for update\" alias=docs-html application=docs-html image_name=docs-html image_tag=\"sha256:5bb78171f6b834633bd71cfe3103894ae2fe3c31aae069a28be7e4bf5bcfba81\" registry=\"192.168.0.56:5000\"",
+    "time=\"2026-09-11T05:31:30Z\" level=debug msg=\"Using version constraint 'latest' when looking for a new tag\" alias=docs-html application=docs-html image_name=docs-html image_tag=\"sha256:5bb78171f6b834633bd71cfe3103894ae2fe3c31aae069a28be7e4bf5bcfba81\" registry=\"192.168.0.56:5000\"",
+    "time=\"2026-09-11T05:31:30Z\" level=debug msg=\"found 1 from 1 tags eligible for consideration\" image=\"192.168.0.56:5000/docs-html@sha256:5bb78171f6b834633bd71cfe3103894ae2fe3c31aae069a28be7e4bf5bcfba81\"",
+    "time=\"2026-09-11T05:31:30Z\" level=debug msg=\"Image '192.168.0.56:5000/docs-html@sha256:5bb78171f6b834633bd71cfe3103894ae2fe3c31aae069a28be7e4bf5bcfba81' already on latest allowed version\" alias=docs-html application=docs-html image_name=docs-html image_tag=\"sha256:5bb78171f6b834633bd71cfe3103894ae2fe3c31aae069a28be7e4bf5bcfba81\" registry=\"192.168.0.56:5000\""
+  ],
+  "image_updater_checked_at": "2026-09-11T05:32:39.734645+00:00"
+}

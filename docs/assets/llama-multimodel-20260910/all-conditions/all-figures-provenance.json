@@ -1,0 +1,61 @@
+{
+  "source": "docs/assets/llama-multimodel-20260910/comparison.json",
+  "source_sha256": "f363976a2da98882ae252d5bf6e6b581c9c11ce62d7b7ea23fc9ef6918bd280e",
+  "code_sha256": "4e362cf66b7fbf2b9968a790521fc5fc4872a8eda88d71bc806fc9dec962d971",
+  "condition_count": 126,
+  "latency_condition_coverage": 126,
+  "transformations": [
+    "read existing condition aggregates",
+    "milliseconds / 1000 for seconds",
+    "no smoothing or new exclusion"
+  ],
+  "spread": "observed request minimum-to-maximum, not confidence intervals",
+  "latency_estimator": "pooled request median; same-session n=3 times concurrency",
+  "throughput": "success output tokens divided by sum of three actual wave durations; not median decode speed",
+  "missing": "reject missing, duplicate or incomplete conditions; never replace with zero",
+  "limitations": "slot1; memory limits5/8/8GiB; 27 cooled continuation cells; cooling/loading excluded; no sustained-capacity/quality claim",
+  "figure_inches": [
+    16,
+    10
+  ],
+  "dpi": 150,
+  "font": "UnDotum",
+  "matplotlib": "3.10.6",
+  "numpy": "2.5.2",
+  "outputs": [
+    {
+      "file": "concurrency-latency.png",
+      "sha256": "182ffd411fe96d0056176713e5f654b4894d2fe484ff7d9960f5b07c0940df56"
+    },
+    {
+      "file": "concurrency-latency.svg",
+      "sha256": "831a2968a6a4dfffc975d9b9d869400b05d30df24711c1bf39afae1cf7992009"
+    },
+    {
+      "file": "token-length-latency.png",
+      "sha256": "f8ee47efcb40ab66e7a51da63d2d97c370fd1a3d50dee1b4dc54f33069195acf"
+    },
+    {
+      "file": "token-length-latency.svg",
+      "sha256": "afdcdfda9a304e465bbb8213a22bb66896e8936fd433a393e61c803fcb0fd375"
+    },
+    {
+      "file": "concurrency-throughput.png",
+      "sha256": "c5cc2f16e1d9022950022490cafecb78e6a6fad62cbf0affc0c3af71b0af39d6"
+    },
+    {
+      "file": "concurrency-throughput.svg",
+      "sha256": "4a3ab86f47f633d7c6498b2f2a8c80e3f8e58cf935125c3e783682a68c221579"
+    },
+    {
+      "file": "all-conditions.csv",
+      "sha256": "397d2a0246ab286ac610068b2709ba8547181aa3a4660da943f3afd4b59181f8"
+    },
+    {
+      "file": "all-conditions-table.txt",
+      "sha256": "0bced29ae19d48eca86c7a6232cf46404d262415afe5fa7bbaafde81c77cfd4d"
+    }
+  ],
+  "audience": "project docs and conversation",
+  "publisher": "not a journal submission"
+}

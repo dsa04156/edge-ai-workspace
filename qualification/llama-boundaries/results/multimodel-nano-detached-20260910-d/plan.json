@@ -1,0 +1,38 @@
+{
+  "order": [
+    [
+      "qwen2.5-0.5b-instruct-q8_0",
+      "llama3.2-1b-instruct-q8_0",
+      "qwen2.5-1.5b-instruct-q8_0",
+      "gemma2-2b-instruct-q8_0",
+      "qwen2.5-3b-instruct-q8_0",
+      "llama3.2-3b-instruct-q8_0"
+    ],
+    [
+      "qwen2.5-3b-instruct-q8_0",
+      "llama3.2-3b-instruct-q8_0",
+      "qwen2.5-1.5b-instruct-q8_0",
+      "gemma2-2b-instruct-q8_0",
+      "qwen2.5-0.5b-instruct-q8_0",
+      "llama3.2-1b-instruct-q8_0"
+    ],
+    [
+      "llama3.2-3b-instruct-q8_0",
+      "qwen2.5-1.5b-instruct-q8_0",
+      "llama3.2-1b-instruct-q8_0",
+      "qwen2.5-3b-instruct-q8_0",
+      "qwen2.5-0.5b-instruct-q8_0",
+      "gemma2-2b-instruct-q8_0"
+    ]
+  ],
+  "blocks": 3,
+  "nodes": [
+    "nano"
+  ],
+  "order_design": "first compatibility block ascending model file size; two seeded randomized blocks",
+  "scope": "fixed-work GPU serving performance; no quality or live offloading claims",
+  "started_at": 1789043442.320395,
+  "parent": "qualification/llama-boundaries/results/multimodel-three-devices-20260910-b",
+  "thermal_conditioning": "<=60C before case",
+  "transport": "detached device-local runtime and client"
+}

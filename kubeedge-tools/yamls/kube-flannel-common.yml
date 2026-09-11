@@ -1,0 +1,62 @@
+# Shared by cloud and edge; do not duplicate or override per role.
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: flannel
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - nodes/status
+  verbs:
+  - patch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: flannel
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: flannel
+subjects:
+- kind: ServiceAccount
+  name: flannel
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flannel
+  namespace: kube-system
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kube-flannel-cfg
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+data:
+  cni-conf.json: "{\n  \"name\": \"cbr0\",\n  \"cniVersion\": \"0.3.1\",\n  \"plugins\"\
+    : [\n    {\n      \"type\": \"flannel\",\n      \"delegate\": {\n        \"hairpinMode\"\
+    : true,\n        \"isDefaultGateway\": true\n      }\n    },\n    {\n      \"\
+    type\": \"portmap\",\n      \"capabilities\": {\n        \"portMappings\": true\n\
+    \      }\n    }\n  ]\n}\n"
+  net-conf.json: "{\n  \"Network\": \"10.244.0.0/16\",\n  \"EnableNFTables\": false,\n\
+    \  \"Backend\": {\n    \"Type\": \"vxlan\",\n    \"MTU\": 1380\n  }\n}\n"

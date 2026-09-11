@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubeflow-hub-eval
+  labels:
+    app.kubernetes.io/part-of: edge-ai-model-platform
+    app.kubernetes.io/purpose: qualification
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted

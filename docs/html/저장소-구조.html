@@ -72,6 +72,7 @@
 <li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
 <li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
 <li><a href="Llama-장비별-GPU-성능측정.html">Llama 장비별 GPU 성능측정</a></li>
+<li><a href="2026-09-10-다중모델-3장비-실험결과.html">다중 모델 성능측정 기술 메모(TM) — Orin Nano·AGX Orin·DGX Spark</a></li>
 <li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
 <li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
 <li><a class="active" aria-current="page" href="저장소-구조.html">저장소 구조</a></li>
@@ -86,8 +87,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-11 16:08</span>
-            <span class="badge">HTML 생성: 2026-09-11 16:09</span>
+            <span class="badge">수정: 2026-09-11 16:34</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:52</span>
           </div>
         </header>
         <div class="doc-body">
@@ -343,6 +344,8 @@
 <p>운영 소유자는 기존 runtime-operator(원장·모델 수명주기)와 state-aggregator(화면·동일 출처 제한 API)다. 검증 기준은 승인 전 무전환, 만료/중복/재시작/후보 변경 처리, 제한 부하의 중지·요청 원장, 승인 후 실제 경로·결과 확인이다. 자동시험·브라우저 검증과 실장비 승인 실행 증거를 구분하며 실제 증강 승인은 사용자 클릭으로 수행한다. 상세는 <a href="AI-서비스-증강-승인.html">AI 서비스 증강 승인</a>을 따른다.</p>
 <h3 id="2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</h3>
 <p>사용자 승인 범위를 Orin Nano(<code>etri-dev0001-jetorn</code>) → AGX Orin(<code>etri-dev0005-jetagx</code>) → DGX Spark(<code>etri-ser0003-cg0ms0</code>)로 확대한다. <code>edge-orch/runtime-operator</code>의 명시적 단계 순서와 <code>examples/llama-three-tier</code>의 Llama 계약·Nano resident runtime을 사용한다. 부하/지연에 따른 증강은 바로 다음 단계만 추천하고 운영자가 매번 승인한다. 저부하 복귀는 기존 자동 정책 안에서 단계별로 수행한다. 장애 시 가용 후보 복구는 별도 사유로 표시한다. 센서 수집과 기존 legacy controller 중지 상태는 유지한다. Nano 모델 digest·GPU 실제 실행·동일 8-token 입력의 처리 성능·자원 예약, 3단계 순서 및 승인·중지 회귀 테스트, 실제 노드 지도와 API를 검증해야 운영 완료로 보고한다. 런타임/계약 소유자는 runtime-operator 운영자이며 대시보드는 기존 Argo CD 배포를 따른다. 3단계 계약·지도 배포와 Nano GPU/gateway 응답, 센서 Device Service Ready를 확인했다. 단계별 승인·역순 복귀는 자동시험으로 검증했다. 운영에서 두 번의 승인 클릭을 포함한 실장비 왕복은 아직 수행하지 않았으며 사용자가 실행한다. 상세 실측과 경계는 <code>docs/AI-서비스-증강-승인.md</code>를 따른다.</p>
+<h3 id="llama-서비스-실행-중지와-노드별-부하">Llama 서비스 실행·중지와 노드별 부하</h3>
+<p><code>edge-orch/runtime-operator/runtime_operator/demo.py</code>의 고정 데모 API와 <code>kube.py</code>의 UID/resourceVersion 검증 <code>spec.suspended</code> update가 서비스 수명주기 제어를 소유한다. <code>api.py</code>는 node-load의 지정 노드 일치 및 dispatch 전 취소를 검사한다. <code>state-aggregator/app/common_runtime_demo.py</code>와 NEXUS <code>common-runtime-demo.js</code>가 서비스 실행/중지와 각 노드의 부하/제거를 연결한다. operator는 기존 수동 배포, 대시보드는 기존 Argo CD 배포 소유권을 유지한다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#물리-장비의-가상-디바이스-표현-2026-09-08-승인">물리 장비의 가상 디바이스 표현 (2026-09-08 승인)</a></li>
@@ -363,7 +366,8 @@
 <li class="toc-h3"><a href="#2026-09-09-nano-orin-spark-실장비-데모-화면">2026-09-09 Nano·Orin·Spark 실장비 데모 화면</a></li>
 <li class="toc-h2"><a href="#2026-09-10-장비-독립-공통-실행-제어기-승인-범위">2026-09-10 장비 독립 공통 실행 제어기 승인 범위</a></li>
 <li class="toc-h2"><a href="#2026-09-11-ai-추론-지표-승인-기반-증강">2026-09-11 AI 추론 지표·승인 기반 증강</a></li>
-<li class="toc-h3"><a href="#2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</a></li></ol></aside>
+<li class="toc-h3"><a href="#2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</a></li>
+<li class="toc-h3"><a href="#llama-서비스-실행-중지와-노드별-부하">Llama 서비스 실행·중지와 노드별 부하</a></li></ol></aside>
     </div>
   </div>
 

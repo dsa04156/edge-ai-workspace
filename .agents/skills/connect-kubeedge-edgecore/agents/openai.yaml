@@ -1,0 +1,4 @@
+interface:
+  display_name: "KubeEdge EdgeCore 연결"
+  short_description: "현재 PoC 클러스터에 신규 edgecore 노드를 안전하게 연결"
+  default_prompt: "Use $connect-kubeedge-edgecore to inspect this PoC and onboard a new KubeEdge EdgeCore node safely."

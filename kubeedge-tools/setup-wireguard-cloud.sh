@@ -3,8 +3,19 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set +o xtrace
+
+case "${1:-}" in
+  --apply) ;;
+  ""|--check)
+    echo "Preview only: creates a NEW WireGuard interface; existing configurations are preserved."
+    echo "Apply: $0 --apply (root); existing peers: python3 wireguard_peer.py --help"
+    exit 0 ;;
+  *) echo "usage: $0 [--check|--apply]" >&2; exit 2 ;;
+esac
 
 WG_IF="${WG_IF:-wg0}"
+WG_MTU="${WG_MTU:-1380}"
 WG_ADDRESS="${WG_ADDRESS:-10.77.0.1/24}"
 WG_PORT="${WG_PORT:-51820}"
 WG_DIR="${WG_DIR:-/etc/wireguard}"
@@ -48,6 +59,7 @@ function ensure_keys() {
 		wg pubkey < "$WG_PRIVATE_KEY_FILE" > "$WG_PUBLIC_KEY_FILE"
 	fi
 
+	wg pubkey < "$WG_PRIVATE_KEY_FILE" > "$WG_PUBLIC_KEY_FILE"
 	chmod 0600 "$WG_PRIVATE_KEY_FILE"
 	chmod 0644 "$WG_PUBLIC_KEY_FILE"
 }
@@ -60,8 +72,8 @@ EOF
 }
 
 function write_config() {
-	if [[ -f "$WG_CONF" && "${FORCE:-0}" != "1" ]]; then
-		echo "$WG_CONF already exists. Set FORCE=1 to overwrite."
+	if [[ -e "$WG_CONF" ]]; then
+		echo "$WG_CONF exists; refusing replacement. Use wireguard_peer.py for peer changes."
 		exit 1
 	fi
 
@@ -74,6 +86,7 @@ Address = ${WG_ADDRESS}
 ListenPort = ${WG_PORT}
 PrivateKey = ${private_key}
 SaveConfig = false
+MTU = ${WG_MTU}
 PostUp = iptables -A FORWARD -i ${WG_IF} -j ACCEPT
 PostUp = iptables -A FORWARD -o ${WG_IF} -j ACCEPT
 PostDown = iptables -D FORWARD -i ${WG_IF} -j ACCEPT
@@ -104,12 +117,32 @@ function print_summary() {
 	echo "Next:"
 	echo "1. Forward UDP ${WG_PORT} on the site router to this server."
 	echo "2. Add peer blocks to ${WG_CONF}, then run:"
-	echo "   systemctl restart wg-quick@${WG_IF}"
+	echo "   python3 wireguard_peer.py --help"
 	echo "3. Check state with:"
 	echo "   wg show ${WG_IF}"
 }
 
 ensure_root
+if [[ -e "$WG_CONF" || -L "$WG_CONF" ]]; then
+  echo "Preserving existing $WG_CONF. No changes made; use wireguard_peer.py for peer changes."
+  exit 0
+fi
+export WG_IF WG_MTU WG_ADDRESS WG_PORT
+python3 - <<'PYVALIDATE'
+import ipaddress, os, re
+assert 1 <= int(os.environ['WG_PORT']) <= 65535, 'invalid port'
+assert re.fullmatch(r'[a-zA-Z0-9_-]{1,15}', os.environ['WG_IF']), 'invalid interface'
+assert 1280 <= int(os.environ['WG_MTU']) <= 1420, 'invalid MTU'
+a = ipaddress.IPv4Interface(os.environ['WG_ADDRESS'])
+assert not (a.ip.is_loopback or a.ip.is_multicast or a.ip.is_unspecified), 'invalid address'
+PYVALIDATE
+install -d -m 0700 "$WG_DIR"
+exec 9>"$WG_DIR/.setup.lock"
+flock -n 9 || { echo 'another WireGuard initialization is running' >&2; exit 2; }
+if [[ -e "$WG_CONF" || -L "$WG_CONF" ]]; then
+  echo "Preserving concurrently created $WG_CONF; no changes made."
+  exit 0
+fi
 install_wireguard
 ensure_keys
 write_sysctl

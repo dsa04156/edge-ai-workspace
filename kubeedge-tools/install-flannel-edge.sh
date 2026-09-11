@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
-source ./tools.sh
-
-install_flannel edge
+set -euo pipefail
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/tools.sh"
+install_flannel edge "$@"

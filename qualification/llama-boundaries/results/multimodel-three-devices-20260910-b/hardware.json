@@ -1,0 +1,206 @@
+[
+  {
+    "node": "etri-dev0001-jetorn",
+    "nodeInfo": {
+      "architecture": "arm64",
+      "bootID": "352d80f7-6c32-459f-aec1-cb486a54f054",
+      "containerRuntimeVersion": "containerd://2.2.1",
+      "kernelVersion": "5.15.148-tegra",
+      "kubeProxyVersion": "v0.0.0-master+$Format:%H$",
+      "kubeletVersion": "v1.32.10-kubeedge-v1.23.0",
+      "machineID": "5dbfb12414a3456d9014d88183e338b1",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 22.04.5 LTS",
+      "systemUUID": "5dbfb12414a3456d9014d88183e338b1"
+    },
+    "capacity": {
+      "cpu": "6",
+      "ephemeral-storage": "490317832Ki",
+      "hugepages-1Gi": "0",
+      "hugepages-2Mi": "0",
+      "hugepages-32Mi": "0",
+      "hugepages-64Ki": "0",
+      "memory": "7802752Ki",
+      "nvidia.com/gpu.shared": "2",
+      "pods": "110"
+    },
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-09-10T12:07:53Z",
+        "lastTransitionTime": "2026-09-10T12:07:53Z",
+        "message": "Flannel is running on this node",
+        "reason": "FlannelIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:28Z",
+        "lastTransitionTime": "2026-09-10T12:29:28Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:28Z",
+        "lastTransitionTime": "2026-09-10T12:29:28Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:28Z",
+        "lastTransitionTime": "2026-09-10T12:29:28Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:28Z",
+        "lastTransitionTime": "2026-09-10T12:29:28Z",
+        "message": "edge is posting ready status",
+        "reason": "EdgeReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ]
+  },
+  {
+    "node": "etri-dev0005-jetagx",
+    "nodeInfo": {
+      "architecture": "arm64",
+      "bootID": "6bbd52f3-cd9f-4fcb-8018-2a7eefbc8f70",
+      "containerRuntimeVersion": "containerd://2.3.4",
+      "kernelVersion": "6.8.12-1021-tegra",
+      "kubeProxyVersion": "v0.0.0-master+$Format:%H$",
+      "kubeletVersion": "v1.32.10-kubeedge-v1.23.0",
+      "machineID": "bd09d9c96ca849e68c556c350a671ad7",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 24.04.4 LTS",
+      "systemUUID": "7eeefb33-b09b-50bc-9884-19a1f4edfc6e"
+    },
+    "capacity": {
+      "cpu": "12",
+      "ephemeral-storage": "56451232Ki",
+      "hugepages-1Gi": "0",
+      "hugepages-2Mi": "0",
+      "hugepages-32Mi": "0",
+      "hugepages-64Ki": "0",
+      "memory": "64387320Ki",
+      "nvidia.com/gpu.shared": "2",
+      "pods": "110"
+    },
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-09-09T08:20:56Z",
+        "lastTransitionTime": "2026-09-09T08:20:56Z",
+        "message": "Flannel is running on this node",
+        "reason": "FlannelIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:16Z",
+        "lastTransitionTime": "2026-09-10T12:24:09Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:16Z",
+        "lastTransitionTime": "2026-09-10T12:24:09Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:16Z",
+        "lastTransitionTime": "2026-09-10T12:24:09Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:16Z",
+        "lastTransitionTime": "2026-09-10T12:24:09Z",
+        "message": "edge is posting ready status",
+        "reason": "EdgeReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ]
+  },
+  {
+    "node": "etri-ser0003-cg0ms0",
+    "nodeInfo": {
+      "architecture": "arm64",
+      "bootID": "9348e222-037b-4800-aafd-068cbbb14abf",
+      "containerRuntimeVersion": "containerd://2.2.1",
+      "kernelVersion": "6.17.0-1032-nvidia",
+      "kubeProxyVersion": "v1.31.14",
+      "kubeletVersion": "v1.31.14",
+      "machineID": "7af66f30966a49b6886e00e2fce4b42f",
+      "operatingSystem": "linux",
+      "osImage": "Ubuntu 24.04.3 LTS",
+      "systemUUID": "d3c4fa1c-bfde-11d3-8000-4cbb477ff4a0"
+    },
+    "capacity": {
+      "cpu": "20",
+      "ephemeral-storage": "3937374564Ki",
+      "hugepages-1Gi": "0",
+      "hugepages-2Mi": "0",
+      "hugepages-32Mi": "0",
+      "hugepages-64Ki": "0",
+      "memory": "127600752Ki",
+      "nvidia.com/gpu": "1",
+      "pods": "110"
+    },
+    "conditions": [
+      {
+        "lastHeartbeatTime": "2026-09-09T10:40:28Z",
+        "lastTransitionTime": "2026-09-09T10:40:28Z",
+        "message": "Flannel is running on this node",
+        "reason": "FlannelIsUp",
+        "status": "False",
+        "type": "NetworkUnavailable"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:30Z",
+        "lastTransitionTime": "2026-09-09T10:40:01Z",
+        "message": "kubelet has sufficient memory available",
+        "reason": "KubeletHasSufficientMemory",
+        "status": "False",
+        "type": "MemoryPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:30Z",
+        "lastTransitionTime": "2026-09-09T10:40:01Z",
+        "message": "kubelet has no disk pressure",
+        "reason": "KubeletHasNoDiskPressure",
+        "status": "False",
+        "type": "DiskPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:30Z",
+        "lastTransitionTime": "2026-09-09T10:40:01Z",
+        "message": "kubelet has sufficient PID available",
+        "reason": "KubeletHasSufficientPID",
+        "status": "False",
+        "type": "PIDPressure"
+      },
+      {
+        "lastHeartbeatTime": "2026-09-10T12:29:30Z",
+        "lastTransitionTime": "2026-09-09T10:40:26Z",
+        "message": "kubelet is posting ready status",
+        "reason": "KubeletReady",
+        "status": "True",
+        "type": "Ready"
+      }
+    ]
+  }
+]

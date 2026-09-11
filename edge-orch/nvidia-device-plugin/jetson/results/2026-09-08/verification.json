@@ -1,0 +1,105 @@
+{
+  "observedAt": "2026-09-08T04:49:22.568602+00:00",
+  "pods": [
+    {
+      "name": "cuda-no-request",
+      "uid": "c0831b7c-786e-4abd-ab55-8c76167f3421",
+      "node": "etri-dev0005-jetagx",
+      "phase": "Succeeded",
+      "imageID": "docker.io/library/python@sha256:3949e4271b0a3ff82afac7306764c313dcc8edeeb89c0376a3c2ac6007c66b1d",
+      "restartCount": 0,
+      "state": {
+        "terminated": {
+          "containerID": "containerd://f61837c8516aa9b48ecdfea6635407451eaa1c4c372125e421c0973f3281b0f9",
+          "exitCode": 0,
+          "finishedAt": "2026-09-08T04:47:47Z",
+          "reason": "Completed",
+          "startedAt": "2026-09-08T04:47:46Z"
+        }
+      },
+      "finalLog": {
+        "gpu_access": false,
+        "reason": "driver_not_injected"
+      }
+    },
+    {
+      "name": "cuda-share-a",
+      "uid": "300e5a56-3a5b-4ab3-9ec7-6f6444c9eaa5",
+      "node": "etri-dev0005-jetagx",
+      "phase": "Succeeded",
+      "imageID": "docker.io/library/python@sha256:3949e4271b0a3ff82afac7306764c313dcc8edeeb89c0376a3c2ac6007c66b1d",
+      "restartCount": 0,
+      "state": {
+        "terminated": {
+          "containerID": "containerd://c2f18290b5f778c97dca4228626729a8860a0ce029f91b1bb5c02bf91ed44858",
+          "exitCode": 0,
+          "finishedAt": "2026-09-08T04:47:57Z",
+          "reason": "Completed",
+          "startedAt": "2026-09-08T04:46:55Z"
+        }
+      },
+      "finalLog": {
+        "event": "passed",
+        "pod": "cuda-share-a",
+        "time": 1788842877.2839003,
+        "iterations": 299,
+        "checksum": 32896
+      }
+    },
+    {
+      "name": "cuda-share-b",
+      "uid": "687bd8b0-b8f3-41e8-b1d1-e0187322043a",
+      "node": "etri-dev0005-jetagx",
+      "phase": "Succeeded",
+      "imageID": "docker.io/library/python@sha256:3949e4271b0a3ff82afac7306764c313dcc8edeeb89c0376a3c2ac6007c66b1d",
+      "restartCount": 0,
+      "state": {
+        "terminated": {
+          "containerID": "containerd://9c83d1b3813c7d6b97ebfcf8d033a9b3391818441d790905007a0beb898ab1de",
+          "exitCode": 0,
+          "finishedAt": "2026-09-08T04:47:58Z",
+          "reason": "Completed",
+          "startedAt": "2026-09-08T04:46:56Z"
+        }
+      },
+      "finalLog": {
+        "event": "passed",
+        "pod": "cuda-share-b",
+        "time": 1788842877.8871853,
+        "iterations": 299,
+        "checksum": 32896
+      }
+    },
+    {
+      "name": "cuda-share-c",
+      "uid": "0eba7b69-4264-44a7-876b-2c05b4d350d0",
+      "node": "etri-dev0005-jetagx",
+      "phase": "Succeeded",
+      "imageID": "docker.io/library/python@sha256:3949e4271b0a3ff82afac7306764c313dcc8edeeb89c0376a3c2ac6007c66b1d",
+      "restartCount": 0,
+      "state": {
+        "terminated": {
+          "containerID": "containerd://2b119b9aa003af7627a2ae366fffbb1ac2ddc77483b5ae1672e608e9b74947f9",
+          "exitCode": 0,
+          "finishedAt": "2026-09-08T04:48:08Z",
+          "reason": "Completed",
+          "startedAt": "2026-09-08T04:48:01Z"
+        }
+      },
+      "finalLog": {
+        "event": "passed",
+        "pod": "cuda-share-c",
+        "time": 1788842887.9492426,
+        "iterations": 25,
+        "checksum": 32896
+      }
+    }
+  ],
+  "cudaOverlapSeconds": 59.563,
+  "checks": {
+    "two_real_cuda_contexts": true,
+    "third_waited_for_slot": true,
+    "no_request_no_gpu": true,
+    "all_exit_zero": true
+  }
+}

@@ -72,6 +72,7 @@
 <li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
 <li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
 <li><a href="Llama-장비별-GPU-성능측정.html">Llama 장비별 GPU 성능측정</a></li>
+<li><a href="2026-09-10-다중모델-3장비-실험결과.html">다중 모델 성능측정 기술 메모(TM) — Orin Nano·AGX Orin·DGX Spark</a></li>
 <li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
 <li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
 <li><a href="저장소-구조.html">저장소 구조</a></li>
@@ -86,8 +87,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 가상화-노드-오류-복구시간.md</span>
-            <span class="badge">수정: 2026-09-11 16:07</span>
-            <span class="badge">HTML 생성: 2026-09-11 16:09</span>
+            <span class="badge">수정: 2026-09-02 18:40</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:52</span>
           </div>
         </header>
         <div class="doc-body">
@@ -357,6 +358,50 @@
 <p>이 결과는 오류 감지부터 첫 유효 sample의 SDK async enqueue까지를 측정한 2차년도 400 ms 내부 개발 gate의 통과 증거다. TTA 공식 성적, 과제 최종 250 ms, node 전원·망 장애나 다른 노드의 Pod 재기동 시간을 통과했다는 뜻은 아니다.</p>
 <p>자동 단위시험은 초기 open 실패가 표본에 포함되지 않는지, port ready·first byte·first valid frame의 단조 시각과 구간 계산, malformed line이 복구 완료로 오인되지 않는지를 검증한다. 이 합성시험은 실장비 400 ms 통과 증거가 아니다. 위 30회 qualification을 실장비 근거로 사용한다.</p>
 <h2 id="2026-09-02-저빈도-on-demand-qualification-결과">2026-09-02 저빈도 on-demand qualification 결과</h2>
+<h3 id="기존-상태와-실제-변경-요약">기존 상태와 실제 변경 요약</h3>
+<p>단절 상태에서 데이터를 보내는 것은 불가능하다. 이 구현은 정상 전송이 한 번 이상 성립한 Serial stream에서 <code>Read()</code> 오류가 발생한 시각을 단절 감지 시각으로 잡고, USB 장치가 다시 나타난 뒤 포트를 재개방해 첫 유효 sample을 EdgeX SDK에 전달하는 시간을 줄였다.</p>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>구분</th>
+<th>기존 상태</th>
+<th>적용한 변경</th>
+<th>확인 근거</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>포트 종료·재개방</td>
+<td><code>HUPCL</code>로 DTR이 내려가 Uno가 재부팅됨</td>
+<td><code>OpenSerial</code> 전에 <code>HUPCL</code> bit 해제</td>
+<td>기존 1초 firmware 기준 3회 <code>1,828.631~1,832.486 ms</code>에서 HUPCL 해제 3회 <code>353.260·812.379·816.853 ms</code></td>
+</tr>
+<tr>
+<td>USB 재열거</td>
+<td>Pod가 생성될 때 resolve된 character device major/minor를 계속 봄</td>
+<td>USB VID/PID/serial identity로 host의 <code>/run/edgeai/devices/arduino-001</code>을 갱신하고 Pod에는 해당 디렉터리만 read-only mount</td>
+<td>첫 실패 canary에서 host <code>166:0</code>, container <code>166:1</code> 불일치를 확인한 뒤 동적 endpoint로 복구</td>
+</tr>
+<tr>
+<td>정상 전송 주기</td>
+<td>다음 1,000 ms 정기 sample까지 기다림</td>
+<td>평시는 1,000 ms 유지, 재연결 직후 <code>READ_NOW</code> 1회 전송</td>
+<td>평시 최근 11간격 mean <code>1,000.852 ms</code></td>
+</tr>
+<tr>
+<td>첫 요청 유실</td>
+<td>USB 준비 중 단일 <code>READ_NOW</code>가 유실되면 다음 정기 sample 대기</td>
+<td>첫 byte가 없을 때만 25 ms 간격으로 최대 3회 추가 요청, 최초 요청 포함 총 최대 4회</td>
+<td>단일 요청 canary <code>502.033 ms</code>에서 제한 재요청 canary <code>199.839 ms</code>로 감소</td>
+</tr>
+<tr>
+<td>완료 판정</td>
+<td>포트가 열린 것만으로 데이터 재개를 보장하지 못함</td>
+<td>첫 byte와 첫 유효 JSON sample을 분리 계측하고 SDK async enqueue 시점을 완료로 기록</td>
+<td>최종 E2E canary <code>130.791 + 70.726 + 4.207 = 205.724 ms</code></td>
+</tr>
+</tbody></table></div>
+<p>실제 실행 순서는 다음과 같다.</p>
+<ol><li>established Serial stream의 <code>Read()</code> 오류를 감지하고 recovery counter의 <code>detected</code>를 증가시킨다.</li><li>exact USB identity가 가리키는 동적 endpoint를 fast-retry <code>25·50·100·200 ms</code> 순서로 다시 연다.</li><li>포트가 열리면 <code>READ_NOW\n</code>을 즉시 한 번 쓰고 read timeout을 25 ms로 줄인다.</li><li>첫 byte가 없을 때만 25 ms마다 재요청하되 최초 요청을 포함해 최대 4회로 제한한다.</li><li>첫 byte 뒤 완전한 JSON line을 검증해 EdgeX SDK async channel에 enqueue하면 <code>completed</code>와 구간별 시간을 기록하고 정상 1,000 ms 수집으로 돌아간다.</li></ol>
+<p>따라서 이 결과는 400 ms heartbeat를 계속 송신해서 얻은 값이 아니라 <strong>장치 identity 유지, 불필요한 auto-reset 억제, 재연결 순간의 제한된 on-demand 요청</strong>을 결합해 얻은 값이다.</p>
 <p>평상시 100 ms 연속 전송은 통과하기 쉬운 대신 센서·전송 부하를 계속 늘린다. 이를 대체하기 위해 정상 sample 주기를 1,000 ms로 복원하고 연결이 실제로 끊겼다가 다시 열린 때만 고정 <code>READ_NOW</code>를 수행했다. Git revision은 <code>f96b851f</code>, 운영 Device Service image는 <code>edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63</code>, Adapter Controller image는 <code>edge-adapter-controller@sha256:627b161e9a40d1b9ff0e0f78fb4e42fea1238fb9b6b96aca8baf45cc4628884b</code>다. Uno application SHA-256은 <code>91335ccd78130878daba31ff4184b227147f9b38239d85d6ff677a868ec85366</code>이다.</p>
 <p>첫 canary는 Kubernetes가 기존 <code>by-id</code> 문자 장치를 Pod 생성 시점의 <code>166:1</code>로 고정한 상태에서 USB가 <code>166:0</code>으로 재열거돼 완료되지 않았다. 전체 <code>/dev</code>를 mount하지 않고 udev가 관리하는 좁은 동적 endpoint 디렉터리를 도입해 container-visible major/minor가 현재 장치를 따라가게 했다. 동적 endpoint와 단일 요청을 적용한 다음 canary는 502.033 ms로 자동 복구됐지만 첫 요청이 USB 준비 구간에 유실돼 400 ms를 넘었다. 첫 byte가 없을 때만 25 ms 간격으로 최대 세 번 재요청하도록 제한한 최종 canary는 199.839 ms였다.</p>
 <p>같은 <code>cdc_acm</code> 인터페이스 <code>1-2.1:1.0</code>을 50 ms unbind→rebind하고 회차 사이 1초를 둔 정식 30회 결과는 다음과 같다. canary는 이 30회에서 제외했다.</p>
@@ -478,6 +523,7 @@
 <li class="toc-h2"><a href="#2026-09-01-구간-계측-진단">2026-09-01 구간 계측 진단</a></li>
 <li class="toc-h2"><a href="#2026-09-01-개선-및-30회-qualification-결과">2026-09-01 개선 및 30회 qualification 결과</a></li>
 <li class="toc-h2"><a href="#2026-09-02-저빈도-on-demand-qualification-결과">2026-09-02 저빈도 on-demand qualification 결과</a></li>
+<li class="toc-h3"><a href="#기존-상태와-실제-변경-요약">기존 상태와 실제 변경 요약</a></li>
 <li class="toc-h2"><a href="#2026-09-02-core-data-복구-및-중앙-저장-e2e-canary">2026-09-02 Core Data 복구 및 중앙 저장 E2E canary</a></li>
 <li class="toc-h3"><a href="#다섯-살에게-설명하면">다섯 살에게 설명하면</a></li>
 <li class="toc-h2"><a href="#현장-한계와-후속-조치">현장 한계와 후속 조치</a></li></ol></aside>

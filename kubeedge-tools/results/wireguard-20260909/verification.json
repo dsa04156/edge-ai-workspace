@@ -1,0 +1,160 @@
+{
+  "verified_at": "2026-09-09T07:27:43.207749+00:00",
+  "checks": [
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-project",
+        "--with",
+        "pytest",
+        "--with",
+        "pyyaml",
+        "--with",
+        "tomli",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "kubeedge-tools/tests"
+      ],
+      "exit_code": 0,
+      "output": ".................................                                        [100%]\n33 passed in 0.11s"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--no-project",
+        "--with",
+        "ruff",
+        "ruff",
+        "check",
+        "kubeedge-tools/networkctl.py",
+        "kubeedge-tools/wireguard_peer.py",
+        "kubeedge-tools/host_network.py",
+        "kubeedge-tools/join_vpn_worker.py",
+        "kubeedge-tools/tests/test_wireguard_network.py"
+      ],
+      "exit_code": 0,
+      "output": "All checks passed!"
+    },
+    {
+      "command": [
+        "bash",
+        "-n",
+        "kubeedge-tools/setup-wireguard-cloud.sh",
+        "kubeedge-tools/setup-wireguard-edge.sh",
+        "kubeedge-tools/onboard-vpn-node.sh"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "kind": "server-dry-run",
+      "role": "cloud",
+      "exit_code": 0,
+      "output": "daemonset.apps/kube-flannel-cloud-ds"
+    },
+    {
+      "kind": "server-dry-run",
+      "role": "edge",
+      "exit_code": 0,
+      "output": "daemonset.apps/kube-flannel-edge-ds"
+    }
+  ],
+  "api_tls": {
+    "address": "10.77.0.1:6443",
+    "ca_and_hostname_verified": true,
+    "sans": [
+      [
+        "DNS",
+        "etri-ser0001-cg0msb"
+      ],
+      [
+        "DNS",
+        "kubernetes"
+      ],
+      [
+        "DNS",
+        "kubernetes.default"
+      ],
+      [
+        "DNS",
+        "kubernetes.default.svc"
+      ],
+      [
+        "DNS",
+        "kubernetes.default.svc.cluster.local"
+      ],
+      [
+        "IP Address",
+        "10.96.0.1"
+      ],
+      [
+        "IP Address",
+        "192.168.0.56"
+      ],
+      [
+        "IP Address",
+        "10.254.192.217"
+      ],
+      [
+        "IP Address",
+        "10.77.0.1"
+      ]
+    ],
+    "sha256": "35d2ffb4ca52389343287105f239a57e9f225a2945596cb629261bc5d2afbd6b"
+  },
+  "readyz": "ok",
+  "nodes": [
+    {
+      "name": "etri-dev0001-jetorn",
+      "ready": "True",
+      "flannel_ip": "192.168.0.3"
+    },
+    {
+      "name": "etri-dev0002-raspi5",
+      "ready": "True",
+      "flannel_ip": "192.168.0.4"
+    },
+    {
+      "name": "etri-dev0003-raspi5",
+      "ready": "True",
+      "flannel_ip": "192.168.0.6"
+    },
+    {
+      "name": "etri-dev0004-tedger",
+      "ready": "True",
+      "flannel_ip": "192.168.0.7"
+    },
+    {
+      "name": "etri-dev0005-jetagx",
+      "ready": "True",
+      "flannel_ip": "192.168.0.8"
+    },
+    {
+      "name": "etri-ser0001-cg0msb",
+      "ready": "True",
+      "flannel_ip": "192.168.0.56"
+    },
+    {
+      "name": "etri-ser0002-cgnmsb",
+      "ready": "True",
+      "flannel_ip": "192.168.0.5"
+    }
+  ],
+  "live_applied": [
+    "API certificate SAN 10.77.0.1"
+  ],
+  "pending": [
+    "host SSH access",
+    "public endpoint and UDP forwarding",
+    "remote target identity/OS",
+    "CloudHub VPN SAN and CA verification",
+    "persistent routing including Tinker return path",
+    "node and Flannel migration",
+    "control-plane bootstrap endpoint migration",
+    "remote end-to-end qualification"
+  ]
+}

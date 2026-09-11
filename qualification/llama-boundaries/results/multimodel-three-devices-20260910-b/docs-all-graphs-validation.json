@@ -1,0 +1,52 @@
+{
+  "verified_at": "2026-09-11T05:54:31.516595+00:00",
+  "condition_rows": 126,
+  "existing_attachments_unchanged": 12,
+  "graphs_visually_reviewed": 3,
+  "images": [
+    {
+      "file": "concurrency-throughput.png",
+      "pixels": [
+        2400,
+        1500
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        150.01239999999999,
+        150.01239999999999
+      ]
+    },
+    {
+      "file": "token-length-latency.png",
+      "pixels": [
+        2400,
+        1500
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        150.01239999999999,
+        150.01239999999999
+      ]
+    },
+    {
+      "file": "concurrency-latency.png",
+      "pixels": [
+        2400,
+        1500
+      ],
+      "mode": "RGBA",
+      "dpi": [
+        150.01239999999999,
+        150.01239999999999
+      ]
+    }
+  ],
+  "palette_contrast_on_white": {
+    "#0072B2": 5.185446345779855,
+    "#9B4F00": 5.979319490932971,
+    "#7030A0": 8.017277802679075
+  },
+  "docs_tests_passed": 21,
+  "csv_values_exactly_match_comparison": true,
+  "full_table_matches_generated": true
+}

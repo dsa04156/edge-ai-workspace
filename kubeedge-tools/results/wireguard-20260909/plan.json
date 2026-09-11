@@ -1,0 +1,23 @@
+{
+  "context": "kubernetes-admin@kubernetes",
+  "migration_order": [
+    "etri-dev0002-raspi5",
+    "etri-dev0005-jetagx",
+    "etri-dev0001-jetorn",
+    "etri-dev0003-raspi5",
+    "etri-ser0002-cgnmsb",
+    "etri-ser0001-cg0msb"
+  ],
+  "blockers": [
+    "external_endpoint missing: external join cannot run",
+    "etri-ser0002-cgnmsb: SSH access not recorded; no remote mutation permitted",
+    "etri-dev0001-jetorn: SSH access not recorded; no remote mutation permitted",
+    "etri-dev0002-raspi5: SSH access not recorded; no remote mutation permitted",
+    "etri-dev0003-raspi5: SSH access not recorded; no remote mutation permitted",
+    "etri-dev0004-tedger: SSH access not recorded; no remote mutation permitted",
+    "etri-dev0005-jetagx: SSH access not recorded; no remote mutation permitted"
+  ],
+  "wireguard_mtu": 1380,
+  "pod_mtu": 1330,
+  "applied": false
+}

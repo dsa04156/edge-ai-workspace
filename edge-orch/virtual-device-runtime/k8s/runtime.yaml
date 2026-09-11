@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vd-demo-001-settings
+data:
+  VD_ID: vd-demo-001
+  MODEL_ADAPTER: nearest-centroid
+  MODEL_PATH: /app/models/iris-centroids.json
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vd-demo-001
+  labels:
+    edge-ai.io/virtual-device-id: vd-demo-001
+spec:
+  replicas: 0
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      edge-ai.io/virtual-device-id: vd-demo-001
+  template:
+    metadata:
+      labels:
+        edge-ai.io/virtual-device-id: vd-demo-001
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 35
+      nodeSelector:
+        kubernetes.io/os: linux
+        edge-ai.io/virtual-device-test: "true"
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: inference
+          image: virtual-device-runtime:local
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: vd-demo-001-settings
+          env:
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vd-demo-001
+spec:
+  type: ClusterIP
+  selector:
+    edge-ai.io/virtual-device-id: vd-demo-001
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

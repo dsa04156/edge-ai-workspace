@@ -1,0 +1,17 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "kube-flannel-network-interfaces",
+    "namespace": "kube-system"
+  },
+  "data": {
+    "etri-dev0001-jetorn": "wg0",
+    "etri-dev0002-raspi5": "wg0",
+    "etri-dev0003-raspi5": "wg0",
+    "etri-dev0004-tedger": "192.168.0.7",
+    "etri-dev0005-jetagx": "wg0",
+    "etri-ser0001-cg0msb": "wg0",
+    "etri-ser0002-cgnmsb": "wg0"
+  }
+}

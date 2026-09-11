@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "context": "kubernetes-admin@kubernetes",
+  "interface": "wg0",
+  "network": "10.77.0.0/24",
+  "mtu": 1380,
+  "hub": "etri-ser0001-cg0msb",
+  "external_endpoint": "10.254.192.217:51820",
+  "reserved_ips": [
+    "10.77.0.47"
+  ],
+  "nodes": [
+    {
+      "name": "etri-ser0001-cg0msb",
+      "role": "control-plane",
+      "lan_ip": "192.168.0.56",
+      "vpn_ip": "10.77.0.1",
+      "ssh": null
+    },
+    {
+      "name": "etri-ser0002-cgnmsb",
+      "role": "worker",
+      "lan_ip": "192.168.0.5",
+      "vpn_ip": "10.77.0.5",
+      "ssh": "etri@192.168.0.5"
+    },
+    {
+      "name": "etri-dev0001-jetorn",
+      "role": "edge",
+      "class": "jetson",
+      "lan_ip": "192.168.0.3",
+      "vpn_ip": "10.77.0.3",
+      "ssh": "etri@192.168.0.3"
+    },
+    {
+      "name": "etri-dev0002-raspi5",
+      "role": "edge",
+      "class": "raspi",
+      "lan_ip": "192.168.0.4",
+      "vpn_ip": "10.77.0.4",
+      "ssh": "etri@192.168.0.4"
+    },
+    {
+      "name": "etri-dev0003-raspi5",
+      "role": "edge",
+      "class": "raspi",
+      "lan_ip": "192.168.0.6",
+      "vpn_ip": "10.77.0.6",
+      "ssh": "etri@192.168.0.6"
+    },
+    {
+      "name": "etri-dev0004-tedger",
+      "role": "edge",
+      "class": "tinker",
+      "lan_ip": "192.168.0.7",
+      "vpn_ip": null,
+      "ssh": "jinuk@192.168.0.7"
+    },
+    {
+      "name": "etri-dev0005-jetagx",
+      "role": "edge",
+      "class": "jetagx",
+      "lan_ip": "192.168.0.8",
+      "vpn_ip": "10.77.0.8",
+      "ssh": "etri@192.168.0.8"
+    },
+    {
+      "name": "etri-ser0004-cgnms0",
+      "role": "worker",
+      "lan_ip": "10.254.70.228",
+      "vpn_ip": "10.77.0.10",
+      "ssh": "etri@10.254.70.228"
+    },
+    {
+      "name": "etri-ser0003-cg0ms0",
+      "role": "worker",
+      "lan_ip": "10.254.70.183",
+      "vpn_ip": "10.77.0.9",
+      "ssh": "etri@10.254.70.183"
+    },
+    {
+      "name": "etri-dev0006-raspi5",
+      "role": "edge",
+      "class": "raspi",
+      "lan_ip": null,
+      "vpn_ip": "10.77.0.11",
+      "ssh": "ssh://etri@10.254.70.81:23"
+    }
+  ],
+  "migration_order": [
+    "etri-dev0006-raspi5",
+    "etri-dev0002-raspi5",
+    "etri-dev0005-jetagx",
+    "etri-dev0001-jetorn",
+    "etri-dev0003-raspi5",
+    "etri-ser0002-cgnmsb",
+    "etri-ser0004-cgnms0",
+    "etri-ser0003-cg0ms0",
+    "etri-ser0001-cg0msb"
+  ]
+}

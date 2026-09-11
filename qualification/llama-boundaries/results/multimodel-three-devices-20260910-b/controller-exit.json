@@ -1,0 +1,10 @@
+{
+  "at": 1789046433.8073218,
+  "exit_code": 1,
+  "exec_session": 65977,
+  "exception": "TimeoutError: RuntimeService did not reach Serving",
+  "location": "multimodel_cluster.py:321 finally / wait_phase(Serving,120)",
+  "context": "Nano continuation re-suspended same RuntimeService for remaining cells; restoration watchdog handed to d (restoration-handoff.json)",
+  "agx_complete_cells": 18,
+  "final_restoration_pending": true
+}

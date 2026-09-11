@@ -65,6 +65,10 @@ function clean_crictl_tarball() {
 
 function install_crictl() {
     echo "install crictl"
+    if command -v crictl >/dev/null 2>&1; then
+        echo "keep existing crictl: $(crictl --version 2>/dev/null || true)"
+        return 0
+    fi
     tar zxvf $tarball_dir/crictl-$crictl_version-linux-$toolarch.tar.gz -C /usr/local/bin
 }
 
@@ -82,6 +86,19 @@ function clean_cni_tarball() {
 
 function install_cni() {
     echo "install cni"
+    local required_plugins=(bridge host-local loopback portmap)
+    local plugin
+    local complete=1
+    for plugin in "${required_plugins[@]}"; do
+        if [[ ! -x "/opt/cni/bin/${plugin}" ]]; then
+            complete=0
+            break
+        fi
+    done
+    if [[ "$complete" == "1" ]]; then
+        echo "keep existing CNI plugins in /opt/cni/bin"
+        return 0
+    fi
     mkdir -p /opt/cni/bin
     tar -zxvf $tarball_dir/cni-plugins-linux-$toolarch-$cni_version.tgz -C /opt/cni/bin
 }
@@ -128,17 +145,26 @@ function clean_flannel_image_tarball() {
 
 function install_flannel() {
     local mode=$1
-    echo "install flannel: $mode"
-    if [[ -z "${KUBECONFIG:-}" && -f /etc/kubernetes/admin.conf ]]; then
+    shift
+    local action="${1:---check}"
+    [[ "$mode" == cloud || "$mode" == edge ]] || return 2
+    [[ $# -le 1 && ( "$action" == --check || "$action" == --apply ) ]] || {
+        echo 'usage: install-flannel-{cloud,edge}.sh [--check|--apply]' >&2
+        return 2
+    }
+    local root
+    root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    local context="${KUBE_CONTEXT:-kubernetes-admin@kubernetes}"
+    if [[ -z "${KUBECONFIG:-}" && -r /etc/kubernetes/admin.conf ]]; then
         export KUBECONFIG=/etc/kubernetes/admin.conf
     fi
-    kubectl apply -f $yamls_dir/kube-flannel-$mode.yml
-    if [[ "$mode" == "cloud" ]]; then
-        kubectl rollout status ds/kube-flannel-cloud-ds -n kube-system --timeout=180s
-    elif [[ "$mode" == "edge" ]]; then
-        kubectl rollout status ds/kube-flannel-edge-ds -n kube-system --timeout=180s
-    else
-        kubectl wait --timeout=120s --for=condition=Ready pod -l app=flannel -n kube-system
+    local manifests=( -f "$root/yamls/kube-flannel-common.yml"
+        -f "$root/config/flannel-interfaces.yaml" -f "$root/yamls/kube-flannel-$mode.yml" )
+    echo "Flannel $mode; context=$context; action=$action"
+    kubectl --context "$context" apply --dry-run=server "${manifests[@]}"
+    if [[ "$action" == --apply ]]; then
+        kubectl --context "$context" apply "${manifests[@]}"
+        echo 'OnDelete: existing Pods are not restarted. Verify each node before replacing its exact Flannel Pod.'
     fi
 }
 

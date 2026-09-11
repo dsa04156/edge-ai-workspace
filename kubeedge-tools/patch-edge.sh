@@ -4,48 +4,33 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-source ./tools.sh
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+EDGECORE_CONFIG="${EDGECORE_CONFIG:-/etc/kubeedge/config/edgecore.yaml}"
+EDGE_NODE_NAME="${EDGE_NODE_NAME:?set EDGE_NODE_NAME, for example etri-dev0004-raspi5}"
+EDGE_NODE_CLASS="${EDGE_NODE_CLASS:?set EDGE_NODE_CLASS to jetson or raspi}"
+CLOUDCORE_HOST="${CLOUDCORE_HOST:?set CLOUDCORE_HOST to the private LAN address}"
 
-function patch_edgecore_config() {
-		local cfg="/etc/kubeedge/config/edgecore.yaml"
-		if [[ ! -f "$cfg" ]]; then
-				echo "edgecore config not found: $cfg"
-				exit 1
-		fi
+if [[ "$(id -u)" -ne 0 ]]; then
+	echo "please run as root: sudo -E ./patch-edge.sh" >&2
+	exit 1
+fi
 
-		local runtime_sock="unix:///run/containerd/containerd.sock"
+if ! command -v python3 >/dev/null 2>&1; then
+	echo "python3 is required to patch EdgeCore YAML safely" >&2
+	exit 1
+fi
 
-		# CRI endpoint/runtimeType를 현재 환경(containerd)에 맞춰 교정
-		sed -i -E "s#(^[[:space:]]*remoteImageEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
-		sed -i -E "s#(^[[:space:]]*remoteRuntimeEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
-		sed -i -E "s#(^[[:space:]]*runtimeType:[[:space:]]*).*#\\1remote#" "$cfg" || true
-		sed -i -E "s#(^[[:space:]]*containerRuntimeEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
-		sed -i -E "s#(^[[:space:]]*imageServiceEndpoint:[[:space:]]*).*#\\1${runtime_sock}#" "$cfg" || true
+actual_hostname="$(hostnamectl --static)"
+if [[ "${actual_hostname}" != "${EDGE_NODE_NAME}" ]]; then
+	echo "hostname mismatch: host=${actual_hostname} requested=${EDGE_NODE_NAME}" >&2
+	exit 1
+fi
 
-		# metaServer.enable: false -> true (edge flannel/메타서버 경로 사용)
-		awk '
-			BEGIN { in_meta=0 }
-			{
-				if ($0 ~ /^[[:space:]]*metaServer:[[:space:]]*$/) {
-					in_meta=1
-					print
-					next
-				}
-				if (in_meta==1 && $0 ~ /^[[:space:]]*enable:[[:space:]]*false[[:space:]]*$/) {
-					sub(/false/, "true")
-					in_meta=0
-					print
-					next
-				}
-				if (in_meta==1 && $0 !~ /^[[:space:]]+/) {
-					in_meta=0
-				}
-				print
-			}
-		' "$cfg" > "${cfg}.tmp"
-		mv "${cfg}.tmp" "$cfg"
-}
+python3 "${SCRIPT_DIR}/patch_edgecore_config.py" \
+	--config "${EDGECORE_CONFIG}" \
+	--node-name "${EDGE_NODE_NAME}" \
+	--node-class "${EDGE_NODE_CLASS}" \
+	--cloudcore-host "${CLOUDCORE_HOST}"
 
-patch_edgecore_config
 systemctl restart edgecore
 systemctl status edgecore --no-pager -n 60

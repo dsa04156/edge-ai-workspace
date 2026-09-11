@@ -1,0 +1,17 @@
+# Add the exact new node here before joining it. Tinker stays on LAN.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-flannel-network-interfaces
+  namespace: kube-system
+data:
+  etri-ser0001-cg0msb: wg0
+  etri-ser0002-cgnmsb: wg0
+  etri-dev0001-jetorn: wg0
+  etri-dev0002-raspi5: wg0
+  etri-dev0003-raspi5: wg0
+  etri-dev0004-tedger: 192.168.0.7
+  etri-dev0005-jetagx: wg0
+  etri-ser0004-cgnms0: wg0
+  etri-ser0003-cg0ms0: wg0
+  etri-dev0006-raspi5: wg0

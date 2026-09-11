@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-09-11T07:51:23.961290+00:00",
+  "cluster_terminating": 0,
+  "pods_total": 166,
+  "deployments": [
+    {
+      "name": "benchmark-client",
+      "desired": 0,
+      "observedGeneration": 22,
+      "generation": 22,
+      "actual": 0
+    },
+    {
+      "name": "inference-edge",
+      "desired": 0,
+      "observedGeneration": 7,
+      "generation": 7,
+      "actual": 0
+    },
+    {
+      "name": "inference-edge-resnet18",
+      "desired": 0,
+      "observedGeneration": 5,
+      "generation": 5,
+      "actual": 0
+    }
+  ]
+}

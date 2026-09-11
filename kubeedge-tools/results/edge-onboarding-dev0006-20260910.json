@@ -1,0 +1,103 @@
+{
+  "checked_at": "2026-09-10T12:34:25.086039+00:00",
+  "context": "kubernetes-admin@kubernetes",
+  "ssh": "ssh://etri@10.254.70.81:23",
+  "original_hostname": "raspberrypi",
+  "node": "etri-dev0006-raspi5",
+  "vpn_ip": "10.77.0.11",
+  "wireguard_endpoint": "10.254.192.217:51820",
+  "node_ready": "True",
+  "addresses": [
+    {
+      "address": "10.77.0.11",
+      "type": "InternalIP"
+    },
+    {
+      "address": "etri-dev0006-raspi5",
+      "type": "Hostname"
+    }
+  ],
+  "node_info": {
+    "architecture": "arm64",
+    "kernelVersion": "6.18.39+rpt-rpi-2712",
+    "kubeletVersion": "v1.32.10-kubeedge-v1.23.0",
+    "containerRuntimeVersion": "containerd://1.7.24",
+    "osImage": "Debian GNU/Linux 13 (trixie)"
+  },
+  "pod_cidr": "10.244.9.0/24",
+  "flannel_public_ip": "10.77.0.11",
+  "pods": [
+    {
+      "namespace": "kube-system",
+      "name": "kube-flannel-edge-ds-7f97c",
+      "ready": true
+    },
+    {
+      "namespace": "kube-system",
+      "name": "prometheus-prometheus-node-exporter-zx9v5",
+      "ready": true
+    },
+    {
+      "namespace": "kubeedge",
+      "name": "edge-eclipse-mosquitto-vll6l",
+      "ready": true
+    },
+    {
+      "namespace": "kubeedge",
+      "name": "edgemesh-agent-frqbr",
+      "ready": true
+    }
+  ],
+  "prometheus": [
+    {
+      "metric": {
+        "__name__": "up",
+        "container": "node-exporter",
+        "endpoint": "http-metrics",
+        "instance": "10.77.0.11:9100",
+        "job": "node-exporter",
+        "namespace": "kube-system",
+        "pod": "prometheus-prometheus-node-exporter-zx9v5",
+        "service": "prometheus-prometheus-node-exporter"
+      },
+      "value": [
+        1789043665.091,
+        "1"
+      ]
+    }
+  ],
+  "checks": {
+    "edgecore_script": {
+      "pass": 15,
+      "warn": 0,
+      "fail": 0
+    },
+    "post_reboot_wireguard_and_edgecore": true,
+    "post_reboot_external_ssh": true,
+    "memory_cgroup_v2": true,
+    "swap_disabled": true,
+    "pod_dns": true,
+    "pod_edgex_metadata_service_ping": true,
+    "control_plane_to_new_pod_http": true,
+    "cloudstream_logs_exec": true,
+    "dashboard_verified": false,
+    "registry_cri_pull": true,
+    "temporary_pods_cleaned": true
+  },
+  "limitations": [
+    "state-aggregator /state/nodes times out even over container loopback; dashboard visibility unverified",
+    "existing etri-dev0002-raspi5 is still NotReady and was not replaced or deleted",
+    "No physical sensor integration was added"
+  ],
+  "local_tests": "41 passed; onboard-edge-lan.sh bash syntax passed",
+  "backups": {
+    "initial": "/var/backups/edgeai-onboard-1789042754352035913",
+    "boot": "/var/backups/edgeai-memory-cgroup-1789043303954835271",
+    "hub_peer": "/etc/wireguard/wg0.conf.backup-1789042855253570994"
+  },
+  "registry_image": "192.168.0.56:5000/edge-device-discovery@sha256:4ab79a8051d8b260c27ab97c9938c32a071c736cef37d231977c2958e98de1ee",
+  "sources": [
+    "https://release-1-22.docs.kubeedge.io/docs/setup/prerequisites/runtime/",
+    "https://github.com/raspberrypi/linux/issues/6980"
+  ]
+}

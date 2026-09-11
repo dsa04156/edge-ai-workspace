@@ -1,0 +1,10 @@
+# Keep the PSK out of Git. Use --reuse-values for upgrades or --set agent.psk
+# interactively for a fresh install. Existing releases require live preservation;
+# see README: VPN network redeployment. --reuse-values alone cannot preserve live patches.
+agent:
+  image: kubeedge/edgemesh-agent@sha256:460c6061b6088d507bb547d362a8d803b75c7eeddd23758a4b218a5da9138364
+  relayNodes:
+    - nodeName: etri-ser0001-cg0msb
+      advertiseAddress:
+        - 192.168.0.56
+        - 10.77.0.1

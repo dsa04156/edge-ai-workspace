@@ -1,0 +1,6 @@
+{
+  "kubeadm-config": "10.77.0.1:6443",
+  "kube-proxy": "https://10.77.0.1:6443",
+  "cluster-info": "https://10.77.0.1:6443",
+  "existing_jws_count": 0
+}

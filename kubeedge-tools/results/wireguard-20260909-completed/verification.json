@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-09-09T10:02:57.373644+00:00",
+  "context": "kubernetes-admin@kubernetes",
+  "migration_applied": true,
+  "vpn_nodes": 6,
+  "lan_only_nodes": [
+    "etri-dev0004-tedger"
+  ],
+  "nodes_ready": 7,
+  "pod_failures": [],
+  "physical_devices_fresh": 12,
+  "prometheus_node_targets_up": 7,
+  "unit_tests_passed": 36,
+  "pod_df_bytes": 1330,
+  "wireguard_mtu": 1380,
+  "registry_pull": {
+    "node": "etri-dev0005-jetagx",
+    "image_digest": "sha256:7f0fcc5b75a5433ca49d46b373fe31380965bf6608dbc2c491c5eff88ffc895f",
+    "fresh_blob_bytes": 20870851,
+    "new_blobs": 9,
+    "vpn_packet_headers": 30
+  },
+  "remaining": [
+    "External public endpoint and UDP forwarding not supplied; no external worker/edge join executed",
+    "Actual host reboot and WAN performance test not performed",
+    "AGX uses wireguard-go; Tinker final LAN hop is not encrypted"
+  ]
+}

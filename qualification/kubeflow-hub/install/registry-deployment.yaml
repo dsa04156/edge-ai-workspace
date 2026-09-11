@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-registry-deployment
+spec:
+  template:
+    spec:
+      nodeSelector:
+        environment: cloud
+        kubernetes.io/arch: amd64
+      containers:
+        - name: rest-container
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi

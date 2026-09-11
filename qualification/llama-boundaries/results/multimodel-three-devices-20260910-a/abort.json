@@ -1,0 +1,5 @@
+{
+  "reason": "port bind precheck lacks SO_REUSEADDR; first Spark cell complete, other devices had not started",
+  "timestamp": 1789043431.9521413,
+  "infrastructure_failures_not_model_performance": true
+}

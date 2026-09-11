@@ -1,0 +1,25 @@
+{
+  "observed_at": "2026-09-10T13:54:40.783489+00:00",
+  "unittest_command": "rtk proxy python3 -m unittest discover -s qualification/llama-boundaries -p test_*.py",
+  "tests": 25,
+  "passed": 25,
+  "compiled_multimodel_modules": 9,
+  "scope": "Benchmark protocol and analysis unit tests plus syntax compilation; actual GPU evidence is in verification.json",
+  "source_sha256": {
+    "multimodel_report.py": "3d6ca7a42aedd09829c9b1d08c7863a085b71e9eb11c2c4a7bab255ee247c028",
+    "multimodel_detached.py": "d80fefcf41ac29ebd79f61b080b5367abac5dc88f8765cba30ae9f8606cdcbca",
+    "multimodel_write_report.py": "f7e02de64dc183622e1ef62e901bee504fe85209c2a279a3e5dd52b6aa6792f4",
+    "multimodel_cluster.py": "5301da244cfed12bf8c4931646dd2e2022a71fde9f351a8f5a3f5e7865ca9a84",
+    "multimodel_prepare.py": "40c4097b640f82f52ebe9b2887c78b903a0ce81725a97421b5bd09e69d873810",
+    "multimodel_final_state.py": "8acad9ff81630635feca52671dad064555d02ab14a769c4ed366c944b05b1659",
+    "multimodel_spark_cooled.py": "41aafca5b7a83add1900e89194411320275e7511dae3dca3b0821783b6ed7aea",
+    "multimodel_figures.py": "61bed161c83b63426e209557c89028e3e453d6b8d68adee2c9eefe790b6b0ba7",
+    "multimodel_client.py": "62359e29614f6582c261f175722110296df106e0c44b5d215aa916366efc5e1a",
+    "test_sweep.py": "adc684b88d78b4a085faf8f33f2fcc238639a7cce22b8a24fbb9be34a492f20e",
+    "test_multimodel.py": "b50225e1def25d8c616d3ff7306f3f885b3db28ee8c0d6ff330835f500a535e9",
+    "test_bench.py": "9d397bd29a9dcef5386a91fc62d5119b426ba3620c3ead8aeaad6e519429d5b1",
+    "test_thermal.py": "ffe4f4ae032cacc1eac969fd38b6dbd0dec89ed8451b5a73cb89ca52623c6b61",
+    "test_remote_analysis.py": "fee4464baddfa4c2f14277bc23bf32b86373696f52778a9013c549286bdfbd73",
+    "bench.py": "1a162c4396b29af97efa7a61cc2c84db161441d74a8fb501ea8cf4e6b401c2f5"
+  }
+}

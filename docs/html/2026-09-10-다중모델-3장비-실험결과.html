@@ -1,0 +1,2015 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>다중 모델 성능측정 기술 메모(TM) — Orin Nano·AGX Orin·DGX Spark</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">개발 참고</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">2026-09-10-다중모델-3장비-실험결과.md</span>
+        <a class="edit-link" href="/__edit?file=2026-09-10-다중모델-3장비-실험결과.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
+<li><a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a></li>
+<li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
+<li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
+<li><a href="Llama-장비별-GPU-성능측정.html">Llama 장비별 GPU 성능측정</a></li>
+<li><a class="active" aria-current="page" href="2026-09-10-다중모델-3장비-실험결과.html">다중 모델 성능측정 기술 메모(TM) — Orin Nano·AGX Orin·DGX Spark</a></li>
+<li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">개발 참고</p>
+          <h1>다중 모델 성능측정 기술 메모(TM) — Orin Nano·AGX Orin·DGX Spark</h1>
+          <p class="subtitle">기존 Markdown 문서를 HTML로 변환한 읽기용 페이지입니다.</p>
+          <div class="meta">
+            <span class="badge kind">개발 참고</span>
+            <span class="badge">원본: 2026-09-10-다중모델-3장비-실험결과.md</span>
+            <span class="badge">수정: 2026-09-11 16:52</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:52</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="기술-메모-orin-nano-agx-orin-dgx-spark의-6개-모델-성능-비교">기술 메모: Orin Nano·AGX Orin·DGX Spark의 6개 모델 성능 비교</h1>
+<ul><li><strong>측정일:</strong> 2026-09-10</li><li><strong>갱신일:</strong> 2026-09-11 · 개정 1.3</li><li><strong>문서번호:</strong> TM-LLM-20260910-01</li></ul>
+<h2 id="1-핵심-결과">1. 핵심 결과</h2>
+<ul><li><strong>비교 대상:</strong> Orin Nano·AGX Orin·DGX Spark, 언어모델 6종</li><li><strong>측정 목적:</strong> 같은 모델·토큰 수에서 응답 속도와 처리량 비교</li><li><strong>기본 단일 요청 결과:</strong> 6개 모델 모두 Spark → AGX → Nano 순으로 빠름</li><li><strong>Llama 1B 응답시간:</strong> Nano <strong>3.584초</strong> / AGX <strong>2.077초</strong> / Spark <strong>0.859초</strong></li><li><strong>최종 집계:</strong> 54개 실행, 실측 972건 성공; 워밍업 54건 제외</li><li><strong>해석 범위:</strong> 당시 설치 환경과 설정의 속도 비교</li><li><strong>미확인:</strong> 답변 정확도, 장비 최대 성능, 장시간 지속 처리량, 메모리 제한의 영향</li><li><strong>중단 이력:</strong> 온도 기준 초과·관리 연결 오류 발생; 중단 시도와 최종 집계 구분</li></ul>
+<h3 id="1-1-요청-1개를-처리하는-시간">1.1 요청 1개를 처리하는 시간</h3>
+<ul><li>조건: <strong>입력 512 → 출력 128토큰</strong></li><li>값: 세 회차 중앙값, <strong>단위 초 · 작을수록 빠름</strong></li><li>포함: 장비 내부 HTTP 왕복, 응답 완료까지의 시간</li><li>제외: 다운로드, 모델 적재, 냉각 대기</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모델 (Q8_0)</th>
+<th>Orin Nano</th>
+<th>AGX Orin</th>
+<th>DGX Spark</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>1.878</td>
+<td>1.177</td>
+<td>0.462</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>3.584</td>
+<td>2.077</td>
+<td>0.859</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>5.219</td>
+<td>2.955</td>
+<td>1.117</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>8.660</td>
+<td>5.864</td>
+<td>2.021</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>7.852</td>
+<td>4.697</td>
+<td>2.069</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>8.584</td>
+<td>4.808</td>
+<td>2.144</td>
+</tr>
+</tbody></table></div>
+<h3 id="1-2-요청-8개가-동시에-도착했을-때">1.2 요청 8개가 동시에 도착했을 때</h3>
+<ul><li>조건: 입력 512 → 출력 128토큰, 요청 8개씩 세 번</li><li>값: <strong>24개 요청의 표본 p95 · 단위 초 · 대기시간 포함</strong></li><li>p95: 수집한 응답시간의 95백분위 값; 느린 요청 구간 확인용</li><li>처리 방식: <strong>슬롯 1개 → 한 요청씩 처리, 나머지는 대기</strong></li><li>주의: 8개 동시 계산 성능이나 장시간 운영 p95 보장값으로 해석 불가</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모델 (Q8_0)</th>
+<th>Orin Nano</th>
+<th>AGX Orin</th>
+<th>DGX Spark</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>13.579</td>
+<td>9.454</td>
+<td>3.714</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>27.431</td>
+<td>16.846</td>
+<td>6.841</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>40.182</td>
+<td>23.519</td>
+<td>8.915</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>67.109</td>
+<td>46.360</td>
+<td>15.616</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>61.800</td>
+<td>37.520</td>
+<td>16.461</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>67.563</td>
+<td>38.481</td>
+<td>16.927</td>
+</tr>
+</tbody></table></div>
+<figure class="doc-figure"><img src="../assets/llama-multimodel-20260910/model-comparison.png" alt="장비별 단일 요청 응답시간과 동시 8개 요청의 표본 p95 비교" loading="lazy"></figure>
+<h3 id="1-3-동시-요청-1-2-4-8개-전체-비교">1.3 동시 요청 1·2·4·8개 전체 비교</h3>
+<ul><li>가로축: <strong>한꺼번에 보내는 요청 수</strong></li><li>세로축: <strong>요청별 응답시간 중앙값 · 초 · 낮을수록 빠름</strong></li><li>점: 중앙값 / 세로선: 관측 최솟값~최댓값; 대기 차이 포함, 신뢰구간 아님</li><li>표본 수: 요청 1·2·4·8개 조건별 각각 3·6·12·24건</li><li>비교: 위 1.2절은 p95, 아래 그래프의 점은 중앙값</li><li>관측: 요청 수 증가에 따라 대기 포함 응답시간 증가</li></ul>
+<figure class="doc-figure"><img src="../assets/llama-multimodel-20260910/all-conditions/concurrency-latency.png" alt="6개 모델의 동시 요청 1·2·4·8개별 응답시간 중앙값과 최솟값~최댓값. 세 장비 모두 요청 증가에 따라 대기 포함 지연 증가" loading="lazy"></figure>
+<h3 id="1-4-짧은-요청-긴-입력-긴-출력-전체-비교">1.4 짧은 요청·긴 입력·긴 출력 전체 비교</h3>
+<ul><li>가로축: 입력 토큰 → 출력 토큰</li><li>조건: 128→64 / 기본 512→128 / 긴 입력 2048→128 / 긴 출력 512→256</li><li>요청 방식: <strong>한 번에 1개, 조건별 세 회차</strong></li><li>점: 응답시간 중앙값 / 세로선: 세 관측값의 최솟값~최댓값</li><li>관측: 기본 조건보다 긴 입력·긴 출력 조건에서 응답시간 증가</li></ul>
+<figure class="doc-figure"><img src="../assets/llama-multimodel-20260910/all-conditions/token-length-latency.png" alt="6개 모델과 3개 장비의 입력·출력 길이 4조건 비교. 기본 대비 긴 입력과 긴 출력에서 응답시간 증가" loading="lazy"></figure>
+<h3 id="1-5-동시-요청-수별-초당-처리량">1.5 동시 요청 수별 초당 처리량</h3>
+<ul><li>가로축: 한꺼번에 보내는 요청 수 / 세로축: <strong>출력 토큰/s · 높을수록 처리량 큼</strong></li><li>관측: 요청 수가 늘어도 초당 처리량은 대체로 비슷한 수준</li><li>실행 조건: 슬롯 1개; 대기 중인 요청 증가가 동시 계산 슬롯 증가를 뜻하지 않음</li><li>측정 범위: 세 요청 묶음의 합산 처리량; 장비의 최대 지속 처리량은 미측정</li></ul>
+<figure class="doc-figure"><img src="../assets/llama-multimodel-20260910/all-conditions/concurrency-throughput.png" alt="6개 모델의 동시 요청 수별 출력 토큰 처리량. 슬롯 1개 조건에서 요청 수가 늘어도 초당 처리량은 대체로 비슷" loading="lazy"></figure>
+<ul><li>공통 주의: 기존 메모리 5/8/8GiB, 후속 27개 실행의 냉각 조건 유지; 냉각·적재 시간 제외</li><li><a href="assets/llama-multimodel-20260910/all-conditions/all-conditions.csv">전체 126개 조건 CSV 내려받기</a></li><li><a href="assets/llama-multimodel-20260910/all-conditions/all-figures-provenance.json">그래프 생성 근거</a></li><li>전체 응답시간·첫 응답 p95·처리량 수치: <strong>9절의 장비별 전체 표</strong></li></ul>
+<h2 id="2-실험-조건">2. 실험 조건</h2>
+<h3 id="2-1-장비">2.1 장비</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>장비</th>
+<th>관측 노드 메모리(GiB)</th>
+<th>런타임 컨테이너 메모리 제한</th>
+<th>OS</th>
+<th>CUDA backend</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Orin Nano</td>
+<td>7.44</td>
+<td>5Gi</td>
+<td>Ubuntu 22.04.5 LTS</td>
+<td>cuda_jetpack6</td>
+</tr>
+<tr>
+<td>AGX Orin</td>
+<td>61.40</td>
+<td>8Gi</td>
+<td>Ubuntu 24.04.4 LTS</td>
+<td>cuda_jetpack6</td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>121.69</td>
+<td>8Gi</td>
+<td>Ubuntu 24.04.3 LTS</td>
+<td>cuda_v13</td>
+</tr>
+</tbody></table></div>
+<ul><li>노드 메모리: Kubernetes에서 관측한 시스템 메모리</li><li>컨테이너 제한: 기존 추론 컨테이너에 설정된 메모리 상한</li><li>OS·CUDA backend·전력 설정: 장비별 기존 설정 유지</li><li>대상 장비: 실제 Nano·AGX·Spark 사용; RTX 대체값 없음</li></ul>
+<h3 id="2-2-모델과-실행-설정">2.2 모델과 실행 설정</h3>
+<ul><li>모델: Llama 3.2 <strong>1B·3B</strong>, Qwen 2.5 <strong>0.5B·1.5B·3B</strong>, Gemma 2 <strong>2B</strong></li><li>계열: Instruct / 파일 형식: GGUF / 양자화: Q8_0</li><li>파일 검증: 세 장비의 모델 SHA256 대조 완료</li><li>입력 검증: 동일 모델의 세 장비 입력 데이터 일치</li><li>모델 간 비교: 토큰 수만 동일; tokenizer 차이로 문장·토큰 ID는 다를 수 있음</li><li>토큰: 모델이 입력·출력을 세는 단위; 글자 수와 다름</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>통제 항목</th>
+<th>설정</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>모델 형식·양자화</td>
+<td>GGUF · Q8_0</td>
+</tr>
+<tr>
+<td>추론 런타임</td>
+<td><code>llama-server d222767c7</code></td>
+</tr>
+<tr>
+<td>문맥 길이 / 처리 슬롯 / 스레드</td>
+<td>4096 / 1 / 4</td>
+</tr>
+<tr>
+<td>batch / ubatch</td>
+<td>512 / 128</td>
+</tr>
+<tr>
+<td>KV cache / flash attention</td>
+<td>f16 / off</td>
+</tr>
+<tr>
+<td>요청 생성</td>
+<td>기존 factory sensor 텍스트 생성기, seed 20260908</td>
+</tr>
+<tr>
+<td>생성 조건</td>
+<td>temperature 0, 고정 seed, EOS 무시로 출력 토큰 수 고정</td>
+</tr>
+<tr>
+<td>요청 간 prefix 재사용</td>
+<td><code>cache_prompt=false</code>, <code>cache_n=0</code>; 실제 미재사용 검증</td>
+</tr>
+<tr>
+<td>측정 경로</td>
+<td>장비 내 API 컨테이너 → 동일 Pod/host network의 loopback HTTP</td>
+</tr>
+</tbody></table></div>
+<h3 id="2-3-요청-구성과-반복-횟수">2.3 요청 구성과 반복 횟수</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>조건</th>
+<th>입력 토큰</th>
+<th>출력 토큰</th>
+<th>한꺼번에 보내는 요청 수</th>
+<th>회차당 측정 건수</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>기본 부하</td>
+<td>512</td>
+<td>128</td>
+<td>1, 2, 4, 8</td>
+<td>1 + 2 + 4 + 8 = 15</td>
+</tr>
+<tr>
+<td>짧은 요청</td>
+<td>128</td>
+<td>64</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>긴 입력</td>
+<td>2048</td>
+<td>128</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>긴 출력</td>
+<td>512</td>
+<td>256</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody></table></div>
+<ul><li>한 회차: 모델 하나를 장비 한 대에서 시험하는 한 번의 묶음; 예: Nano의 Llama 1B 1회차</li><li>실행당 요청: 워밍업 1건 + 측정 18건</li><li>전체 실행: <strong>6모델 × 3장비 × 3회차 = 54개</strong></li><li>CSV 구성: <strong>실측 972행 + 워밍업 54행 = 1,026행</strong></li><li>실행 순서: 첫 회차는 모델 파일 크기 순; 이후 두 회차는 무작위 순서</li><li>순서 재현: seed 20260910 사용; 조건 순서도 seed로 섞음</li><li>반복 범위: 같은 날·같은 세션의 세 회차</li><li>전체 조건 통계: 입력 길이 변화와 동시 요청 2·4개를 포함한 <strong>126개 조건</strong></li></ul>
+<h3 id="2-4-측정-종료-기준">2.4 측정·종료 기준</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>적용 기준</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>단일 요청 통계</td>
+<td>세 회차 중앙값, n=3</td>
+</tr>
+<tr>
+<td>동시 8개 통계</td>
+<td>세 묶음의 24개 요청을 합친 표본 p95</td>
+</tr>
+<tr>
+<td>요청 제한시간</td>
+<td>180초</td>
+</tr>
+<tr>
+<td>모델 서버 실행 제한시간</td>
+<td>900초</td>
+</tr>
+<tr>
+<td>중단 기준</td>
+<td>관측 온도 80°C 이상 또는 관측 가용 RAM 700MiB 미만</td>
+</tr>
+<tr>
+<td>후속 냉각 조건</td>
+<td>Spark 13개·Nano 14개 실행; 워밍업·각 조건 전 관측 온도 60°C 이하 대기</td>
+</tr>
+<tr>
+<td>집계 제외</td>
+<td>워밍업·중단 시도; 중단 기록은 별도 보존</td>
+</tr>
+<tr>
+<td>중복 방지</td>
+<td>같은 실행에 완료 기록이 둘 이상이면 집계 오류 처리; 빠른 값 선택 없음</td>
+</tr>
+<tr>
+<td>서비스 복구</td>
+<td>시험 종료 후 원래 서비스 복구, 시험용 프로세스·포트 부재 확인</td>
+</tr>
+</tbody></table></div>
+<ul><li>측정 전: 기존 Llama 요청 처리 완료 대기 → 모델 해제 → 시험 서버 실행</li><li>기존 설정 유지: Pod 정의, GPU 예약, 센서 서비스, 호스트 설정</li><li>지연 측정 제외: 관리용 Kubernetes exec 왕복</li><li>서비스 복구·장비 상태: <strong>2026-09-10 시험 종료 당시 검증 기록</strong></li></ul>
+<h2 id="3-메모리-제한-왜-5gib-8gib인가">3. 메모리 제한: 왜 5GiB·8GiB인가</h2>
+<ul><li><strong>설정값:</strong> Nano 5GiB / AGX 8GiB / Spark 8GiB</li><li><strong>설정 경위:</strong> 기존 Llama 실험용 컨테이너 재사용</li><li><strong>선정 근거:</strong> 이번 비교의 공정성·최적 성능을 기준으로 새로 산정한 값은 아님</li><li><strong>확인 근거:</strong> <code>multimodel_cluster.py</code>, <code>nodes-before.json</code>, <code>nodes-after.json</code></li><li><strong>검증 공백:</strong> 메모리 한도만 바꾼 비교, 연속적인 메모리 압박·회수·스왑 측정 미수행</li><li><strong>판단 보류:</strong> 제한의 성능 영향 유무, 5/8GiB 차이와 속도 차이의 인과관계</li><li><strong>주의:</strong> 요청 성공·작은 GPU 모델 할당량만으로 메모리 여유나 무영향 입증 불가</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>비교 목적</th>
+<th>메모리 설정 방향</th>
+<th>이번 시험</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>같은 모델의 장비별 속도</td>
+<td>실행에 충분한 메모리 확보 + 압박 여부 확인; 동일 상한은 필수 아님</td>
+<td>기존 5/8/8GiB 환경에서 측정; 제한 영향 미확인</td>
+</tr>
+<tr>
+<td>같은 자원 예산의 성능</td>
+<td>세 장비의 메모리 상한도 동일하게 설정</td>
+<td>미수행</td>
+</tr>
+<tr>
+<td>장비별 최대 수용 능력</td>
+<td>장비별 가용 메모리 활용 + 모델·동시 처리량 확대</td>
+<td>미수행</td>
+</tr>
+</tbody></table></div>
+<h2 id="4-결과를-볼-때-주의할-점">4. 결과를 볼 때 주의할 점</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>항목</th>
+<th>해석 범위·제한</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>장비 순위</td>
+<td>기본 단일 요청 조건에서 Spark → AGX → Nano; 하드웨어만의 영향으로 분리 불가</td>
+</tr>
+<tr>
+<td>모델 순위</td>
+<td>Qwen 0.5B의 기본 단일 요청 시간이 가장 짧음; 정확도·지능 순위는 미측정</td>
+</tr>
+<tr>
+<td>냉각 대기</td>
+<td>후속 27개 실행에 적용; 지연·처리량에서 제외</td>
+</tr>
+<tr>
+<td>지속 성능</td>
+<td>냉각 시간을 포함한 장시간 처리량 미측정</td>
+</tr>
+<tr>
+<td>반복 수</td>
+<td>같은 세션의 세 회차; 독립 날짜 반복·별도 검증 데이터·유의성 검정 없음</td>
+</tr>
+<tr>
+<td>자원 관측</td>
+<td>간헐적 수집·관리 연결 공백 존재; 메모리·온도 실제 최고점 보장 불가</td>
+</tr>
+<tr>
+<td>동시 요청</td>
+<td>슬롯 1개에서 대기 포함; 다중 슬롯 최대 처리량 미측정</td>
+</tr>
+<tr>
+<td>네트워크</td>
+<td>장비 내부 HTTP 경로; 외부 네트워크 지연 미측정</td>
+</tr>
+<tr>
+<td>기동 시간</td>
+<td>관리 명령 시작 → GPU 준비 상태 관측; 순수 모델 로딩 시간과 다름</td>
+</tr>
+<tr>
+<td>적용 제외</td>
+<td>모델 정답률, 에너지 절감량, 자동 오프로딩 임계값, 장비별 최적 성능</td>
+</tr>
+</tbody></table></div>
+<h2 id="5-추가-성능-지표">5. 추가 성능 지표</h2>
+<h3 id="5-1-처리량과-첫-응답-시간">5.1 처리량과 첫 응답 시간</h3>
+<ul><li>조건: 입력 512 → 출력 128토큰, 동시 요청 8개씩 세 번</li><li><strong>출력 토큰/s:</strong> 초당 생성한 답변 토큰 수; 클수록 높은 처리량</li><li><strong>요청/s:</strong> 초당 완료한 요청 수; 클수록 높은 처리량</li><li><strong>TTFT:</strong> 요청 후 첫 내용이 도착하기까지의 시간; 대기 포함, 작을수록 빠름</li><li>처리량 계산: 성공 토큰·요청 수 ÷ 세 요청 묶음의 실제 소요시간 합</li><li>묶음 소요시간: 가장 이른 요청 예정 시각 → 마지막 요청 완료 시각</li><li>주의: 개별 요청의 생성 속도 또는 장시간 지속 처리량과 구분</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>장비</th>
+<th>모델</th>
+<th>출력 토큰/s</th>
+<th>요청/s</th>
+<th>p95 TTFT(초)</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Orin Nano</td>
+<td>Qwen 2.5 0.5B</td>
+<td>75.270</td>
+<td>0.588</td>
+<td>12.104</td>
+</tr>
+<tr>
+<td>Orin Nano</td>
+<td>Llama 3.2 1B</td>
+<td>37.352</td>
+<td>0.292</td>
+<td>24.277</td>
+</tr>
+<tr>
+<td>Orin Nano</td>
+<td>Qwen 2.5 1.5B</td>
+<td>25.458</td>
+<td>0.199</td>
+<td>35.554</td>
+</tr>
+<tr>
+<td>Orin Nano</td>
+<td>Gemma 2 2B</td>
+<td>15.261</td>
+<td>0.119</td>
+<td>59.851</td>
+</tr>
+<tr>
+<td>Orin Nano</td>
+<td>Qwen 2.5 3B</td>
+<td>16.562</td>
+<td>0.129</td>
+<td>54.762</td>
+</tr>
+<tr>
+<td>Orin Nano</td>
+<td>Llama 3.2 3B</td>
+<td>15.159</td>
+<td>0.118</td>
+<td>59.817</td>
+</tr>
+<tr>
+<td>AGX Orin</td>
+<td>Qwen 2.5 0.5B</td>
+<td>108.242</td>
+<td>0.846</td>
+<td>8.410</td>
+</tr>
+<tr>
+<td>AGX Orin</td>
+<td>Llama 3.2 1B</td>
+<td>60.703</td>
+<td>0.474</td>
+<td>14.917</td>
+</tr>
+<tr>
+<td>AGX Orin</td>
+<td>Qwen 2.5 1.5B</td>
+<td>43.463</td>
+<td>0.340</td>
+<td>20.822</td>
+</tr>
+<tr>
+<td>AGX Orin</td>
+<td>Gemma 2 2B</td>
+<td>21.943</td>
+<td>0.171</td>
+<td>41.957</td>
+</tr>
+<tr>
+<td>AGX Orin</td>
+<td>Qwen 2.5 3B</td>
+<td>27.277</td>
+<td>0.213</td>
+<td>33.256</td>
+</tr>
+<tr>
+<td>AGX Orin</td>
+<td>Llama 3.2 3B</td>
+<td>26.586</td>
+<td>0.208</td>
+<td>34.089</td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>Qwen 2.5 0.5B</td>
+<td>275.403</td>
+<td>2.152</td>
+<td>3.291</td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>Llama 3.2 1B</td>
+<td>149.033</td>
+<td>1.164</td>
+<td>6.039</td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>Qwen 2.5 1.5B</td>
+<td>115.118</td>
+<td>0.899</td>
+<td>7.892</td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>Gemma 2 2B</td>
+<td>65.604</td>
+<td>0.513</td>
+<td>13.921</td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>Qwen 2.5 3B</td>
+<td>62.062</td>
+<td>0.485</td>
+<td>14.532</td>
+</tr>
+<tr>
+<td>DGX Spark</td>
+<td>Llama 3.2 3B</td>
+<td>60.496</td>
+<td>0.473</td>
+<td>14.937</td>
+</tr>
+</tbody></table></div>
+<h3 id="5-2-gpu에-적재한-모델-크기">5.2 GPU에 적재한 모델 크기</h3>
+<ul><li>측정값: 런타임 로그의 <strong>GPU model buffer · 단위 MiB</strong></li><li>포함: 모델 계산에 필요한 tensor 할당량</li><li>제외: KV cache, 연산 buffer, 드라이버, 프로세스 RSS 등</li><li>주의: 장치 전체 메모리 사용량 또는 전용 VRAM 용량과 구분</li><li>RSS: 프로세스의 상주 메모리; JSON의 <code>peak_process_rss_mib</code>는 관측 표본 중 최댓값</li><li>단위: 1GiB = 2³⁰바이트 / 1MiB = 2²⁰바이트; manifest의 <code>Gi</code> = GiB</li></ul>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모델</th>
+<th>Orin Nano</th>
+<th>AGX Orin</th>
+<th>DGX Spark</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>500.8</td>
+<td>500.8</td>
+<td>500.8</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>1252.4</td>
+<td>1252.4</td>
+<td>1252.4</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>1564.6</td>
+<td>1564.6</td>
+<td>1564.6</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>2649.8</td>
+<td>2649.8</td>
+<td>2649.8</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>3127.6</td>
+<td>3127.6</td>
+<td>3127.6</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>3255.9</td>
+<td>3255.9</td>
+<td>3255.9</td>
+</tr>
+</tbody></table></div>
+<h2 id="6-중단-재개-기록">6. 중단·재개 기록</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>실행</th>
+<th>발생 사항</th>
+<th>기록·처리</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>최초 a · Spark Qwen 0.5B</td>
+<td>18건 성공 후 포트 재사용 검사 오류</td>
+<td>a 전체를 최종 집계에서 제외</td>
+</tr>
+<tr>
+<td>b · Spark Llama 3B 첫 회차</td>
+<td>호스트 온도 81.1°C로 중단 기준 80°C 초과; GPU 온도 68°C</td>
+<td>성공 15건·실패/timeout 2건·미전송 1건 보존</td>
+</tr>
+<tr>
+<td>b · Spark 종료 확인</td>
+<td>초기 25초 내 종료 확인 실패</td>
+<td>후속 조회에서 GPU 프로세스·포트 부재 확인</td>
+</tr>
+<tr>
+<td>c · Spark 후속 실행</td>
+<td>미완료 13개 실행 재개</td>
+<td>워밍업·각 조건 전 60°C 이하 대기; 냉각 기록 별도 보존</td>
+</tr>
+<tr>
+<td>b · Nano Qwen 3B</td>
+<td>관리 exec 연결 중단; GPU 프로세스 잔존</td>
+<td>성공 9건·진행 중 종료 기록 유실 1건·미시작 8건 구분; OOM 근거 미관측</td>
+</tr>
+<tr>
+<td>d · Nano 후속 실행</td>
+<td>미완료 14개 실행 재개</td>
+<td>장비 내부 독립 timeout·프로세스·tmpfs 로그 사용; 조건 전 60°C 이하 확인</td>
+</tr>
+<tr>
+<td>d · 첫 Nano Qwen 3B</td>
+<td>관리 조회 중단; 장비 내 요청 18건 완료</td>
+<td>원시 결과·종료 상태 회수; 연속 자원 기록에 공백</td>
+</tr>
+<tr>
+<td>b → d · 서비스 복구</td>
+<td>d의 다음 실행 준비로 재일시정지; b의 복구 대기 timeout</td>
+<td>복구 책임·watchdog을 d로 이관; 전체 종료 후 별도 감사로 최종 복구 확인</td>
+</tr>
+</tbody></table></div>
+<ul><li>후속 실행: 미완료 실행만 보충; 완료된 실행 사이의 유리한 값 선택 없음</li><li>재시도: 관리 조회의 일시 오류만 재확인; 추론 요청 자체의 재시도 없음</li><li>기록 유실: 응답시간 추정·대체 없음</li><li>성공 판단: b 실행기의 종료 코드만으로 판단하지 않고 최종 측정·복구 증거 대조</li><li>최종 972건 성공: <strong>선택한 최종 행렬 기준</strong>; 중단 시도까지 무실패였다는 의미는 아님</li></ul>
+<h2 id="7-후속-확인-항목">7. 후속 확인 항목</h2>
+<ul><li><strong>메모리 영향:</strong> 같은 모델·토큰·슬롯에서 한도만 변경; 사용량·압박·회수·스왑·OOM 함께 측정</li><li><strong>최대 처리 능력:</strong> 장비별 가용 메모리에 맞춰 모델 크기·처리 슬롯·동시 부하 확대</li><li><strong>지속 성능:</strong> 냉각 시간을 포함한 처리량과 온도 추이 측정</li><li><strong>답변 품질:</strong> 동일한 정답 데이터와 채점 기준으로 정확도 평가</li><li><strong>진행 상태:</strong> 위 항목 모두 미수행</li></ul>
+<h2 id="8-원시-결과와-재현-자료">8. 원시 결과와 재현 자료</h2>
+<ul><li><a href="assets/llama-multimodel-20260910/comparison.json">조건별 전체 통계 · 126개 조건</a></li><li><a href="assets/llama-multimodel-20260910/requests.csv">전체 요청 CSV · 실측 972건 + 워밍업 54건</a></li><li><a href="assets/llama-multimodel-20260910/models.json">모델 파일·SHA256</a></li><li><a href="assets/llama-multimodel-20260910/hardware.json">실제 노드 환경</a></li><li><a href="assets/llama-multimodel-20260910/verification.json">측정 검증 결과</a></li><li><a href="assets/llama-multimodel-20260910/aborted-attempt-requests.json">중단 회차 요청</a></li><li><a href="assets/llama-multimodel-20260910/service-restored.json">원래 서비스 복구</a></li><li><a href="assets/llama-multimodel-20260910/final-state.json">시험 종료 후 최종 상태</a></li><li><a href="assets/llama-multimodel-20260910/model-comparison.png">그래프 원본</a></li><li><a href="assets/llama-multimodel-20260910/source-manifest.json">첨부 파일·원본 SHA256 대응</a></li><li><a href="assets/llama-multimodel-20260910/analysis-crosscheck.json">CSV 독립 교차검산</a></li><li><a href="Llama-장비별-GPU-성능측정.html">기존 Llama 장비별 GPU 성능측정</a></li><li>실험 계획: <code>qualification/llama-boundaries/다중모델-3장비-실험계획.md</code></li><li>재현 코드: <code>qualification/llama-boundaries/multimodel_*.py</code></li><li>원시 기록 ID: <code>multimodel-three-devices-20260910</code></li><li>서버·회차·냉각 로그: <code>qualification/llama-boundaries/results/</code>에 보존</li><li><code>comparison.json</code> 내부 경로: 공개 첨부 폴더가 아닌 원본 실험 디렉터리 기준</li></ul>
+<h2 id="9-전체-126개-조건-결과">9. 전체 126개 조건 결과</h2>
+<ul><li>시간 단위: 초 / 처리량: 출력 토큰/s</li><li>조건 표기: 입력 토큰 → 출력 토큰 / 한꺼번에 보내는 요청 수</li><li>중앙값·표본 p95: 대기 포함 / 표본 수: 같은 세션의 세 회차 합계</li><li>p95는 작은 표본의 기술통계; 운영 보장값으로 해석 불가</li></ul>
+<h3 id="orin-nano">Orin Nano</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모델</th>
+<th>입력→출력</th>
+<th>요청 수</th>
+<th>표본 수</th>
+<th>응답 중앙값</th>
+<th>응답 p95</th>
+<th>첫 응답 p95</th>
+<th>출력 토큰/s</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>1.878</td>
+<td>1.885</td>
+<td>0.271</td>
+<td>70.084</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>2.641</td>
+<td>3.541</td>
+<td>2.051</td>
+<td>73.347</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>4.254</td>
+<td>6.856</td>
+<td>5.352</td>
+<td>75.465</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>7.764</td>
+<td>13.579</td>
+<td>12.104</td>
+<td>75.270</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>0.828</td>
+<td>1.052</td>
+<td>0.089</td>
+<td>69.520</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.731</td>
+<td>2.880</td>
+<td>1.269</td>
+<td>46.130</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>3.274</td>
+<td>3.338</td>
+<td>0.299</td>
+<td>77.940</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>3.584</td>
+<td>3.672</td>
+<td>0.415</td>
+<td>35.870</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>5.248</td>
+<td>7.051</td>
+<td>3.920</td>
+<td>36.640</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>8.604</td>
+<td>13.763</td>
+<td>10.627</td>
+<td>37.310</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>15.445</td>
+<td>27.431</td>
+<td>24.277</td>
+<td>37.352</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>1.674</td>
+<td>1.869</td>
+<td>0.140</td>
+<td>36.456</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>5.042</td>
+<td>5.146</td>
+<td>1.808</td>
+<td>25.185</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>6.625</td>
+<td>6.699</td>
+<td>0.390</td>
+<td>38.553</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>5.219</td>
+<td>5.223</td>
+<td>0.532</td>
+<td>24.815</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>7.627</td>
+<td>10.185</td>
+<td>5.565</td>
+<td>25.205</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>12.621</td>
+<td>20.158</td>
+<td>15.534</td>
+<td>25.427</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>22.683</td>
+<td>40.182</td>
+<td>35.554</td>
+<td>25.458</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>2.509</td>
+<td>2.609</td>
+<td>0.185</td>
+<td>25.329</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>6.830</td>
+<td>6.891</td>
+<td>2.065</td>
+<td>18.721</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>9.855</td>
+<td>9.860</td>
+<td>0.518</td>
+<td>26.109</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>8.660</td>
+<td>8.724</td>
+<td>1.361</td>
+<td>14.882</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>12.751</td>
+<td>17.024</td>
+<td>9.773</td>
+<td>15.098</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>21.019</td>
+<td>33.607</td>
+<td>26.346</td>
+<td>15.262</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>37.814</td>
+<td>67.109</td>
+<td>59.851</td>
+<td>15.261</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>4.043</td>
+<td>4.304</td>
+<td>0.589</td>
+<td>15.338</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>10.648</td>
+<td>10.789</td>
+<td>3.198</td>
+<td>11.965</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>15.959</td>
+<td>15.965</td>
+<td>1.296</td>
+<td>16.120</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>7.852</td>
+<td>7.891</td>
+<td>0.809</td>
+<td>16.270</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>11.730</td>
+<td>15.588</td>
+<td>8.557</td>
+<td>16.424</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>19.409</td>
+<td>30.987</td>
+<td>23.962</td>
+<td>16.529</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>34.804</td>
+<td>61.800</td>
+<td>54.762</td>
+<td>16.562</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>3.774</td>
+<td>3.875</td>
+<td>0.259</td>
+<td>16.871</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>10.845</td>
+<td>10.870</td>
+<td>3.492</td>
+<td>11.790</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>14.930</td>
+<td>14.966</td>
+<td>0.823</td>
+<td>17.138</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>8.584</td>
+<td>8.611</td>
+<td>0.826</td>
+<td>14.908</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>12.807</td>
+<td>17.032</td>
+<td>9.284</td>
+<td>15.036</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>21.168</td>
+<td>33.884</td>
+<td>26.130</td>
+<td>15.135</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>38.003</td>
+<td>67.563</td>
+<td>59.817</td>
+<td>15.159</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>4.013</td>
+<td>4.247</td>
+<td>0.315</td>
+<td>15.557</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>11.865</td>
+<td>11.891</td>
+<td>3.674</td>
+<td>10.810</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>16.358</td>
+<td>16.363</td>
+<td>0.815</td>
+<td>15.650</td>
+</tr>
+</tbody></table></div>
+<h3 id="agx-orin">AGX Orin</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모델</th>
+<th>입력→출력</th>
+<th>요청 수</th>
+<th>표본 수</th>
+<th>응답 중앙값</th>
+<th>응답 p95</th>
+<th>첫 응답 p95</th>
+<th>출력 토큰/s</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>1.177</td>
+<td>1.183</td>
+<td>0.140</td>
+<td>108.788</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>1.771</td>
+<td>2.358</td>
+<td>1.326</td>
+<td>108.565</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>2.958</td>
+<td>4.717</td>
+<td>3.680</td>
+<td>108.558</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>5.331</td>
+<td>9.454</td>
+<td>8.410</td>
+<td>108.242</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>0.572</td>
+<td>0.573</td>
+<td>0.037</td>
+<td>109.454</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>1.856</td>
+<td>1.895</td>
+<td>0.784</td>
+<td>68.165</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>2.211</td>
+<td>2.220</td>
+<td>0.141</td>
+<td>115.600</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.077</td>
+<td>2.123</td>
+<td>0.177</td>
+<td>61.169</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>3.161</td>
+<td>4.248</td>
+<td>2.299</td>
+<td>60.571</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>5.288</td>
+<td>8.470</td>
+<td>6.537</td>
+<td>60.501</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>9.503</td>
+<td>16.846</td>
+<td>14.917</td>
+<td>60.703</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>1.021</td>
+<td>1.026</td>
+<td>0.047</td>
+<td>62.284</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>3.037</td>
+<td>3.043</td>
+<td>0.990</td>
+<td>42.013</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>4.003</td>
+<td>4.005</td>
+<td>0.176</td>
+<td>64.103</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.955</td>
+<td>2.957</td>
+<td>0.255</td>
+<td>43.389</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>4.423</td>
+<td>5.911</td>
+<td>3.216</td>
+<td>43.390</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>7.376</td>
+<td>11.785</td>
+<td>9.095</td>
+<td>43.455</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>13.259</td>
+<td>23.519</td>
+<td>20.822</td>
+<td>43.463</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>1.404</td>
+<td>1.407</td>
+<td>0.068</td>
+<td>45.108</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>4.017</td>
+<td>4.031</td>
+<td>1.208</td>
+<td>31.808</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>5.632</td>
+<td>5.638</td>
+<td>0.256</td>
+<td>45.530</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>5.864</td>
+<td>6.392</td>
+<td>1.950</td>
+<td>21.142</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>9.162</td>
+<td>12.387</td>
+<td>7.991</td>
+<td>21.349</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>14.706</td>
+<td>23.393</td>
+<td>19.006</td>
+<td>21.927</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>26.405</td>
+<td>46.360</td>
+<td>41.957</td>
+<td>21.943</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>2.745</td>
+<td>2.868</td>
+<td>0.710</td>
+<td>22.898</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>7.247</td>
+<td>7.445</td>
+<td>2.854</td>
+<td>17.533</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>10.237</td>
+<td>10.569</td>
+<td>1.767</td>
+<td>24.781</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>4.697</td>
+<td>4.704</td>
+<td>0.432</td>
+<td>27.244</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>7.046</td>
+<td>9.397</td>
+<td>5.126</td>
+<td>27.251</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>11.745</td>
+<td>18.778</td>
+<td>14.508</td>
+<td>27.264</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>21.130</td>
+<td>37.520</td>
+<td>33.256</td>
+<td>27.277</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>2.236</td>
+<td>2.236</td>
+<td>0.110</td>
+<td>28.443</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>6.497</td>
+<td>6.512</td>
+<td>2.040</td>
+<td>19.673</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>8.981</td>
+<td>8.995</td>
+<td>0.429</td>
+<td>28.511</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>4.808</td>
+<td>4.822</td>
+<td>0.420</td>
+<td>26.593</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>7.214</td>
+<td>9.651</td>
+<td>5.238</td>
+<td>26.586</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>12.043</td>
+<td>19.268</td>
+<td>14.863</td>
+<td>26.583</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>21.656</td>
+<td>38.481</td>
+<td>34.089</td>
+<td>26.586</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>2.293</td>
+<td>2.299</td>
+<td>0.109</td>
+<td>27.728</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>6.741</td>
+<td>6.768</td>
+<td>2.103</td>
+<td>18.966</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>9.234</td>
+<td>9.255</td>
+<td>0.423</td>
+<td>27.724</td>
+</tr>
+</tbody></table></div>
+<h3 id="dgx-spark">DGX Spark</h3>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>모델</th>
+<th>입력→출력</th>
+<th>요청 수</th>
+<th>표본 수</th>
+<th>응답 중앙값</th>
+<th>응답 p95</th>
+<th>첫 응답 p95</th>
+<th>출력 토큰/s</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>0.462</td>
+<td>0.465</td>
+<td>0.045</td>
+<td>276.771</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>0.700</td>
+<td>0.943</td>
+<td>0.517</td>
+<td>273.543</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>1.161</td>
+<td>1.869</td>
+<td>1.448</td>
+<td>274.844</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>2.094</td>
+<td>3.714</td>
+<td>3.291</td>
+<td>275.403</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>0.227</td>
+<td>0.229</td>
+<td>0.012</td>
+<td>280.065</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>0.636</td>
+<td>0.646</td>
+<td>0.207</td>
+<td>199.897</td>
+</tr>
+<tr>
+<td>Qwen 2.5 0.5B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>0.884</td>
+<td>0.893</td>
+<td>0.046</td>
+<td>288.974</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>0.859</td>
+<td>0.879</td>
+<td>0.058</td>
+<td>147.729</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>1.280</td>
+<td>1.735</td>
+<td>0.928</td>
+<td>149.891</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>2.118</td>
+<td>3.396</td>
+<td>2.595</td>
+<td>150.935</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>3.868</td>
+<td>6.841</td>
+<td>6.039</td>
+<td>149.033</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>0.416</td>
+<td>0.425</td>
+<td>0.016</td>
+<td>152.984</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>1.120</td>
+<td>1.147</td>
+<td>0.293</td>
+<td>113.194</td>
+</tr>
+<tr>
+<td>Llama 3.2 1B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>1.635</td>
+<td>1.675</td>
+<td>0.058</td>
+<td>155.532</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>1.117</td>
+<td>1.138</td>
+<td>0.080</td>
+<td>114.513</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>1.640</td>
+<td>2.222</td>
+<td>1.190</td>
+<td>116.723</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>2.803</td>
+<td>4.504</td>
+<td>3.450</td>
+<td>114.428</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>4.988</td>
+<td>8.915</td>
+<td>7.892</td>
+<td>115.118</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>0.527</td>
+<td>0.561</td>
+<td>0.022</td>
+<td>117.733</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>1.450</td>
+<td>1.454</td>
+<td>0.345</td>
+<td>89.091</td>
+</tr>
+<tr>
+<td>Qwen 2.5 1.5B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>2.195</td>
+<td>2.219</td>
+<td>0.082</td>
+<td>116.859</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.021</td>
+<td>2.029</td>
+<td>0.289</td>
+<td>64.194</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>2.909</td>
+<td>3.941</td>
+<td>2.212</td>
+<td>65.571</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>4.915</td>
+<td>7.870</td>
+<td>6.172</td>
+<td>65.200</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>8.809</td>
+<td>15.616</td>
+<td>13.921</td>
+<td>65.604</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>0.961</td>
+<td>0.968</td>
+<td>0.120</td>
+<td>66.492</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.440</td>
+<td>2.459</td>
+<td>0.632</td>
+<td>52.712</td>
+</tr>
+<tr>
+<td>Gemma 2 2B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>3.638</td>
+<td>3.670</td>
+<td>0.265</td>
+<td>70.332</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.069</td>
+<td>2.095</td>
+<td>0.143</td>
+<td>61.653</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>3.102</td>
+<td>4.151</td>
+<td>2.212</td>
+<td>61.841</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>5.198</td>
+<td>8.341</td>
+<td>6.397</td>
+<td>61.625</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>9.282</td>
+<td>16.461</td>
+<td>14.532</td>
+<td>62.062</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>0.988</td>
+<td>0.992</td>
+<td>0.038</td>
+<td>64.730</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.610</td>
+<td>2.637</td>
+<td>0.607</td>
+<td>48.949</td>
+</tr>
+<tr>
+<td>Qwen 2.5 3B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>4.028</td>
+<td>4.054</td>
+<td>0.140</td>
+<td>63.598</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.144</td>
+<td>2.161</td>
+<td>0.128</td>
+<td>60.097</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>2</td>
+<td>6</td>
+<td>3.178</td>
+<td>4.262</td>
+<td>2.255</td>
+<td>60.275</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>4</td>
+<td>12</td>
+<td>5.329</td>
+<td>8.504</td>
+<td>6.535</td>
+<td>60.339</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→128</td>
+<td>8</td>
+<td>24</td>
+<td>9.492</td>
+<td>16.927</td>
+<td>14.937</td>
+<td>60.496</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>128→64</td>
+<td>1</td>
+<td>3</td>
+<td>1.007</td>
+<td>1.021</td>
+<td>0.035</td>
+<td>63.147</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>2048→128</td>
+<td>1</td>
+<td>3</td>
+<td>2.736</td>
+<td>2.739</td>
+<td>0.590</td>
+<td>47.015</td>
+</tr>
+<tr>
+<td>Llama 3.2 3B</td>
+<td>512→256</td>
+<td>1</td>
+<td>3</td>
+<td>4.130</td>
+<td>4.191</td>
+<td>0.129</td>
+<td>61.892</td>
+</tr>
+</tbody></table></div>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1-핵심-결과">1. 핵심 결과</a></li>
+<li class="toc-h3"><a href="#1-1-요청-1개를-처리하는-시간">1.1 요청 1개를 처리하는 시간</a></li>
+<li class="toc-h3"><a href="#1-2-요청-8개가-동시에-도착했을-때">1.2 요청 8개가 동시에 도착했을 때</a></li>
+<li class="toc-h3"><a href="#1-3-동시-요청-1-2-4-8개-전체-비교">1.3 동시 요청 1·2·4·8개 전체 비교</a></li>
+<li class="toc-h3"><a href="#1-4-짧은-요청-긴-입력-긴-출력-전체-비교">1.4 짧은 요청·긴 입력·긴 출력 전체 비교</a></li>
+<li class="toc-h3"><a href="#1-5-동시-요청-수별-초당-처리량">1.5 동시 요청 수별 초당 처리량</a></li>
+<li class="toc-h2"><a href="#2-실험-조건">2. 실험 조건</a></li>
+<li class="toc-h3"><a href="#2-1-장비">2.1 장비</a></li>
+<li class="toc-h3"><a href="#2-2-모델과-실행-설정">2.2 모델과 실행 설정</a></li>
+<li class="toc-h3"><a href="#2-3-요청-구성과-반복-횟수">2.3 요청 구성과 반복 횟수</a></li>
+<li class="toc-h3"><a href="#2-4-측정-종료-기준">2.4 측정·종료 기준</a></li>
+<li class="toc-h2"><a href="#3-메모리-제한-왜-5gib-8gib인가">3. 메모리 제한: 왜 5GiB·8GiB인가</a></li>
+<li class="toc-h2"><a href="#4-결과를-볼-때-주의할-점">4. 결과를 볼 때 주의할 점</a></li>
+<li class="toc-h2"><a href="#5-추가-성능-지표">5. 추가 성능 지표</a></li>
+<li class="toc-h3"><a href="#5-1-처리량과-첫-응답-시간">5.1 처리량과 첫 응답 시간</a></li>
+<li class="toc-h3"><a href="#5-2-gpu에-적재한-모델-크기">5.2 GPU에 적재한 모델 크기</a></li>
+<li class="toc-h2"><a href="#6-중단-재개-기록">6. 중단·재개 기록</a></li>
+<li class="toc-h2"><a href="#7-후속-확인-항목">7. 후속 확인 항목</a></li>
+<li class="toc-h2"><a href="#8-원시-결과와-재현-자료">8. 원시 결과와 재현 자료</a></li>
+<li class="toc-h2"><a href="#9-전체-126개-조건-결과">9. 전체 126개 조건 결과</a></li>
+<li class="toc-h3"><a href="#orin-nano">Orin Nano</a></li>
+<li class="toc-h3"><a href="#agx-orin">AGX Orin</a></li>
+<li class="toc-h3"><a href="#dgx-spark">DGX Spark</a></li></ol></aside>
+    </div>
+  </div>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

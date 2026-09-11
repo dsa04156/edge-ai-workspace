@@ -1,0 +1,11 @@
+{
+  "cloudCore": {
+    "modules": {
+      "cloudHub": {
+        "advertiseAddress": [
+          "192.168.0.56"
+        ]
+      }
+    }
+  }
+}

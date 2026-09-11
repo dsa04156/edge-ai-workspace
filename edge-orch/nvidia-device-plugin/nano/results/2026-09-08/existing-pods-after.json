@@ -1,0 +1,74 @@
+[
+  {
+    "namespace": "edgex-edge",
+    "name": "device-serial-jetson-76b6c976fd-kmgc2",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-device-discovery-9lrcx",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-modbus-simulator-765b5b547b-47sk2",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "sensor-anomaly-demo-579cdb4d76-9nnn8",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "kube-system",
+    "name": "kube-flannel-edge-ds-mtjtj",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "kube-system",
+    "name": "prometheus-prometheus-node-exporter-2d2jn",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "kubeedge",
+    "name": "edge-eclipse-mosquitto-w74j7",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "kubeedge",
+    "name": "edgemesh-agent-gb4np",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "llama-offload-eval",
+    "name": "llama-worker-nano-799fc9d6c5-lzm5n",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "offload-test",
+    "name": "j-local-analyzer-64446d9cb-29cnj",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "offload-test",
+    "name": "mqtt-temperature-reader-645c84bdb5-qjbk9",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  },
+  {
+    "namespace": "offload-test",
+    "name": "mqtt-vibration-reader-7b678764b8-kddg2",
+    "same_uid_container_ids_restart_counts": true,
+    "all_ready": true
+  }
+]

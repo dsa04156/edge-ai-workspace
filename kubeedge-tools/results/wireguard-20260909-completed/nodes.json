@@ -1,0 +1,51 @@
+[
+  {
+    "node": "etri-dev0001-jetorn",
+    "internal_ip": "10.77.0.3",
+    "flannel_ip": "10.77.0.3",
+    "ready": true,
+    "pod_cidr": "10.244.2.0/24"
+  },
+  {
+    "node": "etri-dev0002-raspi5",
+    "internal_ip": "10.77.0.4",
+    "flannel_ip": "10.77.0.4",
+    "ready": true,
+    "pod_cidr": "10.244.1.0/24"
+  },
+  {
+    "node": "etri-dev0003-raspi5",
+    "internal_ip": "10.77.0.6",
+    "flannel_ip": "10.77.0.6",
+    "ready": true,
+    "pod_cidr": "10.244.4.0/24"
+  },
+  {
+    "node": "etri-dev0004-tedger",
+    "internal_ip": "192.168.0.7",
+    "flannel_ip": "192.168.0.7",
+    "ready": true,
+    "pod_cidr": "10.244.3.0/24"
+  },
+  {
+    "node": "etri-dev0005-jetagx",
+    "internal_ip": "10.77.0.8",
+    "flannel_ip": "10.77.0.8",
+    "ready": true,
+    "pod_cidr": "10.244.6.0/24"
+  },
+  {
+    "node": "etri-ser0001-cg0msb",
+    "internal_ip": "10.77.0.1",
+    "flannel_ip": "10.77.0.1",
+    "ready": true,
+    "pod_cidr": "10.244.0.0/24"
+  },
+  {
+    "node": "etri-ser0002-cgnmsb",
+    "internal_ip": "10.77.0.5",
+    "flannel_ip": "10.77.0.5",
+    "ready": true,
+    "pod_cidr": "10.244.8.0/24"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "host": "3",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0001-jetorn\", \"wg_mtu\": 1380, \"flannel_mtu\": 1330, \"wg_enabled\": true, \"routing_phase\": \"final\", \"runtime_restore\": \"passed\", \"registry_first\": \"http://10.77.0.1:5000\", \"allowed_ips\": [\"10.77.0.0/24\", \"192.168.0.7/32\"], \"pending_rollback\": false, \"host_ping_targets\": 7}\n",
+    "err": ""
+  },
+  {
+    "host": "4",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0002-raspi5\", \"wg_mtu\": 1380, \"flannel_mtu\": 1330, \"wg_enabled\": true, \"routing_phase\": \"final\", \"runtime_restore\": \"passed\", \"registry_first\": \"http://10.77.0.1:5000\", \"allowed_ips\": [\"10.77.0.0/24\", \"192.168.0.7/32\"], \"pending_rollback\": false, \"host_ping_targets\": 7}\n",
+    "err": ""
+  },
+  {
+    "host": "5",
+    "code": 0,
+    "out": "{\"node\": \"etri-ser0002-cgnmsb\", \"wg_mtu\": 1380, \"flannel_mtu\": 1330, \"wg_enabled\": true, \"routing_phase\": \"final\", \"runtime_restore\": \"passed\", \"registry_first\": \"http://10.77.0.1:5000\", \"allowed_ips\": [\"10.77.0.0/24\", \"192.168.0.7/32\"], \"pending_rollback\": false, \"host_ping_targets\": 7}\n",
+    "err": ""
+  },
+  {
+    "host": "6",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0003-raspi5\", \"wg_mtu\": 1380, \"flannel_mtu\": 1330, \"wg_enabled\": true, \"routing_phase\": \"final\", \"runtime_restore\": \"passed\", \"registry_first\": \"http://10.77.0.1:5000\", \"allowed_ips\": [\"10.77.0.0/24\", \"192.168.0.7/32\"], \"pending_rollback\": false, \"host_ping_targets\": 7}\n",
+    "err": ""
+  },
+  {
+    "host": "7",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0004-tedger\", \"return_route\": \"10.77.0.0/24 via 192.168.0.56 dev eth0\", \"pending_rollback\": false, \"host_ping_targets\": 7}\n",
+    "err": "bash: warning: setlocale: LC_ALL: cannot change locale (ko_KR.UTF-8)\n"
+  },
+  {
+    "host": "8",
+    "code": 0,
+    "out": "{\"node\": \"etri-dev0005-jetagx\", \"wg_mtu\": 1380, \"flannel_mtu\": 1330, \"wg_enabled\": true, \"routing_phase\": \"final\", \"runtime_restore\": \"passed\", \"registry_first\": \"http://10.77.0.1:5000\", \"allowed_ips\": [\"10.77.0.0/24\", \"192.168.0.7/32\"], \"pending_rollback\": false, \"host_ping_targets\": 7}\n",
+    "err": "bash: warning: setlocale: LC_ALL: cannot change locale (ko_KR.UTF-8)\n"
+  }
+]

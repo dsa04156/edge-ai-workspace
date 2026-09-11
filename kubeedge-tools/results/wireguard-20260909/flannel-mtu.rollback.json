@@ -1,0 +1,5 @@
+{
+  "data": {
+    "net-conf.json": "{\n  \"Network\": \"10.244.0.0/16\",\n  \"EnableNFTables\": false,\n  \"Backend\": {\n    \"Type\": \"vxlan\"\n  }\n}\n"
+  }
+}

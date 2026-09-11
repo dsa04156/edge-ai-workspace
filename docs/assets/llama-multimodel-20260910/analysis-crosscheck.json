@@ -1,0 +1,9 @@
+{
+  "csv_rows": 1026,
+  "measured": 972,
+  "warmups": 54,
+  "conditions_crosschecked": 126,
+  "independent_estimators": "NumPy median and linear percentile; CSV-derived wave durations",
+  "all_checks_passed": true,
+  "csv_sha256": "b9b1d019ec2d9ca7794985a2d569e35e6e4da247e003f69823c309c02a316c93"
+}
