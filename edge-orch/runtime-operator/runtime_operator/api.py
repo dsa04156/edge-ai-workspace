@@ -94,6 +94,15 @@ def create_app(controller=None):
             return JSONResponse({"reason": "service_identity_changed", "accepted": False}, status_code=409)
         if not state.get("active"):
             return JSONResponse({"reason": "no_ready_target", "accepted": False}, status_code=503)
+        expected_node = request.headers.get("X-Runtime-Expected-Node")
+        demo_id = request.headers.get("X-Runtime-Demo-Run")
+        if demo_id:
+            run = app.state.demo_runner.runs.get((uid, demo_id))
+            if not run or run["name"] != name:
+                return JSONResponse({"reason": "demo_run_not_active", "accepted": False}, status_code=409)
+        if expected_node and state["active"]["node"] != expected_node:
+            return JSONResponse({"reason": "node_route_changed", "accepted": False}, status_code=409,
+                                headers={"X-Request-State": "cancelled"})
         spec = state["active"]["spec"]
         data = bytearray()
         async for chunk in request.stream():
@@ -139,6 +148,13 @@ def create_app(controller=None):
             while time.monotonic() < deadline:
                 state = c.states[uid]
                 active = state.get("active")
+                run = app.state.demo_runner.runs.get((uid, demo_id)) if demo_id else None
+                if demo_id and (not run or run["stopRequested"]):
+                    return JSONResponse({"reason": "demo_stopped_before_dispatch", "accepted": False}, status_code=409,
+                                        headers={"X-Request-State": "cancelled"})
+                if expected_node and (not active or active["node"] != expected_node):
+                    return JSONResponse({"reason": "node_route_changed", "accepted": False}, status_code=409,
+                                        headers={"X-Request-State": "cancelled"})
                 if (c.stopping or not state.get("serving") or not active
                         or c.clock() - state.get("checkedAt", 0) > 15 or c.clock() - c.last_snapshot > 15):
                     c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)

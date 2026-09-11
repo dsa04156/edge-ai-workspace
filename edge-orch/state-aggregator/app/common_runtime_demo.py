@@ -4,8 +4,26 @@ from typing import Literal
 
 import httpx
 from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from .common_runtime import AugmentationProposal
+
+
+class ServiceControl(BaseModel):
+    uid: str
+    name: str
+    phase: Literal["Running", "Starting", "Stopping", "Stopped"]
+    suspended: bool
+    canStart: bool
+    canStop: bool
+    observedAt: float
+
+
+class DemoNode(BaseModel):
+    node: str
+    label: str
+    available: bool
+    currentRoute: bool
+    retryAfterSeconds: int = 0
 
 
 class DemoItem(BaseModel):
@@ -19,6 +37,8 @@ class DemoItem(BaseModel):
     recoverySeconds: float
     available: bool
     retryAfterSeconds: int = 0
+    serviceControl: ServiceControl | None = None
+    nodes: list[DemoNode] = Field(default_factory=list)
 
 
 class DemoRoute(BaseModel):
@@ -41,7 +61,7 @@ class DemoRun(BaseModel):
     uid: str
     name: str
     label: str
-    mode: Literal["single", "round-trip", "load"]
+    mode: Literal["single", "round-trip", "load", "node-load"]
     phase: Literal["Running", "Stopping", "Stopped", "Completed", "Incomplete", "Interrupted"]
     stage: str
     createdAt: float
@@ -60,6 +80,9 @@ class DemoRun(BaseModel):
     retiring: int
     reason: str | None = None
     stopRequested: bool
+    targetNode: str | None = None
+    targetLabel: str | None = None
+    cancelled: int = 0
 
 
 class DemoState(BaseModel):
@@ -73,12 +96,23 @@ class DemoState(BaseModel):
 class DemoStart(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
-    mode: Literal["single", "round-trip", "load"]
+    mode: Literal["single", "round-trip", "load", "node-load"]
+    targetNode: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9.-]{0,252}$")
+
+    @model_validator(mode="after")
+    def node_target(self):
+        if (self.mode == "node-load") != (self.targetNode is not None):
+            raise ValueError("node_load_requires_exact_target")
+        return self
 
 
 class DemoStop(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
+
+
+class ServiceControlRequest(DemoStop):
+    action: Literal["start", "stop"]
 
 
 class ApprovalRequest(DemoStop):
@@ -154,6 +188,15 @@ def create_common_demo_router(settings, *, transport=None, clock=time.time):
             return DemoRun.model_validate(await upstream("POST", f"/demos/{name}/runs/{run_id}/stop", body.model_dump()))
         except ValueError:
             raise HTTPException(503, "demo_response_invalid") from None
+
+    @router.post("/api/runtime-demos/{name}/service", status_code=202, response_model=ServiceControl)
+    async def service_control(body: ServiceControlRequest, request: Request,
+                              name: str = Path(pattern=r"^[a-z0-9-]{1,63}$")):
+        authorize(request)
+        try:
+            return ServiceControl.model_validate(await upstream("POST", f"/demos/{name}/service", body.model_dump()))
+        except ValueError:
+            raise HTTPException(503, "service_control_response_invalid") from None
 
     @router.post("/api/runtime-demos/{name}/augmentation/approve", status_code=202,
                  response_model=AugmentationProposal)

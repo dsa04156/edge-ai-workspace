@@ -50,6 +50,21 @@ class Kube:
         return self.custom.replace_namespaced_custom_object(GROUP, VERSION, self.namespace, PLURAL,
                                                             resource["metadata"]["name"], body, _request_timeout=5)
 
+    def set_suspended(self, name, uid, suspended):
+        resource = self.custom.get_namespaced_custom_object(
+            GROUP, VERSION, self.namespace, PLURAL, name, _request_timeout=3)
+        if resource["metadata"]["uid"] != uid or resource["metadata"].get("deletionTimestamp"):
+            raise ValueError("service_identity_changed")
+        spec = ServiceSpec.model_validate(resource["spec"])
+        if not spec.demo or not spec.inference or not spec.policy.approvalRequired:
+            raise ValueError("AI_service_control_not_enabled")
+        if spec.suspended == suspended:
+            return resource
+        resource["spec"]["suspended"] = suspended
+        # Keep the latest resourceVersion and all unrelated spec fields.
+        return self.custom.replace_namespaced_custom_object(
+            GROUP, VERSION, self.namespace, PLURAL, name, resource, _request_timeout=3)
+
     def status(self, resource, status):
         self.custom.patch_namespaced_custom_object_status(GROUP, VERSION, self.namespace, PLURAL,
             resource["metadata"]["name"], {"metadata": {"resourceVersion": resource["metadata"]["resourceVersion"]},

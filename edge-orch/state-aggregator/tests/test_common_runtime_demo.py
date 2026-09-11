@@ -87,3 +87,31 @@ def test_augmentation_approval_preserves_identity_and_requires_same_origin():
             assert response.status_code==202 and response.json()["status"]=="Approved"
             assert calls[0].url.path=="/services/llama/augmentation/approve"
     asyncio.run(run())
+
+
+def test_service_control_and_node_load_proxy_preserve_target_and_reject_arbitrary_mutation():
+    async def run():
+        import json
+        calls = []
+        def handler(request):
+            calls.append(request)
+            if request.url.path.endswith('/service'):
+                return httpx.Response(202, json={"name":"service","uid":"service-uid","phase":"Stopping","suspended":True,"canStart":False,"canStop":False,"observedAt":100})
+            return httpx.Response(202, json={**receipt(),"mode":"node-load","targetNode":"nano","targetLabel":"Nano"})
+        app=FastAPI()
+        app.include_router(create_common_demo_router(SimpleNamespace(common_runtime_demo_enabled=True,common_runtime_url="http://operator"),transport=httpx.MockTransport(handler)))
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url="http://nexus") as client:
+            headers={"Origin":"http://nexus","X-Runtime-Demo":"1"}
+            path='/api/runtime-demos/service/service'
+            body={"serviceUid":"service-uid","action":"stop"}
+            assert (await client.post(path,json=body)).status_code==403
+            assert (await client.post(path,json={**body,"replicas":0},headers=headers)).status_code==422
+            r=await client.post(path,json=body,headers=headers)
+            assert r.status_code==202 and r.json()['phase']=='Stopping'
+            assert calls[-1].url.path=='/demos/service/service'
+            path='/api/runtime-demos/service/runs/node-run1'
+            assert (await client.post(path,json={"serviceUid":"service-uid","mode":"node-load"},headers=headers)).status_code==422
+            r=await client.post(path,json={"serviceUid":"service-uid","mode":"node-load","targetNode":"nano"},headers=headers)
+            assert r.status_code==202 and r.json()['targetNode']=='nano'
+            assert json.loads(calls[-1].content)['targetNode']=='nano'
+    asyncio.run(run())

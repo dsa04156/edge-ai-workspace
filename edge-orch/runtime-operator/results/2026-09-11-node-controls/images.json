@@ -1,0 +1,24 @@
+{
+  "state-aggregator": {
+    "base": "sha256:ed6a2ebd6032eed250c777e7f00cd09de04125389101b18fa414df16bdd714c4",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:88d7296f6af9a7d8d7f3a764fb80b85fd956b51e8f25e55d5c19eed41e7ce3dd",
+    "tag": "node-controls-20260911T071524",
+    "files": {
+      "edge-orch/state-aggregator/app/common_runtime_demo.py": "sha256:c23e202ada603012a514b65bdc46209a33da6b1208d80d8c259b018acbf2fe1e",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime-demo.js": "sha256:a5278265972f2d8fc433b939ecc31604a714b63c0915801e33c3b5b940501031",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:2af2e621c1f250d48bbaaa3209093b778a9a56aaa10d77d47572b9c3912e79f2",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.css": "sha256:fa635db742e3604bbe8b54229d337c3f497127152a311af0fe42745961182bed"
+    }
+  },
+  "runtime-operator": {
+    "base": "sha256:cbf3a0c38f46d20c51149c50e33eb48a3134bb8545ff09b542fe0b30730fc22a",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:742171f9e0b5e9289c390d22991dd504078db0b1cbdba963c461dbb0970f5368",
+    "tag": "node-controls-20260911T071524",
+    "files": {
+      "edge-orch/runtime-operator/runtime_operator/api.py": "sha256:79afbf679f90b54e3d72968d8b7bf2af44d953753fb1f9cf139344f1df8c6d52",
+      "edge-orch/runtime-operator/runtime_operator/demo.py": "sha256:23412af3f7de1da2255bf1809b1a3a64a678a4f948a8f1a17275ef29715f24d4",
+      "edge-orch/runtime-operator/runtime_operator/kube.py": "sha256:a0ebeb7616a4cc0d091539ea00dbd77b5b1bca7e3d6be2485518fac768d5752f",
+      "edge-orch/runtime-operator/runtime_operator/controller.py": "sha256:454d535d3b25120a4477b16ed332ae15f44973e0799007ec2d669c6ebe2e4061"
+    }
+  }
+}

@@ -197,7 +197,9 @@ class Controller:
         state["serving"] = False
         state["phase"] = "Reconciling"
         if spec.suspended or resource["metadata"].get("deletionTimestamp"):
-            state["proposal"] = None
+            state.update(checkedAt=self.clock(), proposal=None, load=None, latency=None, eligibleCandidates=[])
+            for stage in state.get("augmentationStages", []):
+                stage["eligible"] = False
             had_admission = bool(state.get("active") or state.get("target"))
             for key in ("active", "target"):
                 if state.get(key):

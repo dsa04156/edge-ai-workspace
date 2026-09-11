@@ -156,3 +156,31 @@ Nano는 `llama-continuity-test/llama-nano`에 별도 GPU 예약 resident contain
 운영 반영 검증: Nano gateway 시험도 초당2건20개 성공(p95 861.485ms, 900ms 기준 이내), 저부하 직렬20개 성공(p95 701.935ms)을 확인했다. Nano의 qualifiedP95는 worker 직접267ms 대신 이 gateway 직렬값701.935ms를 사용한다. 이를 반영해 3단계 계약의 저부하 복귀 지연 기준을700→750ms로 조정하고 증강 지연 기준900ms와 시간 hysteresis는 유지한다. GPU warmup2개씩과 gateway smoke3개는 각 시험에서 별도 기록했다.
 
 제어기71건·API9건·UI15건 통과. 실제 운영에서 두 새 이미지의 Ready Pod/파일 해시, ArgoSyncedHealthy, Nano ACTIVE와 Orin/Spark CACHED, 세 후보 eligible, 센서 Device Service2개 Ready, desktop3단계 표시와390px 넘침 없음·콘솔 오류0을 확인했다. 실장비의 두 단계 증강 승인 클릭은 사용자에게 남겼으며 실제 3단계 승인 왕복 완료를 주장하지 않는다. 현재 설정 및 실측 근거는 `results/2026-09-11-three-tier/live-verification.json`과 같은 디렉터리의 gateway/return qualification 파일이다.
+
+
+## 서비스 실행과 노드별 부하 제어 (2026-09-11 사용자 후속 승인)
+
+서비스 실행·중지와 시험 부하 시작·제거를 구분한다. 사용자가 현재 Llama 실행 노드에
+부하를 주고 승인으로 Orin에 이동한 뒤 Orin 부하 버튼을 사용하는 흐름을 선택했다.
+
+- 서비스 실행: RuntimeService의 `suspended=false`를 저장하고 모델 준비 후 요청 대기.
+- 서비스 중지: `suspended=true`를 저장하고 모든 시험 요청 생성을 중지한다. 대기 요청은
+  dispatch 전에 취소하고 이미 dispatch한 요청은 마무리한 뒤 기존 drain으로 모델을 해제한다.
+  중지 완료 확인 전 재시작은 거부한다. resident 관리 Pod·모델 cache·GPU 예약은 유지한다.
+- Nano·Orin·Spark 카드마다 부하 주기/부하 제거 버튼을 항상 표시한다. 시작은 최신 관측에서
+  해당 노드가 현재 서비스 경로이고 안정된 상태일 때만 허용한다. 비활성 이유를 카드에 표시한다.
+- `node-load`는 기존 고정 Llama payload, 동시성·시간·총 요청 상한을 사용한다. 임의 prompt,
+  endpoint, CPU/GPU stress command는 입력받지 않는다. 기존 전체 경로 부하와 달리 baseline·
+  recovery 요청을 추가하지 않고 선택 노드에서만 압력을 가한다.
+- 실행 노드가 바뀌면 해당 시험을 끝내고 대기 요청을 새 노드로 넘기지 않는다. Orin의 새로운
+  부하는 사용자가 Orin 버튼을 클릭해 시작한다. 증강 승인은 별도 클릭을 유지한다.
+- 부하 제거는 exact service UID/run ID로 동작하며 서비스 실행 상태는 유지한다. 대기 취소는
+  실패와 별도 집계한다. 동일 실행 ID 재전송은 새 시험을 만들지 않는다.
+- 동일 노드 재시험 간격은 10초이며 화면에 남은 시간을 표시한다. 프로세스 재시작 시 시험은
+  자동 재실행하지 않고 Interrupted로 기록한다.
+
+`runtime-operator`가 기존 namespace의 RuntimeService get/update 권한으로 실행 상태를 저장한다.
+최신 UID/resourceVersion을 검증하고 `spec.suspended`만 바꾼다. API는 demo opt-in과
+approvalRequired AI 계약으로 한정한다. 대시보드는 기존 same-origin·JSON·X-Runtime-Demo
+제약의 proxy이며 Kubernetes 권한을 새로 추가하지 않는다. 센서 수집과 서비스 설계 dry-run은
+이번 제어와 별개다. 검증은 `tests/test_node_controls.py`, proxy/UI 회귀와 운영 재현 근거를 따른다.
