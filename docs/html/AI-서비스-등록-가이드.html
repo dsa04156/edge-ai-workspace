@@ -64,6 +64,7 @@
 <li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
 <li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
@@ -85,8 +86,8 @@
           <div class="meta">
             <span class="badge kind">연결 가이드</span>
             <span class="badge">원본: AI-서비스-등록-가이드.md</span>
-            <span class="badge">수정: 2026-09-10 14:16</span>
-            <span class="badge">HTML 생성: 2026-09-10 18:47</span>
+            <span class="badge">수정: 2026-09-11 16:08</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:09</span>
           </div>
         </header>
         <div class="doc-body">
@@ -102,6 +103,7 @@
 <p>현재 등록된 서비스가 실제로 무엇을 입력받아 어떻게 판단하는지는 <a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a>를 먼저 확인한다.</p>
 <h2 id="등록-순서">등록 순서</h2>
 <h3 id="1-입출력-계약을-먼저-고정한다">1. 입출력 계약을 먼저 고정한다</h3>
+<p>입출력·모델·장비·자원·EdgeX binding과 오프로딩 지표의 인수 기준은 <a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a>을 따른다. 새 서비스의 미확정 모델·수치 SLO는 기존 센서나 Llama 시험값으로 채우지 않는다.</p>
 <ul><li>versioned input schema와 필수 resource</li><li>입력 freshness, window, 결측·시각 정렬 기준</li><li>model readiness와 model version</li><li>결과·알림 API와 저장 위치</li><li>processing latency, backlog, throughput metric</li><li>workload와 기본 실행 target</li><li>자원 증강 후보의 정확한 source/candidate model version과 실험 자격</li></ul>
 <p>현장 mapping이나 모델 계약이 없으면 <code>deployed</code>로 등록하지 않는다.</p>
 <h3 id="2-안정적인-workload-identity를-둔다">2. 안정적인 workload identity를 둔다</h3>

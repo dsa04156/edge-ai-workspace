@@ -64,6 +64,7 @@
 <li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a class="active" aria-current="page" href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
 <li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
@@ -85,8 +86,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 옥동-데이터-계약.md</span>
-            <span class="badge">수정: 2026-09-10 14:16</span>
-            <span class="badge">HTML 생성: 2026-09-10 18:47</span>
+            <span class="badge">수정: 2026-09-11 16:08</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:09</span>
           </div>
         </header>
         <div class="doc-body">
@@ -354,7 +355,8 @@ REPLAY_FILE=/tmp/pump-replay.jsonl REPLAY_REBASE_TO_NOW=true \
 </tr>
 </tbody></table></div>
 <h2 id="모델-교체-경계">모델 교체 경계</h2>
-<p>현재 지원 backend는 <code>online-baseline</code> 하나다. 실제 AI 모델을 연결할 때는 <code>PumpModelAdapter</code>를 구현하고 명시적 <code>MODEL_VERSION</code>을 결과와 알림에 기록한다. 지원하지 않는 backend를 기준선으로 대체 실행하지 않는다.</p>
+<p>모델 artifact·실행 장비·자원·출력 계약과 오프로딩 자격 인수 항목은 <a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a>을 따른다.</p>
+<p>현재 edge worker는 <code>online-baseline</code>을, inference-server는 <code>cuda-online-baseline</code>도 지원한다. 두 backend는 통계 기준선이며 Server1의 현재 성능 자격은 <code>rejected</code>다. 실제 AI 모델을 연결할 때는 <code>PumpModelAdapter</code>를 구현하고 명시적 <code>MODEL_VERSION</code>을 결과와 알림에 기록한다. 지원하지 않는 backend를 기준선으로 대체 실행하지 않는다.</p>
 <h2 id="남은-현장-입력">남은 현장 입력</h2>
 <ul><li>실제 PLC·MES endpoint와 접근 방식</li><li>설비, 생산 건, lot, 품목의 식별자 관계</li><li>각 tag/column의 자료형, 단위, scale, 정상 범위와 수집주기</li><li>양품·불량 label의 생성 주체와 확정 시점</li><li>펌프·모터 AI 모델 파일, feature 요구조건과 판정 임계값</li><li>중앙 장기 결과 저장 및 알림 전달 채널</li></ul>
 <p>현재 PVC는 Jetson Pod 재시작 복구용 단일 노드 저장소다. 중앙 HA 저장, 원시 telemetry offline outbox, 서비스 간 workflow 실행과 실제 고장 분류 실증은 아직 완료되지 않았다.</p>

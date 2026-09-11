@@ -64,6 +64,7 @@
 <li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
 <li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
@@ -81,16 +82,17 @@
         <header class="doc-header">
           <p class="eyebrow">개발 참고</p>
           <h1>저장소 구조</h1>
-          <p class="subtitle">사용자의 명시적인 구현 요청에 따라 물리 source별 읽기 전용 가상 디바이스 표현을 추가한다. physical-vd:&lt;인코딩…</p>
+          <p class="subtitle">공통 계약 진입점은 공통 AI 서비스 실행 규격이다. 기존 sensor-anomaly-demo/app/contracts.py·m…</p>
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-10 16:18</span>
-            <span class="badge">HTML 생성: 2026-09-10 18:47</span>
+            <span class="badge">수정: 2026-09-11 16:08</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:09</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="저장소-구조">저장소 구조</h1>
+<p>공통 계약 진입점은 <a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a>이다. 기존 <code>sensor-anomaly-demo/app/contracts.py</code>·<code>models.py</code>, 서비스 manifest와 <code>state-aggregator/app/config/service_catalog.json</code>을 연결하고 신규 서비스의 인수 항목을 정리한다. 별도 범용 실행기 구현이나 legacy 실행 경로의 승격을 의미하지 않는다.</p>
 <h2 id="물리-장비의-가상-디바이스-표현-2026-09-08-승인">물리 장비의 가상 디바이스 표현 (2026-09-08 승인)</h2>
 <p>사용자의 명시적인 구현 요청에 따라 물리 source별 읽기 전용 가상 디바이스 표현을 추가한다. <code>physical-vd:&lt;인코딩된 source ID&gt;</code>라는 대시보드 논리 ID를 두고 원본 장비, EdgeX 등록 기능, 기존 관측 트윈과 이용 서비스를 연결한다. 이 용어는 장비 수준의 조회 표현에 한정하며 EdgeX inventory·상태 권위나 기능별 관측 트윈의 계약을 변경하지 않는다. simulator·센서 제어·실행 컨테이너가 아니다. 원본 없는 항목에는 가상 ID를 만들지 않는다.</p>
 <p>NEXUS의 <strong>가상 디바이스</strong> 탭과 <code>/#physical-virtual-devices</code>에서 선택·상세·원본 이동을 제공한다. <code>source-view.js</code>의 논리 모델과 기존 GET API를 재사용하며 별도 inventory 저장·등록·쓰기 API는 추가하지 않는다. 상세 계약과 검증 기준은 <a href="물리-가상-디바이스.html">물리 장비의 가상 디바이스</a>를 따른다.</p>
@@ -183,6 +185,10 @@
 <th>역할</th>
 </tr></thead>
 <tbody>
+<tr>
+<td><code>edge-orch/monitoring/spark-gpu-exporter/</code></td>
+<td>운영자 소유 라벨 선택형 Spark GPU 온도·사용률·전력 수집 및 ServiceMonitor</td>
+</tr>
 <tr>
 <td><code>edge-orch-argocd/</code></td>
 <td>Argo CD Application 정의</td>
@@ -332,6 +338,11 @@
 <p>2026-09-10 NEXUS 연결 범위는 <strong>서비스 → 클러스터 실행</strong>(<code>/#runtime-services</code>)의 읽기 전용 관측이다. <code>state-aggregator/app/common_runtime.py</code>가 공통 제어기의 고정 <code>/services</code>를 조회해 현재 실행체·준비 대상·반환 중 실행체·전환 이유·모델 메모리 관측을 전달한다. 마지막 해제 기록과 GPU 예약 유지 여부를 구분하며 15초 이상 오래된 관측은 현재 정상으로 표시하지 않는다. NEXUS 운영자는 관측·진단을 담당하고 계약 등록·배치 정책 변경은 <code>platform-runtime</code> Kubernetes 운영자가 담당한다. 서비스 설계 dry-run의 실행 권한을 확장하지 않는다. API 실패·stale·모바일 overflow 검사를 적용한다.</p>
 <p>2026-09-10 추가 승인 구현은 공통 RuntimeService의 선택적 지연시간 정책이다. gateway 대기·worker 응답 시간을 같은 서비스 UID/실행 revision별로 측정하고 p95 표본 수·window·실패 여부를 확인한다. 지연 초과 지속 시 검증값이 있는 후보로 전환하고, 복귀는 낮은 부하·회복 지연·후보 검증을 함께 요구한다. 제어기 재시작 뒤에는 새 표본이 쌓여야 판단한다. 측정·모델 qualification·운영 적용 책임은 platform-runtime 운영자에게 있으며 지연 SLO 보장·HA 달성으로 설명하지 않는다.</p>
 <p>2026-09-10 공통 데모 실행 승인 범위는 RuntimeService의 명시적 demo 계약에 한정한다. NEXUS 클러스터 실행에서 토큰 입력 없이 고정 입력 단일 요청·제한된 부하/회복 시험·시험 중단과 영속 결과 조회를 제공한다. 공통 Operator는 시험 요청만 gateway에 전달하며 Kubernetes 배치 정책은 기존 제어기가 판단한다. 서비스별 한 시험, 전체 동시 시험 상한·요청 수·시간·재실행 대기·동일 실행 ID 재조회·재시작 시 Interrupted 검증을 적용한다. aggregator는 동일 출처의 제한된 demo API만 연결하며 서비스 설계 dry-run 및 EdgeX/노드 write 권한을 확장하지 않는다. demo 허용과 고정 입력의 검증·등록은 platform-runtime 운영자가 담당한다.</p>
+<h2 id="2026-09-11-ai-추론-지표-승인-기반-증강">2026-09-11 AI 추론 지표·승인 기반 증강</h2>
+<p>사용자 요청으로 NEXUS 자원·오프로딩 화면에 AI 추론의 실측 지연·처리량·대기 요청, 제한된 부하 시험, 추천 후보와 승인 버튼을 추가한다. 첫 대상은 공통 RuntimeService의 <code>llama-inference</code>(실제 AGX·Spark, 고정 모델·8토큰)다. <code>policy.approvalRequired</code>로 승인 대기를 명시하며 추천만으로 대상 모델을 준비하거나 요청 경로를 전환하지 않는다. 승인 API는 서비스 UID·추천 ID·최신 후보 자격을 재검증하고 기존 제어기의 준비·전환·drain을 사용한다. 기존 추론은 준비 중 계속 처리하며, 저부하 복귀·중지·장애 처리는 기존 정책을 따른다. 센서 수집·EdgeX·서비스 설계 dry-run에는 쓰기를 추가하지 않는다.</p>
+<p>운영 소유자는 기존 runtime-operator(원장·모델 수명주기)와 state-aggregator(화면·동일 출처 제한 API)다. 검증 기준은 승인 전 무전환, 만료/중복/재시작/후보 변경 처리, 제한 부하의 중지·요청 원장, 승인 후 실제 경로·결과 확인이다. 자동시험·브라우저 검증과 실장비 승인 실행 증거를 구분하며 실제 증강 승인은 사용자 클릭으로 수행한다. 상세는 <a href="AI-서비스-증강-승인.html">AI 서비스 증강 승인</a>을 따른다.</p>
+<h3 id="2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</h3>
+<p>사용자 승인 범위를 Orin Nano(<code>etri-dev0001-jetorn</code>) → AGX Orin(<code>etri-dev0005-jetagx</code>) → DGX Spark(<code>etri-ser0003-cg0ms0</code>)로 확대한다. <code>edge-orch/runtime-operator</code>의 명시적 단계 순서와 <code>examples/llama-three-tier</code>의 Llama 계약·Nano resident runtime을 사용한다. 부하/지연에 따른 증강은 바로 다음 단계만 추천하고 운영자가 매번 승인한다. 저부하 복귀는 기존 자동 정책 안에서 단계별로 수행한다. 장애 시 가용 후보 복구는 별도 사유로 표시한다. 센서 수집과 기존 legacy controller 중지 상태는 유지한다. Nano 모델 digest·GPU 실제 실행·동일 8-token 입력의 처리 성능·자원 예약, 3단계 순서 및 승인·중지 회귀 테스트, 실제 노드 지도와 API를 검증해야 운영 완료로 보고한다. 런타임/계약 소유자는 runtime-operator 운영자이며 대시보드는 기존 Argo CD 배포를 따른다. 3단계 계약·지도 배포와 Nano GPU/gateway 응답, 센서 Device Service Ready를 확인했다. 단계별 승인·역순 복귀는 자동시험으로 검증했다. 운영에서 두 번의 승인 클릭을 포함한 실장비 왕복은 아직 수행하지 않았으며 사용자가 실행한다. 상세 실측과 경계는 <code>docs/AI-서비스-증강-승인.md</code>를 따른다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#물리-장비의-가상-디바이스-표현-2026-09-08-승인">물리 장비의 가상 디바이스 표현 (2026-09-08 승인)</a></li>
@@ -350,7 +361,9 @@
 <li class="toc-h3"><a href="#사용자-수정-nano-agx는-엣지-spark는-서버">사용자 수정: Nano·AGX는 엣지, Spark는 서버</a></li>
 <li class="toc-h2"><a href="#2026-09-09-모빌인트-코어-분리-시험-승인">2026-09-09 모빌인트 코어 분리 시험 승인</a></li>
 <li class="toc-h3"><a href="#2026-09-09-nano-orin-spark-실장비-데모-화면">2026-09-09 Nano·Orin·Spark 실장비 데모 화면</a></li>
-<li class="toc-h2"><a href="#2026-09-10-장비-독립-공통-실행-제어기-승인-범위">2026-09-10 장비 독립 공통 실행 제어기 승인 범위</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-09-10-장비-독립-공통-실행-제어기-승인-범위">2026-09-10 장비 독립 공통 실행 제어기 승인 범위</a></li>
+<li class="toc-h2"><a href="#2026-09-11-ai-추론-지표-승인-기반-증강">2026-09-11 AI 추론 지표·승인 기반 증강</a></li>
+<li class="toc-h3"><a href="#2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</a></li></ol></aside>
     </div>
   </div>
 

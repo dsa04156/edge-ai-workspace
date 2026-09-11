@@ -25,6 +25,10 @@ Kubernetes workload + EdgeX input + ServiceDescriptor
 
 ### 1. 입출력 계약을 먼저 고정한다
 
+입출력·모델·장비·자원·EdgeX binding과 오프로딩 지표의 인수 기준은
+[공통 AI 서비스 실행 규격](공통-AI-서비스-실행-규격.md)을 따른다.
+새 서비스의 미확정 모델·수치 SLO는 기존 센서나 Llama 시험값으로 채우지 않는다.
+
 - versioned input schema와 필수 resource
 - 입력 freshness, window, 결측·시각 정렬 기준
 - model readiness와 model version

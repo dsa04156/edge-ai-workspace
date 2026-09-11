@@ -46,6 +46,7 @@ PUBLICATION_SECTIONS = [
         SERIAL_RECOVERY_EXPLAINER_PATH,
         "AI-서비스-자원-증강-부하-실험.md",
         "옥동-데이터-계약.md",
+        "공통-AI-서비스-실행-규격.md",
         "옥동-생산성-kpi.md",
     ]),
     ("개발 참고", "reference", [
@@ -69,6 +70,7 @@ PUBLIC_META = {
 
 
 DISPLAY_TITLES = {
+    "공통-AI-서비스-실행-규격.md": "공통 AI 서비스 실행 규격",
     "2026-09-02-성능지표8-주간-추진현황.md": "성능지표 8 주간 추진현황",
     "AI-서비스-등록-가이드.md": "AI 서비스 등록 가이드",
     "AI-서비스-자원-증강-부하-실험.md": "AI 서비스 자원 증강 부하 실험",

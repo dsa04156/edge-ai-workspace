@@ -64,6 +64,7 @@
 <li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
 <li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
 <li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a></li>
 <li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
 <li class="group">개발 참고</li>
 <li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
@@ -85,8 +86,8 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 단계별-추진계획.md</span>
-            <span class="badge">수정: 2026-09-10 16:18</span>
-            <span class="badge">HTML 생성: 2026-09-10 18:47</span>
+            <span class="badge">수정: 2026-09-11 16:08</span>
+            <span class="badge">HTML 생성: 2026-09-11 16:09</span>
           </div>
         </header>
         <div class="doc-body">
@@ -228,7 +229,7 @@
 <p>이를 통해 데이터 수집, AI 서비스 배포, 엣지·서버 작업 분산, 결과 저장, 알림 및 장애복구 기능이 연결된 대규모 혼합 디바이스 제어·관리 플랫폼 프로토타입을 구축하고 검증한다.</p>
 <h2 id="별첨-기준-문서">별첨 기준 문서</h2>
 <p>보고서 본문에는 위 추진계획만 유지하고 세부사항은 다음 문서에서 관리한다.</p>
-<ul><li>현장·테스트베드 데이터 경로와 저장 경계: <a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li><li>AI 서비스 입력·결과·Replay 계약: <a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li><li>CPU·memory·지연·처리량 기반 자원 증강 실험과 후보 자격: <a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li><li>운영자 소유 격리 CLI의 실제 Nano·AGX 왕복 10회 합격과 검증 기준: <a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">서비스 연속성 실험 결과</a> — 양노드 생존·8토큰 범위이며 전체 장애 복구는 후속; <a href="서버-엣지-반복-오프로딩.html">Nano·AGX·Spark 단계형 데모</a></li><li>물리 디바이스와 서비스 연결·디바이스 트윈: <a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li><li>장애·복구 시나리오와 운영 검증: <a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a>,</li></ul>
+<ul><li>현장·테스트베드 데이터 경로와 저장 경계: <a href="원시-텔레메트리-데이터-플레인.html">원시 텔레메트리 데이터 플레인</a></li><li>AI 입력·결과·Replay: <a href="옥동-데이터-계약.html">옥동 데이터 계약</a>; 모델·장비·자원·EdgeX 연결·오프로딩 지표: <a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a>. 현장 모델·mapping·수치 SLO 확정은 별도 산출물이다.</li><li>CPU·memory·지연·처리량 기반 자원 증강 실험과 후보 자격: <a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li><li>운영자 소유 격리 CLI의 실제 Nano·AGX 왕복 10회 합격과 검증 기준: <a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">서비스 연속성 실험 결과</a> — 양노드 생존·8토큰 범위이며 전체 장애 복구는 후속; <a href="서버-엣지-반복-오프로딩.html">Nano·AGX·Spark 단계형 데모</a></li><li>물리 디바이스와 서비스 연결·디바이스 트윈: <a href="디바이스-서비스-연결.html">디바이스-서비스 연결</a></li><li>장애·복구 시나리오와 운영 검증: <a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a>,</li></ul>
 <p><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></p>
 <ul><li>통합 화면의 정보 구조와 상태 판단:</li></ul>
 <p><a href="대시보드-정보-구조.html">대시보드 정보 구조</a>, <a href="대시보드-판단-정책.html">대시보드 판단 정책</a></p>
@@ -239,6 +240,11 @@
 <p>옥동 PLC·MES·품질 데이터의 실제 항목, 접근 권한, 생산 건 식별자와 수집주기는 8월 현장 협의 결과로 확정하며, 현재 테스트베드의 Arduino·Sense HAT 명세를 옥동 데이터 명세로 대체하지 않는다.</p>
 <h2 id="2026-09-10-공통-실행-제어기-승인-범위">2026-09-10 공통 실행 제어기 승인 범위</h2>
 <p>장비 이름과 무관한 서비스 계약·노드 호환성·배치 정책 및 Kubernetes reconcile 구현을 승인 범위에 추가한다. 기존 Pod의 모델 메모리 제어와 AGX·Spark GPU 왕복을 포함한다. 명시적 demo 계약의 토큰 없는 단일 요청·제한 부하/회복 시험·영속 이력 조회를 NEXUS에 연결한다. 선택적 지연 정책은 요청 p95·최소 표본·지속 시간과 후보별 검증값으로 이동·복귀를 판단한다. NEXUS 서비스의 클러스터 실행 탭은 공통 제어기의 위치·전환 이유·모델 메모리를 읽기 전용으로 관측하며 stale·조회 실패를 구분한다. 전용 <code>platform-runtime</code> 운영자는 계약 등록·제어기 배포·중단을 책임진다. 배치·준비·전환·drain·복귀·재시작 검증 기준과 구현 상태는 <a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a>을 따른다.</p>
+<h2 id="2026-09-11-ai-추론-지표-승인-기반-증강">2026-09-11 AI 추론 지표·승인 기반 증강</h2>
+<p>사용자 요청으로 NEXUS 자원·오프로딩 화면에 AI 추론의 실측 지연·처리량·대기 요청, 제한된 부하 시험, 추천 후보와 승인 버튼을 추가한다. 첫 대상은 공통 RuntimeService의 <code>llama-inference</code>(실제 AGX·Spark, 고정 모델·8토큰)다. <code>policy.approvalRequired</code>로 승인 대기를 명시하며 추천만으로 대상 모델을 준비하거나 요청 경로를 전환하지 않는다. 승인 API는 서비스 UID·추천 ID·최신 후보 자격을 재검증하고 기존 제어기의 준비·전환·drain을 사용한다. 기존 추론은 준비 중 계속 처리하며, 저부하 복귀·중지·장애 처리는 기존 정책을 따른다. 센서 수집·EdgeX·서비스 설계 dry-run에는 쓰기를 추가하지 않는다.</p>
+<p>운영 소유자는 기존 runtime-operator(원장·모델 수명주기)와 state-aggregator(화면·동일 출처 제한 API)다. 검증 기준은 승인 전 무전환, 만료/중복/재시작/후보 변경 처리, 제한 부하의 중지·요청 원장, 승인 후 실제 경로·결과 확인이다. 자동시험·브라우저 검증과 실장비 승인 실행 증거를 구분하며 실제 증강 승인은 사용자 클릭으로 수행한다. 상세는 <a href="AI-서비스-증강-승인.html">AI 서비스 증강 승인</a>을 따른다.</p>
+<h3 id="2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</h3>
+<p>사용자 승인 범위를 Orin Nano(<code>etri-dev0001-jetorn</code>) → AGX Orin(<code>etri-dev0005-jetagx</code>) → DGX Spark(<code>etri-ser0003-cg0ms0</code>)로 확대한다. <code>edge-orch/runtime-operator</code>의 명시적 단계 순서와 <code>examples/llama-three-tier</code>의 Llama 계약·Nano resident runtime을 사용한다. 부하/지연에 따른 증강은 바로 다음 단계만 추천하고 운영자가 매번 승인한다. 저부하 복귀는 기존 자동 정책 안에서 단계별로 수행한다. 장애 시 가용 후보 복구는 별도 사유로 표시한다. 센서 수집과 기존 legacy controller 중지 상태는 유지한다. Nano 모델 digest·GPU 실제 실행·동일 8-token 입력의 처리 성능·자원 예약, 3단계 순서 및 승인·중지 회귀 테스트, 실제 노드 지도와 API를 검증해야 운영 완료로 보고한다. 런타임/계약 소유자는 runtime-operator 운영자이며 대시보드는 기존 Argo CD 배포를 따른다. 3단계 계약·지도 배포와 Nano GPU/gateway 응답, 센서 Device Service Ready를 확인했다. 단계별 승인·역순 복귀는 자동시험으로 검증했다. 운영에서 두 번의 승인 클릭을 포함한 실장비 왕복은 아직 수행하지 않았으며 사용자가 실행한다. 상세 실측과 경계는 <code>docs/AI-서비스-증강-승인.md</code>를 따른다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#2026-09-08-통합-운영-대시보드-확장">2026-09-08 통합 운영 대시보드 확장</a></li>
@@ -251,7 +257,9 @@
 <li class="toc-h2"><a href="#6-주요-산출물">6. 주요 산출물</a></li>
 <li class="toc-h2"><a href="#7-최종-추진-방향">7. 최종 추진 방향</a></li>
 <li class="toc-h2"><a href="#별첨-기준-문서">별첨 기준 문서</a></li>
-<li class="toc-h2"><a href="#2026-09-10-공통-실행-제어기-승인-범위">2026-09-10 공통 실행 제어기 승인 범위</a></li></ol></aside>
+<li class="toc-h2"><a href="#2026-09-10-공통-실행-제어기-승인-범위">2026-09-10 공통 실행 제어기 승인 범위</a></li>
+<li class="toc-h2"><a href="#2026-09-11-ai-추론-지표-승인-기반-증강">2026-09-11 AI 추론 지표·승인 기반 증강</a></li>
+<li class="toc-h3"><a href="#2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</a></li></ol></aside>
     </div>
   </div>
 
