@@ -201,7 +201,7 @@ class DemoRunner:
         try:
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app), base_url="http://runtime") as client:
                 async def invoke():
-                    if run["stopRequested"] or run["sent"] >= config["maxRequests"]:
+                    if run["stopRequested"] or (run["mode"] != "node-load" and run["sent"] >= config["maxRequests"]):
                         return False
                     if run.get("targetNode") and (c.states.get(run["uid"], {}).get("active") or {}).get("node") != run["targetNode"]:
                         run.update(stopRequested=True, phase="Stopping", reason="node_route_changed")
@@ -233,6 +233,12 @@ class DemoRunner:
                     finally:
                         item["elapsedMilliseconds"] = (time.monotonic() - started) * 1000
                         self.observe(run)
+                        if run["mode"] == "node-load":
+                            # Keep all outstanding identities for stop/restart accounting.
+                            # Completed dispatch receipts remain in the request journal.
+                            keep = {r["id"] for r in run["requests"] if r["state"] == "pending"}
+                            keep.update(r["id"] for r in run["requests"][-64:])
+                            run["requests"] = [r for r in run["requests"] if r["id"] in keep]
                         c.journal.demo_save(run)
                     return True
 
@@ -258,7 +264,7 @@ class DemoRunner:
                         run["stage"] = "pressure"
                     until = time.monotonic() + config["pressureSeconds"]
                     async def pressure():
-                        while time.monotonic() < until:
+                        while run["mode"] == "node-load" or time.monotonic() < until:
                             if not await invoke():
                                 break
                     # Wait every child, including failure paths, before closing the run.
@@ -266,7 +272,7 @@ class DemoRunner:
                     for result in results:
                         if isinstance(result, BaseException):
                             raise result
-                    run["stage"] = "recovery"
+                    run["stage"] = "finished" if run["mode"] == "node-load" else "recovery"
                     until = time.monotonic() + config["recoverySeconds"]
                     while run["mode"] != "node-load" and time.monotonic() < until and not run["stopRequested"]:
                         if not await invoke():

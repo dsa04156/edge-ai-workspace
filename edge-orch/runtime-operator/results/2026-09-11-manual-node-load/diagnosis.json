@@ -1,0 +1,156 @@
+{
+  "observedAt": "2026-09-11T07:36:54.555683+00:00",
+  "runs": [
+    {
+      "id": "e79c9c892076427bbef5270bb43590c1",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "name": "llama-inference",
+      "label": "Nano → Orin → Spark · 단계별 승인 Llama 부하 시험",
+      "mode": "node-load",
+      "phase": "Incomplete",
+      "stage": "recovery",
+      "createdAt": 1789111662.372554,
+      "finishedAt": 1789111705.066933,
+      "sent": 122,
+      "succeeded": 117,
+      "failed": 5,
+      "unknown": 0,
+      "lastResult": "{\"request_id\": \"demo-09c5ffb9629637c617afac76-94\", \"node_id\": \"etri-dev0001-jetorn\", \"role\": \"nano\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b-instruct-q8_0\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.012, \"ttft_ms\": 45.364, \"tokens_per_second\": 40.307, \"inference_ms\": 245.066, \"actual_e2e_ms\": 245.078, \"eval_count\": 8}",
+      "routeHistory": [
+        {
+          "at": 1789111662.4076517,
+          "node": "etri-dev0001-jetorn",
+          "role": "edge",
+          "reason": "initial_or_unhealthy_or_policy_changed"
+        }
+      ],
+      "recentRequests": [
+        {
+          "id": "demo-09c5ffb9629637c617afac76-117",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 226.0584879986709
+        },
+        {
+          "id": "demo-09c5ffb9629637c617afac76-118",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 246.84565399729763
+        },
+        {
+          "id": "demo-09c5ffb9629637c617afac76-119",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 422.45541400188813
+        },
+        {
+          "id": "demo-09c5ffb9629637c617afac76-120",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 792.3123789987585
+        },
+        {
+          "id": "demo-09c5ffb9629637c617afac76-121",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 631.7161590013711
+        }
+      ],
+      "startNode": "etri-dev0001-jetorn",
+      "startRole": "edge",
+      "currentNode": "etri-dev0001-jetorn",
+      "returned": false,
+      "retiring": 0,
+      "reason": "request_or_round_trip_gate_not_met",
+      "stopRequested": false,
+      "targetNode": "etri-dev0001-jetorn",
+      "targetLabel": "Nano",
+      "cancelled": 0
+    },
+    {
+      "id": "4a6c768c2c9c44aba55090f4f58d04d1",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "name": "llama-inference",
+      "label": "Nano → Orin → Spark · 단계별 승인 Llama 부하 시험",
+      "mode": "node-load",
+      "phase": "Incomplete",
+      "stage": "recovery",
+      "createdAt": 1789111590.1658702,
+      "finishedAt": 1789111631.6988163,
+      "sent": 125,
+      "succeeded": 120,
+      "failed": 5,
+      "unknown": 0,
+      "lastResult": "{\"request_id\": \"demo-34d4c049fe833fa25c44fc5d-94\", \"node_id\": \"etri-dev0001-jetorn\", \"role\": \"nano\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b-instruct-q8_0\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.01, \"ttft_ms\": 28.783, \"tokens_per_second\": 49.377, \"inference_ms\": 192.313, \"actual_e2e_ms\": 192.323, \"eval_count\": 8}",
+      "routeHistory": [
+        {
+          "at": 1789111590.1681657,
+          "node": "etri-dev0001-jetorn",
+          "role": "edge",
+          "reason": "initial_or_unhealthy_or_policy_changed"
+        }
+      ],
+      "recentRequests": [
+        {
+          "id": "demo-34d4c049fe833fa25c44fc5d-120",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 319.65530200250214
+        },
+        {
+          "id": "demo-34d4c049fe833fa25c44fc5d-121",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 227.08617399985087
+        },
+        {
+          "id": "demo-34d4c049fe833fa25c44fc5d-122",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 222.0599329994002
+        },
+        {
+          "id": "demo-34d4c049fe833fa25c44fc5d-123",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 215.82437100005336
+        },
+        {
+          "id": "demo-34d4c049fe833fa25c44fc5d-124",
+          "state": "completed",
+          "status": 200,
+          "target": "rt-a6755c109718-165b7a9a4b8b",
+          "elapsedMilliseconds": 217.04119000060018
+        }
+      ],
+      "startNode": "etri-dev0001-jetorn",
+      "startRole": "edge",
+      "currentNode": "etri-dev0001-jetorn",
+      "returned": false,
+      "retiring": 0,
+      "reason": "request_or_round_trip_gate_not_met",
+      "stopRequested": false,
+      "targetNode": "etri-dev0001-jetorn",
+      "targetLabel": "Nano",
+      "cancelled": 0
+    }
+  ],
+  "activeRuns": [],
+  "verification": {
+    "operatorTestsPassed": 21,
+    "uiTestsPassed": 8,
+    "liveDeployment": "pending_registry_unavailable",
+    "registry": "192.168.0.56:5000",
+    "failure": "ConnectionRefusedError",
+    "oldLiveImagesUnchanged": true
+  }
+}

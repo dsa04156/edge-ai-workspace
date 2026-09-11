@@ -154,3 +154,43 @@ def test_kube_service_toggle_preserves_latest_spec_and_fences_uid(rig):
     with pytest.raises(ValueError):
         adapter.set_suspended(resource["metadata"]["name"], resource["metadata"]["uid"], True)
     assert len(writes) == 1
+
+
+def test_node_load_runs_past_time_and_request_limits_until_removed_with_bounded_history(rig):
+    async def run():
+        c, k, _, _ = rig
+        configure(k)
+        k.resource["spec"]["demo"].update(maxRequests=2, concurrency=1, pressureSeconds=1)
+        await c.tick()
+        uid, name = k.resource["metadata"]["uid"], k.resource["metadata"]["name"]
+        after_limit = asyncio.Event()
+        sent = 0
+        async def handle(request):
+            nonlocal sent
+            sent += 1
+            await asyncio.sleep(.011)
+            if sent >= 100:
+                after_limit.set()
+            return response(request)
+        await c.transport.aclose()
+        c.transport = httpx.AsyncClient(transport=httpx.MockTransport(handle))
+        app = create_app(c)
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
+            path=f"/demos/{name}/runs/manual-node-load"
+            await client.post(path,json={"serviceUid":uid,"mode":"node-load","targetNode":"field-any"})
+            try:
+                await asyncio.wait_for(after_limit.wait(),timeout=4)
+                run = app.state.demo_runner.runs[(uid,"manual-node-load")]
+                assert run["phase"] == "Running" and run["stage"] == "pressure" and run["sent"] >= 100
+                assert len(run["requests"]) <= 65
+                await client.post(path+"/stop",json={"serviceUid":uid})
+                await asyncio.gather(*list(app.state.demo_runner.tasks.values()))
+                result=(await client.get(path,params={"serviceUid":uid})).json()
+                assert result["phase"] == "Stopped" and result["reason"] == "operator_stopped_demo"
+                assert result["sent"] == result["succeeded"] and result["failed"] == 0
+                count=sent
+                await asyncio.sleep(.05)
+                assert sent==count and c.states[uid]["serving"]
+            finally:
+                await app.state.demo_runner.close()
+    asyncio.run(run())
