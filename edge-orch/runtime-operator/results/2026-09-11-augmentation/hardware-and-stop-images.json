@@ -1,0 +1,12 @@
+{
+  "state-aggregator": {
+    "base": "sha256:ec99ba2c08b85ea655f54d140a532237ef2fca06aab252d7ee884ab1fa2c5e06",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:d61d9b9a22c8a8b3eaad6a14f8e35eb17f3e21610f8bfbc8c26d64435d5d89a6",
+    "tag": "runtime-hardware-20260911T054537",
+    "files": {
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:bce7934919be6cb662d5bc0eba1ee4bba80f88bf6a14d910079f291ca483351f",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime-demo.js": "sha256:6801e44caad7fbba43fc3a7cf8e16c701073de3765296cdeacd1da3550957acd",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.css": "sha256:1ede069b8e9279d699af328a356f8023db2e691a2339c4acb484a6de7554813b"
+    }
+  }
+}

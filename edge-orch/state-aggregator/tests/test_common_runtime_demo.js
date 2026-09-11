@@ -42,3 +42,12 @@ test('running load has immediate local controls and honest indeterminate progres
  const sending=D.runStatus({current:true,sending:{mode:'load'}},100);assert.match(sending,/시작 요청 접수 중/);
  const failed=D.runStatus({current:true,run:{...run,phase:'Incomplete',finishedAt:98}},100);assert.match(failed,/검증 미완료/);assert.doesNotMatch(failed,/runtime-spinner|부하 시험 완료/);
 });
+
+test('load stop is always visible beside start, gated by exact running identity',()=>{
+ let html=D.actions(data,'u',true,false,true);assert.match(html,/부하 제거/);assert.doesNotMatch(html,/data-demo-stop=/);
+ const run={uid:'u',id:'exact-run',name:'svc',mode:'load',phase:'Running'};
+ html=D.actions({...data,runs:[run]},'u',true,false,true);assert.match(html,/data-demo-stop="exact-run"/);assert.match(html,/id="demo-stop-control-u"/);
+ const stop=html.match(/<button class="button runtime-stop"[^>]*>/)[0];assert.doesNotMatch(stop,/disabled/);
+ html=D.actions({...data,runs:[{...run,phase:'Stopping'}]},'u',true,false,true);assert.match(html,/부하 제거 중/);assert.match(html.match(/<button class="button runtime-stop"[^>]*>/)[0],/disabled/);
+ html=D.runStatus({current:true,inlineControls:true,run:{...run,createdAt:90,sent:2,succeeded:1,failed:0,unknown:0}},100);assert.doesNotMatch(html,/data-demo-stop=/);assert.match(html,/부하 제거:/);
+});

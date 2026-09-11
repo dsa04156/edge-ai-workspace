@@ -51,3 +51,14 @@ test('node map distinguishes idle, observed traffic, recommendation, preparation
  s.target={node:'candidate',role:'server'};m=R.serviceMotion(s,100,true);assert.equal(m.title,'모델 준비 중');assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'preparing');
  m=R.serviceMotion(s,200,true);assert.equal(m.ok,false);assert.doesNotMatch(R.runtimeMap(s,m,200),/flowing|runtime-spinner|1234/);
 });
+
+test('hardware meters use node telemetry freshness and distinguish missing GPU from zero',()=>{
+ const node={hostname:'server',collected_at:new Date(99000).toISOString(),node_health:'healthy',raw_metrics:{up:1,cpu_utilization:.25,memory_usage_ratio:.5,gpu_utilization:0}};
+ const entry={data:[node],receivedAt:99,error:null};
+ let m=R.nodeMetrics('server',100,entry);assert.equal(m.cpu,.25);assert.equal(m.gpu,0);assert.equal(m.current,true);
+ let html=R.nodeMetricsView('server',100,entry);assert.match(html,/25.0%/);assert.match(html,/50.0%/);assert.match(html,/0.0%/);
+ delete node.raw_metrics.gpu_utilization;html=R.nodeMetricsView('server',100,entry);assert.match(html,/미수집/);assert.doesNotMatch(html,/aria-label="노드 GPU 사용률"/);
+ for(const e of [{...entry,error:'offline'},{...entry,receivedAt:10},{...entry,data:[{...node,collected_at:new Date(1000).toISOString()}]},{...entry,data:[{...node,raw_metrics:{...node.raw_metrics,up:0}}]}]){
+  m=R.nodeMetrics('server',100,e);assert.equal(m.current,false);assert.equal(m.cpu,null);assert.doesNotMatch(R.nodeMetricsView('server',100,e),/25.0%|role="meter"/);
+ }
+});
