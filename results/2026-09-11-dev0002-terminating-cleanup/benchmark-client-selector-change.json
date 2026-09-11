@@ -1,0 +1,35 @@
+{
+  "name": "benchmark-client",
+  "node": "etri-dev0002-raspi5",
+  "replicas": 0,
+  "patch": [
+    {
+      "op": "test",
+      "path": "/metadata/uid",
+      "value": "56c0d0b4-5c35-43ec-ac2e-1b4ff8051271"
+    },
+    {
+      "op": "test",
+      "path": "/spec/replicas",
+      "value": 0
+    },
+    {
+      "op": "test",
+      "path": "/spec/template/spec/nodeName",
+      "value": "etri-dev0002-raspi5"
+    },
+    {
+      "op": "remove",
+      "path": "/spec/template/spec/nodeName"
+    },
+    {
+      "op": "add",
+      "path": "/spec/template/spec/nodeSelector",
+      "value": {
+        "kubernetes.io/hostname": "etri-dev0002-raspi5"
+      }
+    }
+  ],
+  "started_at": "2026-09-11T07:59:43.346569+00:00",
+  "verified_spec_only_expected_changes": true
+}

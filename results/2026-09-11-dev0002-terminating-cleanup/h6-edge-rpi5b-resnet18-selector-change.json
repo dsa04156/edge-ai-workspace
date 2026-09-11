@@ -1,0 +1,35 @@
+{
+  "name": "h6-edge-rpi5b-resnet18",
+  "node": "etri-dev0003-raspi5",
+  "replicas": 0,
+  "patch": [
+    {
+      "op": "test",
+      "path": "/metadata/uid",
+      "value": "751b1628-6e2e-4638-a936-42caee29cf2e"
+    },
+    {
+      "op": "test",
+      "path": "/spec/replicas",
+      "value": 0
+    },
+    {
+      "op": "test",
+      "path": "/spec/template/spec/nodeName",
+      "value": "etri-dev0003-raspi5"
+    },
+    {
+      "op": "remove",
+      "path": "/spec/template/spec/nodeName"
+    },
+    {
+      "op": "add",
+      "path": "/spec/template/spec/nodeSelector",
+      "value": {
+        "kubernetes.io/hostname": "etri-dev0003-raspi5"
+      }
+    }
+  ],
+  "started_at": "2026-09-11T07:59:43.806700+00:00",
+  "verified_spec_only_expected_changes": true
+}

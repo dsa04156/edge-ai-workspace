@@ -1,0 +1,35 @@
+{
+  "name": "inference-server-resnet18",
+  "node": "etri-ser0002-cgnmsb",
+  "replicas": 1,
+  "patch": [
+    {
+      "op": "test",
+      "path": "/metadata/uid",
+      "value": "70cd3b28-1d32-4240-b17c-01823524ba8e"
+    },
+    {
+      "op": "test",
+      "path": "/spec/replicas",
+      "value": 1
+    },
+    {
+      "op": "test",
+      "path": "/spec/template/spec/nodeName",
+      "value": "etri-ser0002-cgnmsb"
+    },
+    {
+      "op": "remove",
+      "path": "/spec/template/spec/nodeName"
+    },
+    {
+      "op": "add",
+      "path": "/spec/template/spec/nodeSelector",
+      "value": {
+        "kubernetes.io/hostname": "etri-ser0002-cgnmsb"
+      }
+    }
+  ],
+  "started_at": "2026-09-11T08:00:32.359583+00:00",
+  "verified_spec_only_expected_changes": true
+}

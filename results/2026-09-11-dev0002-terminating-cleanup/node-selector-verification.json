@@ -1,0 +1,96 @@
+{
+  "checked_at": "2026-09-11T08:01:37.125702+00:00",
+  "deployments": [
+    {
+      "name": "benchmark-client",
+      "nodeSelector": {
+        "kubernetes.io/hostname": "etri-dev0002-raspi5"
+      },
+      "replicas": 0,
+      "readyReplicas": 0
+    },
+    {
+      "name": "h6-edge-rpi5b-mobilenet",
+      "nodeSelector": {
+        "kubernetes.io/hostname": "etri-dev0003-raspi5"
+      },
+      "replicas": 0,
+      "readyReplicas": 0
+    },
+    {
+      "name": "h6-edge-rpi5b-resnet18",
+      "nodeSelector": {
+        "kubernetes.io/hostname": "etri-dev0003-raspi5"
+      },
+      "replicas": 0,
+      "readyReplicas": 0
+    },
+    {
+      "name": "inference-edge",
+      "nodeSelector": {
+        "kubernetes.io/hostname": "etri-dev0002-raspi5"
+      },
+      "replicas": 0,
+      "readyReplicas": 0
+    },
+    {
+      "name": "inference-edge-resnet18",
+      "nodeSelector": {
+        "kubernetes.io/hostname": "etri-dev0002-raspi5"
+      },
+      "replicas": 0,
+      "readyReplicas": 0
+    },
+    {
+      "name": "inference-server",
+      "nodeSelector": {
+        "kubernetes.io/hostname": "etri-ser0002-cgnmsb"
+      },
+      "replicas": 1,
+      "readyReplicas": 1
+    },
+    {
+      "name": "inference-server-resnet18",
+      "nodeSelector": {
+        "kubernetes.io/hostname": "etri-ser0002-cgnmsb"
+      },
+      "replicas": 1,
+      "readyReplicas": 1
+    }
+  ],
+  "health": {
+    "18081": {
+      "http_status": 200,
+      "body": {
+        "status": "ok",
+        "node_name": "etri-ser0002-cgnmsb",
+        "node_role": "server",
+        "model_name": "mobilenetv2-12",
+        "server_response_epoch_ns": 1789113697130675650
+      }
+    },
+    "18083": {
+      "http_status": 200,
+      "body": {
+        "status": "ok",
+        "node_name": "etri-ser0002-cgnmsb",
+        "node_role": "server",
+        "model_name": "resnet18-v1-7",
+        "server_response_epoch_ns": 1789113697133356283
+      }
+    }
+  },
+  "cluster_terminating": 0,
+  "scheduler_events": [
+    {
+      "pod": "inference-server-766598df4-8lwgq",
+      "reportingComponent": "default-scheduler",
+      "message": "Successfully assigned ai-placement-experiment/inference-server-766598df4-8lwgq to etri-ser0002-cgnmsb"
+    },
+    {
+      "pod": "inference-server-resnet18-56d65c5b67-hbbls",
+      "reportingComponent": "default-scheduler",
+      "message": "Successfully assigned ai-placement-experiment/inference-server-resnet18-56d65c5b67-hbbls to etri-ser0002-cgnmsb"
+    }
+  ]
+}
