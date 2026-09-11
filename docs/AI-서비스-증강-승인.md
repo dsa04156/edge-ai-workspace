@@ -122,3 +122,14 @@ Argo Synced/Healthy, Ready imageID와 변경 정적 파일 hash 일치, 실제 �
 - AGX에서 CPU·GPU thermal zone, Spark에서 ACPI 시스템 온도를 확인했다. Spark CPU·GPU 온도는 현재 수집 경로에 없으므로 `미수집`이다. 센서별 수집이 끊긴 주기에도 값을 채워 넣지 않는다.
 
 검증: Python 19건과 JavaScript 14건 통과. 운영 Argo Synced/Healthy, Ready Pod의 5개 변경 파일 및 정적 HTTP 해시 일치를 확인했다. 실제 브라우저에서 온도 2행, 390px 가로 넘침 없음, 콘솔 오류 0건을 확인했다. 최종 API 표본은 AGX CPU 42.656°C, Spark 시스템 39.3°C였다. AGX GPU thermal 값은 사전 조회에서 관측됐으나 최종 표본에서는 빠져 `미수집`으로 표시했다. 이 검증에서 실제 부하 시작이나 증강 승인을 호출하지 않았다. 상세 근거: `edge-orch/runtime-operator/results/2026-09-11-augmentation/temperature-verification.json`.
+
+
+### 노드 상태와 GPU 미수집 원인 확인
+
+자원·오프로딩의 `노드 상태`에도 같은 CPU·GPU·시스템 온도를 표시한다. 최신 수집 실패나 60초 초과 표본은 온도를 숨기며, `미수집`만으로 수집기 미설치를 단정하지 않는다.
+
+2026-09-11 15:13 KST 읽기 전용 진단:
+
+- AGX: node-exporter와 jetson-gpu-exporter가 배포되어 있고 Prometheus up=1. Jetson 전용 exporter는 GPU 사용률만 수집한다. 온도는 node-exporter의 thermal zone 경로다. 기존 read-only sysfs mount에서 CPU temp는 42562 m°C, GPU temp 파일은 `No data available`을 반환했다. 센서 파일이 존재하지만 그 시점 읽기는 실패한다. 원인이 전력 상태 때문인지는 이번 진단으로 확정하지 않았다.
+- Spark: NVIDIA GB10 드라이버와 추론 runtime은 동작하며 기존 추론 컨테이너의 `nvidia-smi --query-gpu=name,temperature.gpu,utilization.gpu --format=csv,noheader`는 `NVIDIA GB10, 37, 0 %`를 반환했다. GPU 온도 자체는 읽을 수 있다. 그러나 DCGM DaemonSet이 amd64 + gpu.platform=server 노드만 선택해 arm64 Spark에는 GPU exporter가 배포되지 않았다. GPU 사용률·온도를 지속 표시하려면 Spark에 맞는 수집기와 Prometheus scrape 연결이 필요하다. 이번 변경에는 설치를 포함하지 않는다.
+- 서버 1·2: DCGM exporter가 배포되어 Prometheus up=1. Spark의 미수집을 전체 GPU 수집기 미설치로 일반화하지 않는다.

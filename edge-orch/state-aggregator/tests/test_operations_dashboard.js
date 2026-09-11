@@ -57,3 +57,15 @@ test('usage meters retain measured zero and omit meter values for missing or inv
  for(const value of [null,undefined,NaN,-1,2]){const html=O.usageMeter('GPU',value,'node');assert.match(html,/미관측/);assert.doesNotMatch(html,/aria-valuenow/);}
  assert.match(O.usageMeter('CPU',.2,'<node>'),/&lt;node&gt;/);
 });
+
+
+test('node status temperatures preserve component identity and hide failed or stale readings',()=>{
+ const now=Date.parse('2026-09-11T06:00:00Z');
+ const node={hostname:'agx',collected_at:new Date(now).toISOString(),node_health:'healthy',raw_metrics:{up:1,cpu_temperature_celsius:42.56,gpu_temperature_celsius:0}};
+ let html=O.nodePanel([], [node],true,true,now);
+ assert.match(html,/CPU 온도<\/span><b>42.6 °C/);assert.match(html,/GPU 온도<\/span><b>0.0 °C/);assert.match(html,/시스템 온도<\/span><b>미수집/);
+ for(const invalid of [NaN,Infinity,null,'37']){node.raw_metrics.gpu_temperature_celsius=invalid;assert.match(O.nodePanel([],[node],true,true,now),/GPU 온도<\/span><b>미수집/);}
+ for(const [sample,current,at] of [[node,false,now],[node,true,now+61000],[{...node,raw_metrics:{...node.raw_metrics,up:0}},true,now]]){
+  html=O.nodePanel([],[sample],true,current,at);assert.doesNotMatch(html,/42.6 °C/);assert.match(html,/CPU 온도<\/span><b>—/);
+ }
+});

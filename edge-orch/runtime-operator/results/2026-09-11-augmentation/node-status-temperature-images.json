@@ -1,0 +1,11 @@
+{
+  "state-aggregator": {
+    "base": "sha256:72d8ac0da9b0a3029283e705abb5b4c006f3bea93ed0ec30a4281cd2f516641e",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:e90d29a915f330ca65f69ed3beaba33af64d09f384119c35dc80e2d813934633",
+    "tag": "node-status-temperature-20260911T061443",
+    "files": {
+      "edge-orch/state-aggregator/app/static/nexus/operations.js": "sha256:b7399995e742026f06f61baeb3d4f41f006f17e49f3cf35c4698eaecfc4310e7",
+      "edge-orch/state-aggregator/app/static/nexus/operations.css": "sha256:200b7c688a3a27f9e2440db30b9bdb665a496ce5d47a84316577504df3e1063a"
+    }
+  }
+}
