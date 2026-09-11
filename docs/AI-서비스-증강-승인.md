@@ -120,3 +120,5 @@ Argo Synced/Healthy, Ready imageID와 변경 정적 파일 hash 일치, 실제 �
 - GPU: DCGM 또는 `gpu-thermal` thermal zone의 최댓값. 동일 노드에 여러 관측 주소가 있으면 최댓값으로 합친다.
 - 시스템: `acpitz` thermal zone의 최댓값. CPU나 GPU 접합 온도와 구분한다.
 - AGX에서 CPU·GPU thermal zone, Spark에서 ACPI 시스템 온도를 확인했다. Spark CPU·GPU 온도는 현재 수집 경로에 없으므로 `미수집`이다. 센서별 수집이 끊긴 주기에도 값을 채워 넣지 않는다.
+
+검증: Python 19건과 JavaScript 14건 통과. 운영 Argo Synced/Healthy, Ready Pod의 5개 변경 파일 및 정적 HTTP 해시 일치를 확인했다. 실제 브라우저에서 온도 2행, 390px 가로 넘침 없음, 콘솔 오류 0건을 확인했다. 최종 API 표본은 AGX CPU 42.656°C, Spark 시스템 39.3°C였다. AGX GPU thermal 값은 사전 조회에서 관측됐으나 최종 표본에서는 빠져 `미수집`으로 표시했다. 이 검증에서 실제 부하 시작이나 증강 승인을 호출하지 않았다. 상세 근거: `edge-orch/runtime-operator/results/2026-09-11-augmentation/temperature-verification.json`.
