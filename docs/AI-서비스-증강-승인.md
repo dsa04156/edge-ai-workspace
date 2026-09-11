@@ -152,3 +152,7 @@ Argo Synced/Healthy, Ready imageID와 변경 정적 파일 hash 일치, 실제 �
 Nano는 `llama-continuity-test/llama-nano`에 별도 GPU 예약 resident container와 4Gi PVC를 추가했다. 포트11436을 사용해 기존 실험용11435 runtime과 분리하며 기존 실험 모델 캐시를 삭제하지 않는다. 임의 hostPath를 추가하지 않고 기존 NVIDIA runtime/device plugin을 사용한다. `CONTINUITY_SOURCE`의 해제 금지를 제거해 현재 제어기의 deactivate 계약을 따른다. 동일 model digest `baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878`와 동일8-token 입력을 사용한다. GPU17/17layers offload, 모델 VRAM1348.45MiB, 초당2건20개+워밍업2개 성공을 확인했다. 2건/s는 이번에 검증한 운용점이며 장비의 최대 성능을 뜻하지 않는다. 직접 worker p95는267.232ms이며 기존 gateway/port-forward 경계 수치와 최대 성능 비교를 하지 않는다. 부하/지연 판단은 계속 실제 gateway queue+response 집계를 사용한다.
 
 계약과 Nano 배포: `edge-orch/runtime-operator/examples/llama-three-tier/`. 실측 원본: `edge-orch/runtime-operator/results/2026-09-11-three-tier/nano-qualification.json`. 승인 두 번·단계별 복귀·중간 단계 부적격·동일 역할 복귀는 자동시험으로 검증하며, 운영 증강 승인 클릭은 사용자에게 남긴다.
+
+운영 반영 검증: Nano gateway 시험도 초당2건20개 성공(p95 861.485ms, 900ms 기준 이내), 저부하 직렬20개 성공(p95 701.935ms)을 확인했다. Nano의 qualifiedP95는 worker 직접267ms 대신 이 gateway 직렬값701.935ms를 사용한다. 이를 반영해 3단계 계약의 저부하 복귀 지연 기준을700→750ms로 조정하고 증강 지연 기준900ms와 시간 hysteresis는 유지한다. GPU warmup2개씩과 gateway smoke3개는 각 시험에서 별도 기록했다.
+
+제어기71건·API9건·UI15건 통과. 실제 운영에서 두 새 이미지의 Ready Pod/파일 해시, ArgoSyncedHealthy, Nano ACTIVE와 Orin/Spark CACHED, 세 후보 eligible, 센서 Device Service2개 Ready, desktop3단계 표시와390px 넘침 없음·콘솔 오류0을 확인했다. 실장비의 두 단계 증강 승인 클릭은 사용자에게 남겼으며 실제 3단계 승인 왕복 완료를 주장하지 않는다. 현재 설정 및 실측 근거는 `results/2026-09-11-three-tier/live-verification.json`과 같은 디렉터리의 gateway/return qualification 파일이다.

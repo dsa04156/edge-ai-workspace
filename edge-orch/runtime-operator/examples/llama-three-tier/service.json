@@ -38,7 +38,7 @@
         "breachSeconds": 4,
         "maxP95Milliseconds": 900,
         "minSamples": 10,
-        "returnP95Milliseconds": 700,
+        "returnP95Milliseconds": 750,
         "windowSeconds": 20
       },
       "lowWatermark": 0.2,
@@ -79,8 +79,8 @@
         },
         "maxInFlight": 1,
         "name": "resident-llama-nano",
-        "qualification": "results/2026-09-11-three-tier/nano-qualification.json: 20 requests at 2 rps, same 8-token input; worker boundary",
-        "qualifiedP95Milliseconds": 267.232,
+        "qualification": "results/2026-09-11-three-tier/: nano-gateway-qualification.json (2 rps), nano-return-qualification.json (serial p95)",
+        "qualifiedP95Milliseconds": 701.935,
         "qualifiedRps": 2,
         "requests": {
           "cpu": "250m",

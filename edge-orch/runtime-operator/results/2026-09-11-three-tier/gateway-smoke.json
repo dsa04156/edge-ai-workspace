@@ -1,0 +1,59 @@
+[
+  {
+    "milliseconds": 469.27460999904724,
+    "status": 200,
+    "body": {
+      "request_id": "three-tier-gateway-7c7deffdba554a28aa401a909b759577",
+      "node_id": "etri-dev0001-jetorn",
+      "role": "nano",
+      "node_state": "ACTIVE",
+      "model": "llama3.2:1b-instruct-q8_0",
+      "response": "Edge computing reduces latency by processing data closer",
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "queue_wait_ms": 0.042,
+      "ttft_ms": 98.509,
+      "tokens_per_second": 27.541,
+      "inference_ms": 390.573,
+      "actual_e2e_ms": 390.614,
+      "eval_count": 8
+    }
+  },
+  {
+    "milliseconds": 701.0798770006659,
+    "status": 200,
+    "body": {
+      "request_id": "three-tier-gateway-62c81ed2360446afbb57a7002ed4e27b",
+      "node_id": "etri-dev0001-jetorn",
+      "role": "nano",
+      "node_state": "ACTIVE",
+      "model": "llama3.2:1b-instruct-q8_0",
+      "response": "Edge computing reduces latency by processing data closer",
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "queue_wait_ms": 0.023,
+      "ttft_ms": 81.67,
+      "tokens_per_second": 39.333,
+      "inference_ms": 286.002,
+      "actual_e2e_ms": 286.025,
+      "eval_count": 8
+    }
+  },
+  {
+    "milliseconds": 464.80897900073614,
+    "status": 200,
+    "body": {
+      "request_id": "three-tier-gateway-20fdc558058b403480bd6e6786f90c6d",
+      "node_id": "etri-dev0001-jetorn",
+      "role": "nano",
+      "node_state": "ACTIVE",
+      "model": "llama3.2:1b-instruct-q8_0",
+      "response": "Edge computing reduces latency by processing data closer",
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "queue_wait_ms": 0.026,
+      "ttft_ms": 76.013,
+      "tokens_per_second": 39.154,
+      "inference_ms": 281.691,
+      "actual_e2e_ms": 281.717,
+      "eval_count": 8
+    }
+  }
+]
