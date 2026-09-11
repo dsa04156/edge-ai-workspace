@@ -104,3 +104,9 @@ AGX·Spark 지도 카드에 노드 전체 CPU·메모리·GPU 사용률과 원 �
 수집 60초 초과, exporter down, 조회 실패는 측정 불가다. GPU 필드가 없는 노드는
 `미수집`으로 표시하고 0%로 대체하지 않는다. 노드 상세에는 수집된 GPU 메모리·온도도
 표시한다. 현재 Spark GPU 사용률은 기존 수집 경로에 값이 없으므로 미수집 상태다.
+
+검증: JavaScript 전체 260건, 최종 관련 13건 통과. 모의 브라우저에서 부하 시작 후
+제거 접수 → 제거 완료와 버튼 비활성 전환을 확인했다. 운영 배포 `03748ea7`에서
+Argo Synced/Healthy, Ready imageID와 변경 정적 파일 hash 일치, 실제 노드 지표와
+상시 부하 제거 버튼, console 오류 0건을 확인했다. 상세는
+[부하 제거·노드 지표 검증](../edge-orch/runtime-operator/results/2026-09-11-augmentation/hardware-and-stop-verification.json).

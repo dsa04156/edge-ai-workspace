@@ -1,0 +1,67 @@
+{
+  "verifiedAt": "2026-09-11T05:47:02.241629+00:00",
+  "implementation": "03748ea7",
+  "readyImage": "192.168.0.56:5000/state-aggregator@sha256:d61d9b9a22c8a8b3eaad6a14f8e35eb17f3e21610f8bfbc8c26d64435d5d89a6",
+  "staticHashesMatch": true,
+  "nodes": [
+    {
+      "hostname": "etri-dev0005-jetagx",
+      "instance": "10.77.0.8:9100",
+      "node_type": "edge_device",
+      "collected_at": "2026-09-11T05:46:53.447097Z",
+      "raw_metrics": {
+        "up": 1.0,
+        "cpu_utilization": 0.023509259259236304,
+        "memory_usage_ratio": 0.08055629586695023,
+        "load_average": 0.35,
+        "network_rx_rate": 5678.162962962963,
+        "network_tx_rate": 7749.281481481482,
+        "cpu_logical_cores": 12.0,
+        "load_per_cpu_ratio": 0.029166666666666664,
+        "gpu_utilization": 0.0
+      },
+      "compute_pressure": "low",
+      "memory_pressure": "low",
+      "network_pressure": "low",
+      "node_health": "healthy"
+    },
+    {
+      "hostname": "etri-ser0003-cg0ms0",
+      "instance": "10.77.0.9:9100",
+      "node_type": "cloud_server",
+      "collected_at": "2026-09-11T05:46:53.447097Z",
+      "raw_metrics": {
+        "up": 1.0,
+        "cpu_utilization": 0.007461111111107144,
+        "memory_usage_ratio": 0.041739315141340216,
+        "load_average": 0.08,
+        "network_rx_rate": 147360.25925925927,
+        "network_tx_rate": 17573.97037037037,
+        "cpu_logical_cores": 20.0,
+        "load_per_cpu_ratio": 0.004
+      },
+      "compute_pressure": "low",
+      "memory_pressure": "low",
+      "network_pressure": "low",
+      "node_health": "healthy"
+    }
+  ],
+  "javascriptTests": 260,
+  "finalRelatedTests": 13,
+  "mockRemovalFlow": {
+    "accepted": "제거 접수 중…",
+    "completed": "부하 제거 완료",
+    "completedButtonDisabled": true
+  },
+  "liveLoadStartedForVerification": false,
+  "liveAugmentationApprovedForVerification": false,
+  "liveBrowser": {
+    "stopButtonVisible": true,
+    "stopDisabledWhileIdle": true,
+    "nodeMeters": 2,
+    "sparkGpu": "미수집",
+    "consoleErrors": 0,
+    "mobileWidth": 390,
+    "mobileScrollWidth": 390
+  }
+}
