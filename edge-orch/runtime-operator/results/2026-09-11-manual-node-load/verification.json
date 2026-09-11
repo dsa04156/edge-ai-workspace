@@ -1,0 +1,51 @@
+{
+  "observedAt": 1789112580.6296291,
+  "images": {
+    "state-aggregator": {
+      "pod": "state-aggregator-5799c484d7-ff58z",
+      "image": "192.168.0.56:5000/state-aggregator@sha256:fa6a562d15635d6f74090e804152b01be0bb398bff8292616a33bd57f65d250d",
+      "sourceHash": "sha256:b0a0381b0108dfd9d7704e6a6615df3485ffc5d3e34518562d68baf0a6b3a644",
+      "ready": true
+    },
+    "runtime-operator": {
+      "pod": "runtime-operator-6f84ccd785-bdbmq",
+      "image": "192.168.0.56:5000/runtime-operator@sha256:4677bcf45291ebe01d33a7599d90bfd96c04bcbf876437a44137fdf6571a0410",
+      "sourceHash": "sha256:78903a51abc6407805423b19f1b2da254bad17e0596609b382bec282895ae03a",
+      "ready": true
+    }
+  },
+  "argo": {
+    "sync": "Synced",
+    "health": "Healthy",
+    "revision": "489701099629957c8a04528f4c960e9a5a7d1467"
+  },
+  "registry": {
+    "httpStatus": 200,
+    "mount": "/dev/sdb5 /mnt/data3tb ext4",
+    "recoveredExistingContainer": true
+  },
+  "tests": {
+    "operatorRelated": 21,
+    "ui": 8
+  },
+  "requestCountAfterRemoval": 150,
+  "countUnchanged": true,
+  "serviceRunning": true,
+  "automaticApprovalClicked": false,
+  "sensorsReady": 2,
+  "consoleErrors": 0,
+  "viewports": [
+    {
+      "width": 1440,
+      "overflow": false,
+      "nestedButtons": 0,
+      "manualCaption": true
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "nestedButtons": 0,
+      "manualCaption": true
+    }
+  ]
+}

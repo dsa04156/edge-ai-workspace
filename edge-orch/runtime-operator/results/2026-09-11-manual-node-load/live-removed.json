@@ -1,0 +1,83 @@
+{
+  "observedAt": 1789112541.5366108,
+  "run": {
+    "id": "98bbd0184065450daae947e9944a8a77",
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "name": "llama-inference",
+    "label": "Nano → Orin → Spark · 단계별 승인 Llama 부하 시험",
+    "mode": "node-load",
+    "phase": "Stopped",
+    "stage": "finished",
+    "createdAt": 1789112466.6270702,
+    "finishedAt": 1789112518.229611,
+    "sent": 150,
+    "succeeded": 140,
+    "failed": 5,
+    "unknown": 0,
+    "lastResult": "{\"request_id\": \"demo-6df222895c35796fe444e3ce-149\", \"node_id\": \"etri-dev0001-jetorn\", \"role\": \"nano\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b-instruct-q8_0\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.019, \"ttft_ms\": 65.48, \"tokens_per_second\": 39.006, \"inference_ms\": 272.73, \"actual_e2e_ms\": 272.749, \"eval_count\": 8}",
+    "routeHistory": [
+      {
+        "at": 1789112466.6382334,
+        "node": "etri-dev0001-jetorn",
+        "role": "edge",
+        "reason": "initial_or_unhealthy_or_policy_changed"
+      }
+    ],
+    "recentRequests": [
+      {
+        "id": "demo-6df222895c35796fe444e3ce-145",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-165b7a9a4b8b",
+        "elapsedMilliseconds": 210.08963400163339
+      },
+      {
+        "id": "demo-6df222895c35796fe444e3ce-146",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-165b7a9a4b8b",
+        "elapsedMilliseconds": 220.43742800087784
+      },
+      {
+        "id": "demo-6df222895c35796fe444e3ce-147",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-165b7a9a4b8b",
+        "elapsedMilliseconds": 369.73091600157204
+      },
+      {
+        "id": "demo-6df222895c35796fe444e3ce-148",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-165b7a9a4b8b",
+        "elapsedMilliseconds": 539.9464170004649
+      },
+      {
+        "id": "demo-6df222895c35796fe444e3ce-149",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-165b7a9a4b8b",
+        "elapsedMilliseconds": 1280.6015019996266
+      }
+    ],
+    "startNode": "etri-dev0001-jetorn",
+    "startRole": "edge",
+    "currentNode": "etri-dev0001-jetorn",
+    "returned": false,
+    "retiring": 0,
+    "reason": "operator_stopped_demo",
+    "stopRequested": true,
+    "targetNode": "etri-dev0001-jetorn",
+    "targetLabel": "Nano",
+    "cancelled": 5
+  },
+  "serviceControl": {
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "name": "llama-inference",
+    "phase": "Running",
+    "suspended": false,
+    "canStart": false,
+    "canStop": true,
+    "observedAt": 1789112541.5155182
+  }
+}
