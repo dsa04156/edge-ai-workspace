@@ -2,11 +2,12 @@ const test=require('node:test'),assert=require('node:assert/strict'),vm=require(
 function harness(){
  const clock={wall:100000,mono:10000};
  const service={uid:'llama',name:'llama',aiInference:true,approvalRequired:true,phase:'Serving',serving:true,checkedAt:99,active:{name:'route',node:'orin',variant:'orin'},retiring:[],excludedCandidates:[],load:{at:99,pending:0,inFlight:0}};
- const runtime={observed_at:100,services:[service]};
+ const runtime={schema_version:'edgeai.common-runtime/v1',observed_at:100,services:[service]};
  const demo={enabled:true,observedAt:100,items:[{uid:'llama',name:'llama',available:true,nodes:[{node:'orin',label:'Orin',available:true,currentRoute:true}],serviceControl:{phase:'Running',canStop:true}}],runs:[]};
- const context=vm.createContext({Date:class extends Date{static now(){return clock.wall;}},performance:{now:()=>clock.mono},setTimeout,clearTimeout,AbortController,fetch:async()=>({ok:true,json:async()=>demo}),localStorage:{setItem(){}}});
+ const network={runtime},intervals=[];
+ const context=vm.createContext({document:{addEventListener(){}},setInterval:fn=>{intervals.push(fn);return intervals.length;},clearInterval(){},Date:class extends Date{static now(){return clock.wall;}},performance:{now:()=>clock.mono},setTimeout,clearTimeout,AbortController,fetch:async url=>({ok:true,json:async()=>url==='/state/runtime-services'?network.runtime:url==='/state/nodes'?[]:demo}),localStorage:{setItem(){}}});
  for(const name of ['common-runtime-demo.js','common-runtime.js']) vm.runInContext(fs.readFileSync(path.join(__dirname,'../app/static/nexus',name),'utf8'),context);
- return {clock,runtime,demo,R:context.NexusCommonRuntime,D:context.NexusRuntimeDemo};
+ return {clock,runtime,demo,network,intervals,R:context.NexusCommonRuntime,D:context.NexusRuntimeDemo};
 }
 test('new observations stay current across PC clock skew and jumps; monotonic age still expires them',async()=>{
  const {clock,runtime,R,D}=harness();
@@ -33,4 +34,16 @@ test('actual service staleness and request errors remain visible despite fresh t
  assert.doesNotMatch(html,/관측 연결 확인 중/);
  html=R.renderState({data:runtime,receivedMonotonic:10,error:'조회 시간 초과'});
  assert.ok(html.indexOf('조회 시간 초과')<html.indexOf('runtime-diagnostics'));
+});
+
+test('source outage retains last service identity, shows error and recovers on next successful poll',async()=>{
+ const {R,network,runtime,intervals}=harness();
+ R.activate(true);await new Promise(setImmediate);
+ assert.match(R.render(),/요청 대기 중/);
+ network.runtime={schema_version:'edgeai.common-runtime/v1',observed_at:100,observation_error:'runtime_source_unavailable',services:[]};
+ intervals[1]();await new Promise(setImmediate);
+ const failed=R.render();assert.match(failed,/data-augmentation-service="llama"/);assert.match(failed,/제어기 응답을 받지 못했습니다/);assert.match(failed,/마지막 확인 상태: 요청 처리 가능/);assert.match(failed,/최신 관측 확인 불가/);
+ network.runtime=runtime;intervals[1]();await new Promise(setImmediate);
+ assert.match(R.render(),/요청 대기 중/);assert.doesNotMatch(R.render(),/제어기 응답을 받지 못했습니다/);
+ R.activate(false);
 });
