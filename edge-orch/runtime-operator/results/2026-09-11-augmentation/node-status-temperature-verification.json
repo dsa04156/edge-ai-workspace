@@ -1,0 +1,27 @@
+{
+  "verified_at": "2026-09-11T06:16:28.256837+00:00",
+  "image": "192.168.0.56:5000/state-aggregator@sha256:e90d29a915f330ca65f69ed3beaba33af64d09f384119c35dc80e2d813934633",
+  "pod": "state-aggregator-5b578ff8c7-d2qvm",
+  "argo": "Synced Healthy",
+  "http_hashes": {
+    "edge-orch/state-aggregator/app/static/nexus/operations.js": "sha256:b7399995e742026f06f61baeb3d4f41f006f17e49f3cf35c4698eaecfc4310e7",
+    "edge-orch/state-aggregator/app/static/nexus/operations.css": "sha256:200b7c688a3a27f9e2440db30b9bdb665a496ce5d47a84316577504df3e1063a"
+  },
+  "tests_passed": 18,
+  "preview": {
+    "temperature_rows": 10,
+    "desktop": "1440x1000 verified",
+    "mobile": "390x844 verified, no horizontal overflow"
+  },
+  "gpu_diagnosis": {
+    "agx": "Exporters running; direct GPU thermal temp read returned No data available; CPU 42562 mC",
+    "spark": "DCGM amd64 selector excludes arm64 Spark; nvidia-smi from existing runtime returned NVIDIA GB10, 37, 0 %"
+  },
+  "gpu_exporter_installed_by_this_change": false,
+  "live_load_started": false,
+  "live_browser": {
+    "rows": 10,
+    "agx_cpu": "42.3 C",
+    "agx_gpu": "missing"
+  }
+}
