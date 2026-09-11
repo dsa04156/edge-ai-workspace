@@ -55,7 +55,7 @@ class FakeAsyncClient:
             return FakeResponse([
                 {"metric": {"instance": "192.168.0.3:9400", "gpu": "0"}, "value": [0, "58"]},
             ])
-        if query == "DCGM_FI_DEV_POWER_USAGE":
+        if query == PROMETHEUS_QUERIES["gpu_power_watts"]:
             return FakeResponse([
                 {"metric": {"instance": "192.168.0.3:9400", "gpu": "0"}, "value": [0, "72.5"]},
             ])
@@ -257,3 +257,25 @@ def test_temperature_metrics_remain_component_specific_and_missing_is_absent(mon
     assert nodes["spark"]["system_temperature_celsius"] == 39.8
     assert "cpu_temperature_celsius" not in nodes["spark"]
     assert "gpu_temperature_celsius" not in nodes["spark"]
+
+
+def test_spark_metrics_join_node_identity_without_inventing_vram(monkeypatch):
+    import app.prometheus as mod
+
+    class SparkClient(FakeAsyncClient):
+        async def get(self, url, params):
+            values = {"up": "1", "gpu_utilization": "0", "gpu_temperature_celsius": "37", "gpu_power_watts": "4.86"}
+            key = next(k for k, q in PROMETHEUS_QUERIES.items() if q == params["query"])
+            return FakeResponse([{"metric": {"instance": "10.77.0.9:9100"}, "value": [0, values[key]]}] if key in values else [])
+
+    monkeypatch.setattr(mod.httpx, "AsyncClient", SparkClient)
+    items = asyncio.run(PrometheusClient("http://prom", {"10.77.0.9:9100": {"hostname": "spark"}}).collect_node_metrics())
+    assert len(items) == 1
+    assert items[0].hostname == "spark" and items[0].up == 1
+    assert items[0].gpu_utilization == 0
+    assert items[0].gpu_temperature_celsius == 37
+    assert items[0].gpu_power_watts == 4.86
+    assert items[0].gpu_memory_total_mib is None
+    for key in ("gpu_utilization", "gpu_temperature_celsius", "gpu_power_watts"):
+        assert "spark_gpu_collector_success == 1" in PROMETHEUS_QUERIES[key]
+        assert 'up{job="spark-gpu-exporter"} == 1' in PROMETHEUS_QUERIES[key]

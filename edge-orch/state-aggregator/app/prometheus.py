@@ -9,6 +9,11 @@ import httpx
 from .models import NodeRawMetrics
 
 
+def _spark_metric(name: str) -> str:
+    return (f'({name} and on(instance) (spark_gpu_collector_success == 1) '
+            'and on(instance) (up{job="spark-gpu-exporter"} == 1))')
+
+
 PROMETHEUS_QUERIES = {
     "up": 'up{job="node-exporter"}',
     "cpu_utilization": '1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))',
@@ -17,14 +22,14 @@ PROMETHEUS_QUERIES = {
     "load_average": "node_load1",
     "network_rx_rate": 'sum by(instance) (rate(node_network_receive_bytes_total{device!="lo"}[5m]))',
     "network_tx_rate": 'sum by(instance) (rate(node_network_transmit_bytes_total{device!="lo"}[5m]))',
-    "gpu_utilization": 'DCGM_FI_DEV_GPU_UTIL or on(instance) (100 * (jetson_gpu_utilization_ratio and on(instance) (jetson_gpu_collector_success == 1) and on(instance) (up{job="jetson-gpu-exporter"} == 1)))',
+    "gpu_utilization": 'DCGM_FI_DEV_GPU_UTIL or on(instance) (100 * (jetson_gpu_utilization_ratio and on(instance) (jetson_gpu_collector_success == 1) and on(instance) (up{job="jetson-gpu-exporter"} == 1))) or on(instance) ' + _spark_metric("spark_gpu_utilization_percent"),
     "gpu_memory_used_mib": "DCGM_FI_DEV_FB_USED",
     "gpu_memory_free_mib": "DCGM_FI_DEV_FB_FREE",
     # Sensor types identify the component; ACPI, disks and Wi-Fi are not CPU sensors.
     "cpu_temperature_celsius": 'max by(instance) ((node_hwmon_temp_celsius * on(instance,chip) group_left() node_hwmon_chip_names{chip_name=~"coretemp|k10temp|zenpower"}) or node_thermal_zone_temp{type=~"cpu-thermal|x86_pkg_temp"})',
     "system_temperature_celsius": 'max by(instance) (node_thermal_zone_temp{type="acpitz"})',
-    "gpu_temperature_celsius": 'max by(instance) (DCGM_FI_DEV_GPU_TEMP or node_thermal_zone_temp{type="gpu-thermal"})',
-    "gpu_power_watts": "DCGM_FI_DEV_POWER_USAGE",
+    "gpu_temperature_celsius": 'max by(instance) (DCGM_FI_DEV_GPU_TEMP or node_thermal_zone_temp{type="gpu-thermal"} or ' + _spark_metric("spark_gpu_temperature_celsius") + ")",
+    "gpu_power_watts": "DCGM_FI_DEV_POWER_USAGE or on(instance) " + _spark_metric("spark_gpu_power_watts"),
 }
 
 SERVICE_USAGE_QUERIES = {
