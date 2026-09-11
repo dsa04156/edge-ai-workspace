@@ -235,7 +235,19 @@ class Controller:
                                  "reasons": ["candidate_still_draining" if retiring else "prepare_failure_backoff"]})
         state["excludedCandidates"] = rejected
         state["eligibleCandidates"] = [{"node": c.node, "variant": c.variant.name, "role": c.role} for c in eligible]
+        order = [s.variant for s in spec.policy.stages]
+        variants = {v.name: v for v in spec.variants}
+        state["augmentationStages"] = [{"step": i + 1, "label": stage.label, "variant": stage.variant,
+            "node": next((c.node for c in eligible if c.variant.name == stage.variant),
+                         variants[stage.variant].nodeSelector.get("kubernetes.io/hostname")),
+            "eligible": any(c.variant.name == stage.variant for c in eligible),
+            "qualifiedRps": variants[stage.variant].qualifiedRps,
+            "qualifiedP95Milliseconds": variants[stage.variant].qualifiedP95Milliseconds}
+            for i, stage in enumerate(spec.policy.stages)]
         active = state.get("active")
+        position = order.index(active["variant"]) if active and active["variant"] in order else -1
+        next_variant = order[position + 1] if position >= 0 and position + 1 < len(order) else None
+        previous_variant = order[position - 1] if position > 0 else None
         health = await self.probe(active) if active and self.pod_ready(active, uid, snapshot) else None
         if active:
             active["observation"] = {"at": self.clock(), "health": health}
@@ -290,27 +302,28 @@ class Controller:
         elif not state.get("target") and now - state["switchedAt"] >= spec.policy.cooldownSeconds:
             if (spec.policy.mode == "automatic" and breached
                     and now - state["latencyHighSince"] >= latency_policy.breachSeconds):
-                faster = [c for c in eligible if self.target(resource, spec, c)["name"] != active["name"]
-                          and (current.variant.qualifiedP95Milliseconds is None
+                faster = [c for c in eligible if (not order or c.variant.name == next_variant) and self.target(resource, spec, c)["name"] != active["name"]
+                          and (bool(order) or current.variant.qualifiedP95Milliseconds is None
                                or (c.variant.qualifiedP95Milliseconds is not None
                                    and c.variant.qualifiedP95Milliseconds < current.variant.qualifiedP95Milliseconds))
                           and qualified(c, latency_policy.maxP95Milliseconds)]
                 choice = min(faster, key=lambda c: (c.variant.qualifiedP95Milliseconds, c.node)) if faster else None
                 reason = "sustained_latency_breach" if choice else "latency_no_qualified_target"
             elif spec.policy.mode == "automatic" and state["highSince"] is not None and now - state["highSince"] >= spec.policy.pressureSeconds:
-                larger = [c for c in eligible if
+                larger = [c for c in eligible if (not order or c.variant.name == next_variant) and (
                           (c.variant.qualifiedRps is not None and active.get("qualifiedRps") is not None
                            and c.variant.qualifiedRps > active["qualifiedRps"])
                           or (c.variant.qualifiedRps is None and active.get("qualifiedRps") is None
-                              and c.variant.maxInFlight > active["capacity"])]
+                              and c.variant.maxInFlight > active["capacity"]))]
                 if latency_policy:
                     larger = [c for c in larger if qualified(c, latency_policy.maxP95Milliseconds)]
                 choice = min(larger, key=lambda c: (c.variant.qualifiedRps or c.variant.maxInFlight, c.node)) if larger else None
                 reason = "sustained_pressure" if choice else "pressure_no_qualified_capacity"
             elif state["lowSince"] is not None and now - state["lowSince"] >= spec.policy.returnSeconds:
                 return_ready = (not latency_policy or (recovered and now - state["latencyLowSince"] >= spec.policy.returnSeconds))
-                small = [c for c in eligible if return_ready and c.role == spec.policy.preferredRole
-                         and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"])
+                small = [c for c in eligible if return_ready
+                         and (c.variant.name == previous_variant if order else
+                              c.role == spec.policy.preferredRole and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"]))
                          and load <= c.variant.maxInFlight * spec.policy.highWatermark
                          and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
                 choice = small[0] if small else None

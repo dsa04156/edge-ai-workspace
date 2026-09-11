@@ -75,3 +75,15 @@ test('temperatures distinguish components, missing sensors, invalid values and s
   html=R.nodeMetricsView('agx',100,e);assert.doesNotMatch(html,/43.5 °C|0.0 °C/);assert.match(html,/CPU 온도<\/span><b>—/);
  }
 });
+
+
+test('configured stages stay ordered and visible when the middle node is unavailable',()=>{
+ const s={uid:'three',name:'llama',serving:true,checkedAt:99,active:{...target,node:'nano-node',variant:'nano'},augmentationStages:[
+  {step:1,label:'Nano',variant:'nano',node:'nano-node',eligible:true,qualifiedRps:2},
+  {step:2,label:'Orin',variant:'orin',node:'orin-node',eligible:false,qualifiedRps:4.8},
+  {step:3,label:'Spark',variant:'spark',node:'spark-node',eligible:true,qualifiedRps:6}],load:{at:99,inFlight:0,pending:0}};
+ const m=R.serviceMotion(s,100,true),nodes=R.mapNodes(s,m,100),html=R.runtimeMap(s,m,100);
+ assert.deepEqual(nodes.map(n=>n.label),['Nano','Orin','Spark']);assert.equal(nodes[1].state,'unknown');
+ assert.match(html,/단계별 증강 경로/);assert.match(html,/1단계/);assert.match(html,/3단계/);assert.match(html,/검증 4.8건/);
+ assert.ok(html.indexOf('>Nano<')<html.indexOf('>Orin<')&&html.indexOf('>Orin<')<html.indexOf('>Spark<'));
+});

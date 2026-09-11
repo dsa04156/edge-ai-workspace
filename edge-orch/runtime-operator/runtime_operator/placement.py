@@ -134,5 +134,6 @@ def candidates(spec: ServiceSpec, nodes: list[dict], pods: list[dict], runtime_c
                 rejected.append({"node": name, "variant": variant.name, "reasons": sorted(set(reasons))})
             else:
                 accepted.append(Candidate(name, role, variant))
-    accepted.sort(key=lambda c: (c.role != spec.policy.preferredRole, c.variant.maxInFlight, c.node, c.variant.name))
+    order = {s.variant: i for i, s in enumerate(spec.policy.stages)}
+    accepted.sort(key=lambda c: (order[c.variant.name], c.node) if order else (c.role != spec.policy.preferredRole, c.variant.maxInFlight, c.node, c.variant.name))
     return accepted, rejected

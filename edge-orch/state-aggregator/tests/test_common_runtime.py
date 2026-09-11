@@ -87,3 +87,11 @@ def test_map_candidates_are_typed_public_metadata_and_removed_when_stale():
     assert item.eligibleCandidates[0].node == "candidate"
     assert "hidden" not in item.model_dump_json()
     assert project(data, 200).services[0].eligibleCandidates == []
+
+
+def test_ordered_stages_retain_configuration_but_not_live_eligibility_when_stale():
+    data = payload()
+    data["services"][0]["augmentationStages"] = [{"step": 1, "label": "Nano", "variant": "nano", "node": "nano-node", "eligible": True, "qualifiedRps": 2}]
+    assert project(data, 100).services[0].augmentationStages[0].eligible
+    stage = project(data, 200).services[0].augmentationStages[0]
+    assert stage.label == "Nano" and not stage.eligible

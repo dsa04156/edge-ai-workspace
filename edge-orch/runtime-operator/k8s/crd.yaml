@@ -186,6 +186,23 @@ spec:
                 type: array
               policy:
                 properties:
+                  stages:
+                    items:
+                      properties:
+                        variant:
+                          maxLength: 31
+                          minLength: 1
+                          type: string
+                        label:
+                          maxLength: 40
+                          minLength: 1
+                          type: string
+                      required:
+                      - variant
+                      - label
+                      type: object
+                    maxItems: 32
+                    type: array
                   mode:
                     default: automatic
                     enum:

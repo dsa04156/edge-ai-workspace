@@ -1,0 +1,23 @@
+{
+  "state-aggregator": {
+    "base": "sha256:e90d29a915f330ca65f69ed3beaba33af64d09f384119c35dc80e2d813934633",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:ab3621edb1ff3ce544b0f17f555f6d28ca6c4611af218e714f21054efcd524ff",
+    "tag": "three-tier-20260911T063107",
+    "files": {
+      "edge-orch/state-aggregator/app/common_runtime.py": "sha256:c96b13af0b66476b7d94d26f30bf77ee602c9a6fca9f684a8db4df1c75f65dd9",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:207caa35265f0beabadd4cefa587c72fa22d04e5a118158d23c0805855089404",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.css": "sha256:0fc4891b45c63c9b3d9c4ad60f6634f052dff2c744a8b343d864057e4716410f"
+    }
+  },
+  "runtime-operator": {
+    "base": "sha256:ba019d5a3a504f6ad7124929df7738657b217b46cbb4902ed13a993bdd099a82",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:cbf3a0c38f46d20c51149c50e33eb48a3134bb8545ff09b542fe0b30730fc22a",
+    "tag": "three-tier-20260911T063107",
+    "files": {
+      "edge-orch/runtime-operator/runtime_operator/contract.py": "sha256:dfaff873fb2e52d43cecc2ace1cdf3066ab7632735dede9d4e1ef539a601cf79",
+      "edge-orch/runtime-operator/runtime_operator/controller.py": "sha256:002ed1df3f4b301db31c74c2b8d857b0ad1e5c852422c3812ea9a75fff5fb7ff",
+      "edge-orch/runtime-operator/runtime_operator/placement.py": "sha256:1055a1a0cf0ccded3a6c9077bb180979be141b5aa4f5c1a927f1cfc877102c66",
+      "edge-orch/runtime-operator/runtime_operator/demo.py": "sha256:4c399b6503b237d8783bf84e82b74f102e0c854c2351d7e822b3ee32c69ae8c4"
+    }
+  }
+}

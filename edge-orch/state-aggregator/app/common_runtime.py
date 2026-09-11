@@ -107,7 +107,18 @@ class AugmentationProposal(BaseModel):
     finishedAt: float | None = None
 
 
+class AugmentationStage(BaseModel):
+    step: int
+    label: str
+    variant: str
+    node: str | None = None
+    eligible: bool
+    qualifiedRps: float | None = None
+    qualifiedP95Milliseconds: float | None = None
+
+
 class RuntimeItem(BaseModel):
+    augmentationStages: list[AugmentationStage] = Field(default_factory=list)
     name: str
     uid: str
     phase: str
@@ -157,6 +168,8 @@ def project(payload: dict, now: float) -> RuntimeState:
             item.load = None
             item.proposal = None
             item.eligibleCandidates = []
+            for stage in item.augmentationStages:
+                stage.eligible = False
         if item.load and (item.load.at is None or not 0 <= now - item.load.at < 15):
             item.load = None
         if (item.latency and (item.observation_error or not item.active

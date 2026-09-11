@@ -1,0 +1,200 @@
+{
+  "apiVersion": "platform.jinuk.io/v1alpha1",
+  "kind": "RuntimeService",
+  "metadata": {
+    "name": "llama-inference",
+    "namespace": "platform-runtime"
+  },
+  "spec": {
+    "demo": {
+      "concurrency": 6,
+      "label": "Nano → Orin → Spark · 단계별 승인 Llama 부하 시험",
+      "maxRequests": 512,
+      "payload": {
+        "max_tokens": 8,
+        "prompt": "In one short sentence, explain why edge computing reduces latency."
+      },
+      "pressureSeconds": 40,
+      "recoveryIntervalSeconds": 1,
+      "recoverySeconds": 120
+    },
+    "execution": "http-json-v1",
+    "inference": {
+      "maxTokens": 8,
+      "modelDigest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "prompt": "In one short sentence, explain why edge computing reduces latency."
+    },
+    "ioContract": "llama.qualified-eight-token.v1",
+    "maxBodyBytes": 65536,
+    "policy": {
+      "allowedRoles": [
+        "edge",
+        "server"
+      ],
+      "approvalRequired": true,
+      "cooldownSeconds": 5,
+      "highWatermark": 0.8,
+      "latency": {
+        "breachSeconds": 4,
+        "maxP95Milliseconds": 900,
+        "minSamples": 10,
+        "returnP95Milliseconds": 700,
+        "windowSeconds": 20
+      },
+      "lowWatermark": 0.2,
+      "mode": "automatic",
+      "preferredRole": "edge",
+      "prepareTimeoutSeconds": 90,
+      "pressureSeconds": 4,
+      "returnSeconds": 8,
+      "stages": [
+        {
+          "variant": "resident-llama-nano",
+          "label": "Nano"
+        },
+        {
+          "variant": "resident-llama-agx",
+          "label": "Orin"
+        },
+        {
+          "variant": "resident-llama-spark",
+          "label": "Spark"
+        }
+      ]
+    },
+    "port": 18110,
+    "readyPath": "/ready",
+    "requestPath": "/infer",
+    "suspended": false,
+    "timeoutSeconds": 30,
+    "variants": [
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "limits": {
+          "cpu": "6",
+          "memory": "4Gi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-nano",
+        "qualification": "results/2026-09-11-three-tier/nano-qualification.json: 20 requests at 2 rps, same 8-token input; worker boundary",
+        "qualifiedP95Milliseconds": 267.232,
+        "qualifiedRps": 2,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-nano"
+          },
+          "service": "llama-nano"
+        },
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0001-jetorn"
+        }
+      },
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "localhost/qualification/ollama-jetson@sha256:b1e591bcd625f3ecb0abdad843ad369a637e6f99f7543dd0d7581c20aee40a28",
+        "limits": {
+          "cpu": "6",
+          "memory": "8Gi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-agx",
+        "qualification": "8-token Llama: RPS qualification plus results/2026-09-10-latency/edge-qualification.json",
+        "qualifiedP95Milliseconds": 531.578,
+        "qualifiedRps": 4.8,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-agx"
+          },
+          "service": "llama-agx"
+        },
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        }
+      },
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "limits": {
+          "cpu": "6",
+          "memory": "8Gi",
+          "nvidia.com/gpu": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-spark",
+        "qualification": "8-token Llama: RPS qualification plus results/2026-09-10-latency/server-qualification.json",
+        "qualifiedP95Milliseconds": 456.092,
+        "qualifiedRps": 6,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-spark"
+          },
+          "service": "llama-spark"
+        },
+        "runtimeClassName": "nvidia-spark",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-ser0003-cg0ms0"
+        }
+      }
+    ]
+  }
+}

@@ -83,7 +83,13 @@ class LatencyPolicy(Contract):
         return self
 
 
+class AugmentationStage(Contract):
+    variant: str = Field(min_length=1, max_length=31)
+    label: str = Field(min_length=1, max_length=40)
+
+
 class Policy(Contract):
+    stages: list[AugmentationStage] = Field(default_factory=list, max_length=32)
     mode: Literal["automatic", "preferred"] = "automatic"
     approvalRequired: bool = False
     preferredRole: Literal["edge", "server"] = "edge"
@@ -141,6 +147,17 @@ class ServiceSpec(Contract):
             raise ValueError("approval requires an opted-in AI inference demo")
         if len({v.name for v in self.variants}) != len(self.variants):
             raise ValueError("duplicate variant")
+        if self.policy.stages:
+            ordered = [s.variant for s in self.policy.stages]
+            if (not self.policy.approvalRequired or not self.inference
+                    or len(ordered) != len(set(ordered))
+                    or set(ordered) != {v.name for v in self.variants}):
+                raise ValueError("stages require an approval-enabled AI service and each variant exactly once")
+            variants = {v.name: v for v in self.variants}
+            capacities = [variants[name].qualifiedRps for name in ordered]
+            if (any(value is None for value in capacities)
+                    or any(a >= b for a, b in zip(capacities, capacities[1:]))):
+                raise ValueError("stages require strictly increasing qualified request rates")
         if any(v.resident for v in self.variants):
             if not self.inference or not all(v.resident for v in self.variants):
                 raise ValueError("resident Llama variants require one common inference contract")

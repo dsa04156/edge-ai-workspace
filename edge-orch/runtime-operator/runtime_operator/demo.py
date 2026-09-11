@@ -27,6 +27,8 @@ class StopRequest(BaseModel):
 def signature(spec):
     value = {"demo": spec.demo.model_dump() if spec.demo else None, "ioContract": spec.ioContract,
              "inference": spec.inference.model_dump() if spec.inference else None}
+    if spec.policy.stages:
+        value["stages"] = [stage.model_dump() for stage in spec.policy.stages]
     return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
@@ -83,6 +85,7 @@ class DemoRunner:
                "signature": signature(spec), "stopRequested": False, "sent": 0, "succeeded": 0,
                "failed": 0, "unknown": 0, "requests": [], "routeHistory": [], "lastResult": None,
                "startNode": active["node"], "startRole": active["role"], "leftStartRole": False,
+               "baselineVariant": spec.policy.stages[0].variant if spec.policy.stages else None, "leftBaseline": False,
                "returned": False, "retiring": 0}
         c.journal.demo_save(run)  # Durable identity before the first request task exists.
         key = (body.serviceUid, run_id)
@@ -103,6 +106,11 @@ class DemoRunner:
         run["currentNode"] = active["node"]
         run["retiring"] = len(state.get("retiring", []))
         run["leftStartRole"] |= active["role"] != run["startRole"]
+        if run.get("baselineVariant"):
+            run["leftBaseline"] |= active["variant"] != run["baselineVariant"]
+            run["returned"] = bool(run["leftBaseline"] and active["variant"] == run["baselineVariant"]
+                                   and not state.get("target") and not state.get("retiring"))
+            return
         run["returned"] = bool(run["leftStartRole"] and active["role"] == run["startRole"]
                                and not state.get("target") and not state.get("retiring"))
 
@@ -155,7 +163,8 @@ class DemoRunner:
                         while time.monotonic() < until and not run["stopRequested"]:
                             state = c.states.get(run["uid"], {})
                             spec = self.definition(run["name"], run["uid"])
-                            if (state.get("active", {}).get("role") == spec.policy.preferredRole
+                            if ((state.get("active", {}).get("variant") == spec.policy.stages[0].variant if spec.policy.stages else
+                                 state.get("active", {}).get("role") == spec.policy.preferredRole)
                                     and not state.get("target") and not state.get("retiring")):
                                 break
                             if not await invoke():

@@ -133,3 +133,22 @@ Argo Synced/Healthy, Ready imageID와 변경 정적 파일 hash 일치, 실제 �
 - AGX: node-exporter와 jetson-gpu-exporter가 배포되어 있고 Prometheus up=1. Jetson 전용 exporter는 GPU 사용률만 수집한다. 온도는 node-exporter의 thermal zone 경로다. 기존 read-only sysfs mount에서 CPU temp는 42562 m°C, GPU temp 파일은 `No data available`을 반환했다. 센서 파일이 존재하지만 그 시점 읽기는 실패한다. 원인이 전력 상태 때문인지는 이번 진단으로 확정하지 않았다.
 - Spark: NVIDIA GB10 드라이버와 추론 runtime은 동작하며 기존 추론 컨테이너의 `nvidia-smi --query-gpu=name,temperature.gpu,utilization.gpu --format=csv,noheader`는 `NVIDIA GB10, 37, 0 %`를 반환했다. GPU 온도 자체는 읽을 수 있다. 그러나 DCGM DaemonSet이 amd64 + gpu.platform=server 노드만 선택해 arm64 Spark에는 GPU exporter가 배포되지 않았다. GPU 사용률·온도를 지속 표시하려면 Spark에 맞는 수집기와 Prometheus scrape 연결이 필요하다. 이번 변경에는 설치를 포함하지 않는다.
 - 서버 1·2: DCGM exporter가 배포되어 Prometheus up=1. Spark의 미수집을 전체 GPU 수집기 미설치로 일반화하지 않는다.
+
+
+## Nano → Orin → Spark 3단계 승인 증강
+
+2026-09-11 사용자 요청으로 기존 두 후보를 다음 세 단계로 확대한다.
+
+| 단계 | 실제 장비 / 노드 | 검증 수용 요청률 |
+| --- | --- | --- |
+| 1 Nano | Jetson Orin Nano / etri-dev0001-jetorn | 2건/s |
+| 2 Orin | Jetson AGX Orin / etri-dev0005-jetagx | 4.8건/s |
+| 3 Spark | DGX Spark GB10 / etri-ser0003-cg0ms0 | 6건/s |
+
+`policy.stages`가 variant 순서를 선언한다. 단계의 qualifiedRps는 순서대로 증가해야 한다. 부하·지연 위반 때 바로 다음 단계만 추천하고 매번 새로운 승인 ID를 요구한다. Orin이 부적격이면 Nano에서 Spark로 건너뛰어 부하 증강하지 않는다. 현재 실행 장애·초기 배치는 가용 후보 복구 정책을 별도 사유로 사용한다. 저부하와 충분한 회복 지연 표본이 있으면 Spark → Orin → Nano 순으로 자동 복귀한다. 같은 edge 역할인 Nano·Orin도 서로 다른 단계로 처리한다. 시험 시작 전 기준 단계도 edge 역할 전체가 아니라 Nano다.
+
+지도에는 1·2·3단계, 장비명, 실제 hostname, 검증 요청률/p95, CPU·메모리·GPU 및 온도를 함께 표시한다. 화살표는 증강 순서이며 강조 노드가 실제 요청 경로다. 3단계에서도 부하 제거 버튼과 승인별 접수·준비 상태를 유지한다.
+
+Nano는 `llama-continuity-test/llama-nano`에 별도 GPU 예약 resident container와 4Gi PVC를 추가했다. 포트11436을 사용해 기존 실험용11435 runtime과 분리하며 기존 실험 모델 캐시를 삭제하지 않는다. 임의 hostPath를 추가하지 않고 기존 NVIDIA runtime/device plugin을 사용한다. `CONTINUITY_SOURCE`의 해제 금지를 제거해 현재 제어기의 deactivate 계약을 따른다. 동일 model digest `baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878`와 동일8-token 입력을 사용한다. GPU17/17layers offload, 모델 VRAM1348.45MiB, 초당2건20개+워밍업2개 성공을 확인했다. 2건/s는 이번에 검증한 운용점이며 장비의 최대 성능을 뜻하지 않는다. 직접 worker p95는267.232ms이며 기존 gateway/port-forward 경계 수치와 최대 성능 비교를 하지 않는다. 부하/지연 판단은 계속 실제 gateway queue+response 집계를 사용한다.
+
+계약과 Nano 배포: `edge-orch/runtime-operator/examples/llama-three-tier/`. 실측 원본: `edge-orch/runtime-operator/results/2026-09-11-three-tier/nano-qualification.json`. 승인 두 번·단계별 복귀·중간 단계 부적격·동일 역할 복귀는 자동시험으로 검증하며, 운영 증강 승인 클릭은 사용자에게 남긴다.
