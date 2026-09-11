@@ -1,0 +1,11 @@
+{
+  "state-aggregator": {
+    "base": "sha256:fa6a562d15635d6f74090e804152b01be0bb398bff8292616a33bd57f65d250d",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:1bf222db6ae9a2a0c05c52cb933b53dd1879ee0e7cb78666ec86b78fc3950054",
+    "tag": "observation-clock-20260911T075503",
+    "files": {
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime-demo.js": "sha256:76029ed242d8e5e35ee4ffd6c5725222ade53eb3fc86f54f7c9864fe50a1bbd0",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:6d21a4c6e4e39e723770188c5af9dc3ea43636c791cdc361a3dbe0db261f5160"
+    }
+  }
+}

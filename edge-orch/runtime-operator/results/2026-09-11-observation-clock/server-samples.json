@@ -1,0 +1,51 @@
+[
+  {
+    "at": 1789113125.4239876,
+    "snapshotAge": 0.9609794616699219,
+    "serviceAge": 0.9202373027801514,
+    "error": null,
+    "phase": "Serving"
+  },
+  {
+    "at": 1789113130.8988287,
+    "snapshotAge": 1.0712330341339111,
+    "serviceAge": 1.0385756492614746,
+    "error": null,
+    "phase": "Serving"
+  },
+  {
+    "at": 1789113136.1847486,
+    "snapshotAge": 1.0100431442260742,
+    "serviceAge": 0.9860320091247559,
+    "error": null,
+    "phase": "Serving"
+  },
+  {
+    "at": 1789113141.2588503,
+    "snapshotAge": 0.6771295070648193,
+    "serviceAge": 0.6470177173614502,
+    "error": null,
+    "phase": "Serving"
+  },
+  {
+    "at": 1789113147.2500577,
+    "snapshotAge": 1.2248470783233643,
+    "serviceAge": 1.191493034362793,
+    "error": null,
+    "phase": "Serving"
+  },
+  {
+    "at": 1789113152.3154385,
+    "snapshotAge": 0.8231821060180664,
+    "serviceAge": 0.788978099822998,
+    "error": null,
+    "phase": "Serving"
+  },
+  {
+    "at": 1789113158.3340545,
+    "snapshotAge": 1.3773219585418701,
+    "serviceAge": 1.335413932800293,
+    "error": null,
+    "phase": "Serving"
+  }
+]
