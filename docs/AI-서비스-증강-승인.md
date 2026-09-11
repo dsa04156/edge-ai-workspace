@@ -56,3 +56,11 @@ CPU/GPU 노드 사용률과 모델 메모리는 보조 정보이며 서비스별
 - 실장비 부하 시험과 증강 승인은 아직 실행하지 않았다. 운영자의 버튼 클릭 결과를
   이번 모의 API 검증 결과와 구분해서 기록해야 한다.
 
+
+운영 반영 확인: Argo CD `edge-orch-state-aggregator`가 구현 커밋 `97e9397d`에서
+Synced/Healthy였고, 대시보드와 runtime-operator의 Ready Pod imageID가
+[이미지 근거](../edge-orch/runtime-operator/results/2026-09-11-augmentation/images.json)의
+배포 digest와 일치했다. 변경한 정적 파일의 HTTP 응답 SHA256도 소스와 일치한다.
+실제 대시보드에서 AI 카드 1개, 부하 버튼 활성, 부하가 없는 동안 승인 버튼 비활성,
+브라우저 오류 0건을 확인했다. 상세 관측은
+[운영 검증](../edge-orch/runtime-operator/results/2026-09-11-augmentation/live-verification.json)에 보관한다.
