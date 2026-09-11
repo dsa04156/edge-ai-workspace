@@ -55,6 +55,8 @@ def normalize_node_state(raw: NodeRawMetrics) -> NodeState:
         "gpu_memory_used_mib",
         "gpu_memory_total_mib",
         "gpu_memory_usage_ratio",
+        "cpu_temperature_celsius",
+        "system_temperature_celsius",
         "gpu_temperature_celsius",
         "gpu_power_watts",
     ):

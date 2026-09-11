@@ -62,3 +62,16 @@ test('hardware meters use node telemetry freshness and distinguish missing GPU f
   m=R.nodeMetrics('server',100,e);assert.equal(m.current,false);assert.equal(m.cpu,null);assert.doesNotMatch(R.nodeMetricsView('server',100,e),/25.0%|role="meter"/);
  }
 });
+
+
+test('temperatures distinguish components, missing sensors, invalid values and stale readings',()=>{
+ const node={hostname:'agx',collected_at:new Date(99000).toISOString(),node_health:'healthy',raw_metrics:{up:1,cpu_temperature_celsius:43.531,gpu_temperature_celsius:0}};
+ const entry={data:[node],receivedAt:99,error:null};
+ let html=R.nodeMetricsView('agx',100,entry);
+ assert.match(html,/CPU 온도<\/span><b>43.5 °C/);assert.match(html,/GPU 온도<\/span><b>0.0 °C/);assert.match(html,/시스템 온도<\/span><b>미수집/);
+ for(const bad of [null,undefined,NaN,Infinity,'40']){node.raw_metrics.cpu_temperature_celsius=bad;assert.equal(R.nodeMetrics('agx',100,entry).cpuTemperature,null);}
+ node.raw_metrics.cpu_temperature_celsius=43.5;
+ for(const e of [{...entry,error:'offline'},{...entry,receivedAt:1},{...entry,data:[{...node,raw_metrics:{...node.raw_metrics,up:0}}]}]){
+  html=R.nodeMetricsView('agx',100,e);assert.doesNotMatch(html,/43.5 °C|0.0 °C/);assert.match(html,/CPU 온도<\/span><b>—/);
+ }
+});

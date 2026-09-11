@@ -110,3 +110,13 @@ AGX·Spark 지도 카드에 노드 전체 CPU·메모리·GPU 사용률과 원 �
 Argo Synced/Healthy, Ready imageID와 변경 정적 파일 hash 일치, 실제 노드 지표와
 상시 부하 제거 버튼, console 오류 0건을 확인했다. 상세는
 [부하 제거·노드 지표 검증](../edge-orch/runtime-operator/results/2026-09-11-augmentation/hardware-and-stop-verification.json).
+
+
+## 지도 온도 표시 (2026-09-11)
+
+노드 사용률 아래에서 CPU·GPU·시스템 온도를 °C로 확인한다. `/state/nodes`의 최신 Prometheus 실측을 사용하며, 수집되지 않은 센서는 `미수집`, 조회 실패·exporter down·60초가 지난 관측은 `—`로 표시한다. 온도는 관측 정보이며 증강 승인 조건이나 노드 건강 판단 임계값을 변경하지 않는다.
+
+- CPU: coretemp/k10temp/zenpower hwmon 또는 `cpu-thermal`/`x86_pkg_temp` thermal zone의 최댓값. NVMe·Wi-Fi·ACPI 값을 CPU 온도로 대체하지 않는다.
+- GPU: DCGM 또는 `gpu-thermal` thermal zone의 최댓값. 동일 노드에 여러 관측 주소가 있으면 최댓값으로 합친다.
+- 시스템: `acpitz` thermal zone의 최댓값. CPU나 GPU 접합 온도와 구분한다.
+- AGX에서 CPU·GPU thermal zone, Spark에서 ACPI 시스템 온도를 확인했다. Spark CPU·GPU 온도는 현재 수집 경로에 없으므로 `미수집`이다. 센서별 수집이 끊긴 주기에도 값을 채워 넣지 않는다.

@@ -97,6 +97,8 @@ class NodeRawMetrics(BaseModel):
     gpu_memory_used_mib: float | None = None
     gpu_memory_total_mib: float | None = None
     gpu_memory_usage_ratio: float | None = None
+    cpu_temperature_celsius: float | None = None
+    system_temperature_celsius: float | None = None
     gpu_temperature_celsius: float | None = None
     gpu_power_watts: float | None = None
     collected_at: datetime

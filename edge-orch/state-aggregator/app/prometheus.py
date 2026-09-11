@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+import math
+
 import httpx
 
 from .models import NodeRawMetrics
@@ -18,7 +20,10 @@ PROMETHEUS_QUERIES = {
     "gpu_utilization": 'DCGM_FI_DEV_GPU_UTIL or on(instance) (100 * (jetson_gpu_utilization_ratio and on(instance) (jetson_gpu_collector_success == 1) and on(instance) (up{job="jetson-gpu-exporter"} == 1)))',
     "gpu_memory_used_mib": "DCGM_FI_DEV_FB_USED",
     "gpu_memory_free_mib": "DCGM_FI_DEV_FB_FREE",
-    "gpu_temperature_celsius": "DCGM_FI_DEV_GPU_TEMP",
+    # Sensor types identify the component; ACPI, disks and Wi-Fi are not CPU sensors.
+    "cpu_temperature_celsius": 'max by(instance) ((node_hwmon_temp_celsius * on(instance,chip) group_left() node_hwmon_chip_names{chip_name=~"coretemp|k10temp|zenpower"}) or node_thermal_zone_temp{type=~"cpu-thermal|x86_pkg_temp"})',
+    "system_temperature_celsius": 'max by(instance) (node_thermal_zone_temp{type="acpitz"})',
+    "gpu_temperature_celsius": 'max by(instance) (DCGM_FI_DEV_GPU_TEMP or node_thermal_zone_temp{type="gpu-thermal"})',
     "gpu_power_watts": "DCGM_FI_DEV_POWER_USAGE",
 }
 
@@ -57,7 +62,13 @@ class PrometheusClient:
                     if not instance:
                         continue
                     node_key = self._node_key(instance)
-                    results.setdefault(node_key, {})[metric_name] = float(sample["value"][1])
+                    value = float(sample["value"][1])
+                    if metric_name.endswith("temperature_celsius"):
+                        if not math.isfinite(value):
+                            continue
+                        # Multiple exporter addresses can map to the same node.
+                        value = max(value, results.get(node_key, {}).get(metric_name, value))
+                    results.setdefault(node_key, {})[metric_name] = value
 
         collected_at = datetime.now(timezone.utc)
         items: list[NodeRawMetrics] = []
@@ -87,6 +98,8 @@ class PrometheusClient:
                     gpu_memory_used_mib=gpu_memory_used_mib,
                     gpu_memory_total_mib=gpu_memory_total_mib,
                     gpu_memory_usage_ratio=gpu_memory_usage_ratio,
+                    cpu_temperature_celsius=values.get("cpu_temperature_celsius"),
+                    system_temperature_celsius=values.get("system_temperature_celsius"),
                     gpu_temperature_celsius=values.get("gpu_temperature_celsius"),
                     gpu_power_watts=values.get("gpu_power_watts"),
                     collected_at=collected_at,

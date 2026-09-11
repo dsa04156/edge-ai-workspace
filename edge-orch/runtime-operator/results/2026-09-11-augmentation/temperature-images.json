@@ -1,0 +1,14 @@
+{
+  "state-aggregator": {
+    "base": "sha256:d61d9b9a22c8a8b3eaad6a14f8e35eb17f3e21610f8bfbc8c26d64435d5d89a6",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:72d8ac0da9b0a3029283e705abb5b4c006f3bea93ed0ec30a4281cd2f516641e",
+    "tag": "runtime-temperature-20260911T060705",
+    "files": {
+      "edge-orch/state-aggregator/app/models.py": "sha256:403768e824daee644444b41d5e48b093e491661b4eb1e294d1863b5a6084c3ba",
+      "edge-orch/state-aggregator/app/normalizer.py": "sha256:285cc2bc29b45d03ce5a3c43ead7c98564556b322150e1418bd025ee1ff46a6a",
+      "edge-orch/state-aggregator/app/prometheus.py": "sha256:162aca735cb63f73b74ce2a28f9f64850245569417b4bcac4350997e2a5e58c7",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:583a59dbbdad31538f486b1572e97028fd761a7783dc16e61a252295996f56da",
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.css": "sha256:7e6bf8fab6a14238d22eee79f74da6c8fe414d60004b7002b3cc3d959292dabe"
+    }
+  }
+}

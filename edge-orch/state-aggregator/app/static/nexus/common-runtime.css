@@ -67,3 +67,7 @@
 /* Keep the removal control and node metrics within the execution workspace. */
 .runtime-map-node{min-height:164px;padding:10px}.runtime-node-copy{gap:4px}.runtime-node-observed{margin-top:0}.runtime-map-heading{margin-bottom:12px}.runtime-map-legend{margin-top:12px}.runtime-map-links{max-height:340px}
 @media(max-width:500px){.runtime-map-node{min-height:164px;padding:8px}}
+
+.runtime-node-temperatures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:3px;padding-top:5px;border-top:1px solid var(--line)}.runtime-node-temperatures>span{display:grid;gap:2px;font-size:10px;color:var(--muted)}.runtime-node-temperatures b{font-size:12px;font-weight:600;color:var(--ink,#202d3e);font-variant-numeric:tabular-nums}.runtime-map-node{min-height:184px}.runtime-map-links{max-height:380px}
+@media(max-width:850px){.runtime-map-links{height:380px}}
+@media(max-width:500px){.runtime-node-temperatures{gap:5px}.runtime-node-temperatures>span{font-size:9px}.runtime-node-temperatures b{font-size:10px}}

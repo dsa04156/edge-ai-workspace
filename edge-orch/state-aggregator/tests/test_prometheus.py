@@ -51,7 +51,7 @@ class FakeAsyncClient:
             return FakeResponse([
                 {"metric": {"instance": "192.168.0.3:9400", "gpu": "0"}, "value": [0, "6144"]},
             ])
-        if query == "DCGM_FI_DEV_GPU_TEMP":
+        if query == PROMETHEUS_QUERIES["gpu_temperature_celsius"]:
             return FakeResponse([
                 {"metric": {"instance": "192.168.0.3:9400", "gpu": "0"}, "value": [0, "58"]},
             ])
@@ -222,7 +222,7 @@ def test_jetson_metric_joins_node_exporter_without_fabricating_gpu_memory(monkey
         async def get(self, url, params):
             if params['query'] == PROMETHEUS_QUERIES['gpu_utilization']:
                 return FakeResponse([{'metric': {'instance': '192.168.0.3:9100'}, 'value': [0, '37.5']}])
-            if params['query'].startswith('DCGM_'): return FakeResponse([])
+            if params['query'].startswith('DCGM_') or params['query'] == PROMETHEUS_QUERIES['gpu_temperature_celsius']: return FakeResponse([])
             return await super().get(url, params)
     monkeypatch.setattr(mod.httpx, 'AsyncClient', JetsonClient)
     result=asyncio.run(PrometheusClient('http://prom',{'192.168.0.3:9100':{'hostname':'etri-dev0001-jetorn'}}).collect_node_metrics())
@@ -230,3 +230,30 @@ def test_jetson_metric_joins_node_exporter_without_fabricating_gpu_memory(monkey
     assert result[0].gpu_memory_total_mib is None
     assert 'jetson_gpu_collector_success == 1' in PROMETHEUS_QUERIES['gpu_utilization']
     assert 'up{job="jetson-gpu-exporter"} == 1' in PROMETHEUS_QUERIES['gpu_utilization']
+
+
+def test_temperature_metrics_remain_component_specific_and_missing_is_absent(monkeypatch):
+    import app.prometheus as prometheus_module
+    from app.normalizer import normalize_node_state
+
+    class ThermalClient(FakeAsyncClient):
+        async def get(self, url, params):
+            values = {
+                "up": [("agx:9100", "1"), ("spark:9100", "1")],
+                "cpu_temperature_celsius": [("agx:9100", "43.5"), ("spark:9100", "NaN")],
+                "gpu_temperature_celsius": [("agx:9100", "40.25"), ("agx:9400", "42")],
+                "system_temperature_celsius": [("spark:9100", "39.8")],
+            }
+            key = next(k for k, q in PROMETHEUS_QUERIES.items() if q == params["query"])
+            return FakeResponse([{"metric": {"instance": i}, "value": [0, v]} for i, v in values.get(key, [])])
+
+    monkeypatch.setattr(prometheus_module.httpx, "AsyncClient", ThermalClient)
+    agx = {"hostname": "agx"}
+    client = PrometheusClient("http://prometheus.example", {"agx:9100": agx, "agx:9400": agx, "spark:9100": {"hostname": "spark"}})
+    nodes = {n.hostname: normalize_node_state(n).raw_metrics for n in asyncio.run(client.collect_node_metrics())}
+    assert nodes["agx"]["cpu_temperature_celsius"] == 43.5
+    assert nodes["agx"]["gpu_temperature_celsius"] == 42
+    assert "system_temperature_celsius" not in nodes["agx"]
+    assert nodes["spark"]["system_temperature_celsius"] == 39.8
+    assert "cpu_temperature_celsius" not in nodes["spark"]
+    assert "gpu_temperature_celsius" not in nodes["spark"]
