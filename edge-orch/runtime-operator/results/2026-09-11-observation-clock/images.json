@@ -1,11 +1,12 @@
 {
   "state-aggregator": {
-    "base": "sha256:fa6a562d15635d6f74090e804152b01be0bb398bff8292616a33bd57f65d250d",
-    "image": "192.168.0.56:5000/state-aggregator@sha256:aa5496e353235e63d8ef4e8747dd883aacf9e0ce70408e9f42d124ba77359d71",
-    "tag": "observation-clock-20260911T075705",
+    "base": "sha256:aa5496e353235e63d8ef4e8747dd883aacf9e0ce70408e9f42d124ba77359d71",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:38676168a594cdd81a54d469f1e83ddcac0fc51dbf70cc0e68b0f6e999a45b3a",
+    "tag": "observation-clock-20260911T080107",
     "files": {
       "edge-orch/state-aggregator/app/static/nexus/common-runtime-demo.js": "sha256:76029ed242d8e5e35ee4ffd6c5725222ade53eb3fc86f54f7c9864fe50a1bbd0",
-      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:b69e3dda03d9be97513e237fc5b8346c6333a2cddb61c2acdd819dee72d9e671"
+      "edge-orch/state-aggregator/app/static/nexus/common-runtime.js": "sha256:b69e3dda03d9be97513e237fc5b8346c6333a2cddb61c2acdd819dee72d9e671",
+      "edge-orch/state-aggregator/app/static/nexus/index.html": "sha256:dca926599366e3a0ee926bf2640b12978259760b5651ee4727a6d52da16e4543"
     }
   }
 }
