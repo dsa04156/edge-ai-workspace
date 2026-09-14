@@ -61,7 +61,7 @@ class DemoRun(BaseModel):
     uid: str
     name: str
     label: str
-    mode: Literal["single", "round-trip", "load", "node-load"]
+    mode: Literal["single", "round-trip", "load", "node-load", "service-load"]
     phase: Literal["Running", "Stopping", "Stopped", "Completed", "Incomplete", "Interrupted"]
     stage: str
     createdAt: float
@@ -96,7 +96,7 @@ class DemoState(BaseModel):
 class DemoStart(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
-    mode: Literal["single", "round-trip", "load", "node-load"]
+    mode: Literal["single", "round-trip", "load", "node-load", "service-load"]
     targetNode: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9.-]{0,252}$")
 
     @model_validator(mode="after")

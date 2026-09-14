@@ -97,7 +97,8 @@ def test_service_control_and_node_load_proxy_preserve_target_and_reject_arbitrar
             calls.append(request)
             if request.url.path.endswith('/service'):
                 return httpx.Response(202, json={"name":"service","uid":"service-uid","phase":"Stopping","suspended":True,"canStart":False,"canStop":False,"observedAt":100})
-            return httpx.Response(202, json={**receipt(),"mode":"node-load","targetNode":"nano","targetLabel":"Nano"})
+            body = json.loads(request.content)
+            return httpx.Response(202, json={**receipt(),"mode":body["mode"],"targetNode":body.get("targetNode"),"targetLabel":"Nano" if body.get("targetNode") else None})
         app=FastAPI()
         app.include_router(create_common_demo_router(SimpleNamespace(common_runtime_demo_enabled=True,common_runtime_url="http://operator"),transport=httpx.MockTransport(handler)))
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url="http://nexus") as client:
@@ -114,4 +115,9 @@ def test_service_control_and_node_load_proxy_preserve_target_and_reject_arbitrar
             r=await client.post(path,json={"serviceUid":"service-uid","mode":"node-load","targetNode":"nano"},headers=headers)
             assert r.status_code==202 and r.json()['targetNode']=='nano'
             assert json.loads(calls[-1].content)['targetNode']=='nano'
+            body={"serviceUid":"service-uid","mode":"service-load"}
+            assert (await client.post(path,json={**body,"targetNode":"nano"},headers=headers)).status_code==422
+            r=await client.post(path,json=body,headers=headers)
+            assert r.status_code==202 and r.json()['mode']=='service-load' and r.json()['targetNode'] is None
+            assert json.loads(calls[-1].content)['serviceUid']=='service-uid'
     asyncio.run(run())

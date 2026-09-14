@@ -156,7 +156,8 @@ def test_kube_service_toggle_preserves_latest_spec_and_fences_uid(rig):
     assert len(writes) == 1
 
 
-def test_node_load_runs_past_time_and_request_limits_until_removed_with_bounded_history(rig):
+@pytest.mark.parametrize("mode", ["node-load", "service-load"])
+def test_continuous_load_runs_past_limits_until_removed_with_bounded_history(rig, mode):
     async def run():
         c, k, _, _ = rig
         configure(k)
@@ -177,7 +178,7 @@ def test_node_load_runs_past_time_and_request_limits_until_removed_with_bounded_
         app = create_app(c)
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
             path=f"/demos/{name}/runs/manual-node-load"
-            await client.post(path,json={"serviceUid":uid,"mode":"node-load","targetNode":"field-any"})
+            await client.post(path,json={"serviceUid":uid,"mode":mode,**({"targetNode":"field-any"} if mode == "node-load" else {})})
             try:
                 await asyncio.wait_for(after_limit.wait(),timeout=4)
                 run = app.state.demo_runner.runs[(uid,"manual-node-load")]
@@ -192,5 +193,56 @@ def test_node_load_runs_past_time_and_request_limits_until_removed_with_bounded_
                 await asyncio.sleep(.05)
                 assert sent==count and c.states[uid]["serving"]
             finally:
+                await app.state.demo_runner.close()
+    asyncio.run(run())
+
+
+def test_service_load_follows_route_change_without_replaying_dispatched_requests(rig):
+    async def run():
+        c, k, _, _ = rig
+        configure(k)
+        await c.tick()
+        uid, name = k.resource["metadata"]["uid"], k.resource["metadata"]["name"]
+        started, release, reached_new = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        dispatched = []
+        async def handle(request):
+            dispatched.append((request.url.host, json.loads(request.content)["request_id"]))
+            await asyncio.sleep(.01)
+            if request.url.host.startswith("small."):
+                started.set()
+                await release.wait()
+                node = "field-any"
+            else:
+                reached_new.set()
+                await asyncio.sleep(.01)
+                node = "datacenter-any"
+            return httpx.Response(200, json={"request_id": json.loads(request.content)["request_id"],
+                "node_id": node, "model_digest": "c" * 64, "response": "answer", "eval_count": 8})
+        await c.transport.aclose()
+        c.transport = httpx.AsyncClient(transport=httpx.MockTransport(handle))
+        app = create_app(c)
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
+            path = f"/demos/{name}/runs/service-route"
+            body = {"serviceUid": uid, "mode": "service-load"}
+            assert (await client.post(path, json={**body, "targetNode": "field-any"})).status_code == 422
+            assert (await client.post(path, json=body)).status_code == 202
+            try:
+                await asyncio.wait_for(started.wait(), 2)
+                # Simulate the controller's already-authorized route switch.
+                c.states[uid]["active"] = {**c.states[uid]["active"], "node": "datacenter-any", "role": "server",
+                    "variant": "large", "name": "other-route", "resident": k.resource["spec"]["variants"][1]["resident"]}
+                release.set()
+                await asyncio.wait_for(reached_new.wait(), 2)
+                assert app.state.demo_runner.runs[(uid, "service-route")]["phase"] == "Running"
+                await client.post(path + "/stop", json={"serviceUid": uid})
+                await asyncio.gather(*list(app.state.demo_runner.tasks.values()))
+                result = (await client.get(path, params={"serviceUid": uid})).json()
+                assert result["phase"] == "Stopped" and result["reason"] == "operator_stopped_demo"
+                assert {r["node"] for r in result["routeHistory"]} == {"field-any", "datacenter-any"}
+                assert len({request_id for _, request_id in dispatched}) == len(dispatched)
+                assert result["failed"] == result["unknown"] == 0 and c.states[uid]["serving"]
+                assert any(host.startswith("large.") for host, _ in dispatched)
+            finally:
+                release.set()
                 await app.state.demo_runner.close()
     asyncio.run(run())

@@ -1,6 +1,22 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const D=require('../app/static/nexus/common-runtime-demo.js');
 const data={enabled:true,observedAt:99,items:[{uid:'u',name:'svc',label:'Synthetic',available:true,maxRequests:512,concurrency:6}],runs:[]};
+test('service load and removal stay bound to selected UID across node changes and stale observations',()=>{
+ const value={...data,items:[...data.items,{uid:'other',name:'other',available:true}],runs:[{uid:'other',id:'other-run',phase:'Running'}]};
+ let html=D.serviceLoadActions(value,'u',true);
+ assert.match(html,/data-demo-mode="service-load"/);assert.doesNotMatch(html,/data-demo-stop="other-run"/);
+ assert.doesNotMatch(html.match(/<button id="service-load-u"[^>]*>/)[0],/disabled/);
+ value.runs.push({uid:'u',id:'mine',name:'svc',mode:'service-load',phase:'Running',currentNode:'spark'});
+ html=D.serviceLoadActions(value,'u',true);
+ assert.match(html,/data-demo-stop="mine"/);assert.doesNotMatch(html,/data-demo-target-node/);
+ assert.match(html.match(/<button id="service-load-u"[^>]*>/)[0],/disabled/);
+ html=D.serviceLoadActions(value,'u',false);
+ assert.doesNotMatch(html.match(/<button id="service-unload-u"[^>]*>/)[0],/disabled/);
+ assert.doesNotMatch(html,/서비스 부하 중…/);assert.match(html,/부하 관측 확인 불가/);
+ assert.deepEqual(D.scopedData(value,'u').runs.map(r=>r.id),['mine']);
+ assert.deepEqual(D.scopedData(value,'missing').runs,[]);
+ value.runs[1].phase='Stopping';assert.match(D.serviceLoadActions(value,'u',true).match(/<button id="service-unload-u"[^>]*>/)[0],/disabled/);
+});
 test('actions are tied to opted-in identity and disabled on stale/pending/running state',()=>{
  assert.equal(D.actions(data,'unknown',true,false),'');
  assert.match(D.actions(data,'u',true,false),/시험 요청 1건/);

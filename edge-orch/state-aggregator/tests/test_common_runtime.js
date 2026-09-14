@@ -14,6 +14,20 @@ test('automatic return distinguishes dwell, preparation, release, baseline and u
 });
 const target={node:'new-edge',variant:'gpu',role:'edge',memoryOnlyRelease:true,observation:{at:99,health:{nodeState:'ACTIVE',ready:true,inFlight:1,modelVramMiB:1234}}};
 const entry={data:{schema_version:'edgeai.common-runtime/v1',observed_at:99,services:[{name:'service-a',uid:'uid-a',phase:'Preparing',serving:true,active:target,target:{...target,node:'server-any'},retiring:[],excludedCandidates:[],reason:'waiting_for_pod_and_application_ready',lastRelease:{node:'old-edge',at:50,modelVramMiB:0,reservationRetained:true}}]}};
+test('service selection scopes operations, preserves explicit missing UID and labels synthetic services',()=>{
+ const http={...entry.data.services[0],target:null,aiInference:false},ai={...http,name:'llama',uid:'uid-llama',aiInference:true,approvalRequired:true};
+ const value={data:{...entry.data,services:[http,ai]}};
+ assert.equal(R.selectedService(value.data.services,null).uid,'uid-llama');
+ assert.equal(R.selectedService(value.data.services,'uid-a').uid,'uid-a');
+ assert.equal(R.selectedService(value.data.services,'deleted-uid'),null);
+ const html=R.renderWorkspace(value,'uid-a',100);
+ assert.match(html,/data-augmentation-service="uid-a"/);assert.doesNotMatch(html,/data-augmentation-service="uid-llama"|data-augmentation-approve=/);
+ assert.match(html,/HTTP 시험 서비스 · 합성 응답/);assert.match(html,/data-runtime-service="uid-llama"/);
+ const missing=R.renderWorkspace(value,'deleted-uid',100);
+ assert.match(missing,/선택한 서비스를 찾을 수 없습니다/);assert.doesNotMatch(missing,/data-demo-start|data-service-action|data-augmentation-service/);
+ const stale=R.renderWorkspace({...value,error:'offline'},'uid-a',100);
+ assert.match(stale,/마지막 경로/);assert.doesNotMatch(stale,/현재 경로 ·/);
+});
 test('current route, preparing target and past memory release stay distinct',()=>{
  const html=R.renderState(entry,100);
  assert.match(html,/new-edge/);assert.match(html,/server-any/);assert.match(html,/1234.0 MiB/);
@@ -53,7 +67,7 @@ test('only AI services expose fresh exact-candidate approval and real metric uni
 });
 
 test('node map distinguishes idle, observed traffic, recommendation, preparation and stale state',()=>{
- const s={uid:'map',name:'AI',serving:true,checkedAt:99,active:target,retiring:[],eligibleCandidates:[{node:'candidate',role:'server',variant:'gpu'}],load:{at:99,pending:0,inFlight:0}};
+ const s={uid:'map',name:'AI',aiInference:true,serving:true,checkedAt:99,active:target,retiring:[],eligibleCandidates:[{node:'candidate',role:'server',variant:'gpu'}],load:{at:99,pending:0,inFlight:0}};
  let m=R.serviceMotion(s,100,true);assert.equal(m.title,'요청 대기 중');
  assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'candidate');
  assert.doesNotMatch(R.runtimeMap(s,m,100),/flowing/);

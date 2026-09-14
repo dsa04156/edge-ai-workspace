@@ -179,6 +179,105 @@ def test_global_limit_and_shutdown_before_first_request_preserve_durable_interru
     asyncio.run(run())
 
 
+def test_service_load_stop_isolated_between_two_opted_in_http_services(rig):
+    async def run():
+        c, k, _, _, _ = rig
+        enable(k)
+        await activate(c, k)
+        uid, name = k.resource["metadata"]["uid"], k.resource["metadata"]["name"]
+        other = copy.deepcopy(k.resource)
+        other["metadata"].update(uid="uid-other", name="service-other")
+        k.data["services"].append(other)
+        c.states["uid-other"] = copy.deepcopy(c.states[uid])
+        c.states["uid-other"].update(uid="uid-other", name="service-other")
+        c.states["uid-other"]["active"]["name"] = "other-runtime"
+        c.snapshot = k.snapshot()
+        async def handler(request):
+            await asyncio.sleep(.01)
+            return httpx.Response(200, json={"answer": "synthetic"})
+        await c.transport.aclose()
+        c.transport = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        app = create_app(c)
+        runner = app.state.demo_runner
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
+            first = f"/demos/{name}/runs/load-first"
+            second = "/demos/service-other/runs/load-second"
+            try:
+                for path, identity in [(first, uid), (second, "uid-other")]:
+                    assert (await client.post(path, json={"serviceUid": identity, "mode": "service-load"})).status_code == 202
+                await asyncio.sleep(.05)
+                assert (await client.post(first + "/stop", json={"serviceUid": "uid-other"})).status_code == 404
+                await client.post(first + "/stop", json={"serviceUid": uid})
+                await asyncio.wait_for(runner.tasks[(uid, "load-first")], 2)
+                other_run = runner.runs[("uid-other", "load-second")]
+                before = other_run["sent"]
+                await asyncio.sleep(.05)
+                assert other_run["phase"] == "Running" and other_run["sent"] > before
+                assert c.states[uid]["serving"] and c.states["uid-other"]["serving"]
+                await client.post(second + "/stop", json={"serviceUid": "uid-other"})
+                await asyncio.gather(*list(runner.tasks.values()))
+                assert not c.journal.demo_list(active=True)
+            finally:
+                await runner.close()
+    asyncio.run(run())
+
+
+def test_http_demo_lifecycle_is_opt_in_and_stays_uid_fenced(rig):
+    async def run():
+        c, k, _, _, _ = rig
+        await activate(c, k)
+        def set_suspended(name, uid, suspended):
+            assert name == k.resource["metadata"]["name"] and uid == k.resource["metadata"]["uid"]
+            k.resource["spec"]["suspended"] = suspended
+            return copy.deepcopy(k.resource)
+        k.set_suspended = set_suspended
+        app = create_app(c)
+        uid, name = k.resource["metadata"]["uid"], k.resource["metadata"]["name"]
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
+            path = f"/demos/{name}/service"
+            assert (await client.post(path, json={"serviceUid": uid, "action": "stop"})).status_code == 403
+            enable(k)
+            await c.tick()
+            item = (await client.get("/demos")).json()["items"][0]
+            assert item["serviceControl"]["canStop"]
+            assert (await client.post(path, json={"serviceUid": "recreated", "action": "stop"})).status_code == 409
+            assert (await client.post(path, json={"serviceUid": uid, "action": "stop"})).status_code == 202
+            await c.tick()
+            await c.tick()
+            assert c.states[uid]["phase"] == "Suspended"
+            assert (await client.post(path, json={"serviceUid": uid, "action": "start"})).status_code == 202
+            await c.tick()
+            k.ready(c.states[uid]["target"]["name"])
+            await c.tick()
+            assert not k.resource["spec"]["suspended"]
+        await app.state.demo_runner.close()
+    asyncio.run(run())
+
+
+def test_continuous_rejection_yields_to_stop_and_does_not_flood_gateway(rig):
+    async def run():
+        c, k, _, _, _ = rig
+        enable(k)
+        await activate(c, k)
+        uid, name = k.resource["metadata"]["uid"], k.resource["metadata"]["name"]
+        app = create_app(c)
+        # A conflicting observation causes immediate gateway rejection before transport.
+        c.states["conflict"] = copy.deepcopy(c.states[uid])
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
+            path = f"/demos/{name}/runs/rejected-load"
+            try:
+                await client.post(path, json={"serviceUid": uid, "mode": "service-load"})
+                await asyncio.sleep(.06)
+                run = app.state.demo_runner.runs[(uid, "rejected-load")]
+                assert 0 < run["failed"] <= 2 and run["sent"] <= 2
+                await client.post(path + "/stop", json={"serviceUid": uid})
+                await asyncio.wait_for(asyncio.gather(*list(app.state.demo_runner.tasks.values())), 1)
+                assert (await client.get(path, params={"serviceUid": uid})).json()["phase"] == "Stopped"
+            finally:
+                await app.state.demo_runner.close()
+    asyncio.run(run())
+
+
 def test_load_mode_rejects_non_AI_fixture(rig):
     async def run():
         c,k,_,_,_=rig

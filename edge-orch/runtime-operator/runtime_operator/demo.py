@@ -1,4 +1,4 @@
-"""Opt-in bounded demo traffic, owned by the same durable runtime controller."""
+"""Opt-in demo traffic with bounded concurrency, owned by the runtime controller."""
 import asyncio
 import copy
 import hashlib
@@ -17,7 +17,7 @@ from .contract import ServiceSpec
 class StartRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
-    mode: Literal["single", "round-trip", "load", "node-load"]
+    mode: Literal["single", "round-trip", "load", "node-load", "service-load"]
     targetNode: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9.-]{0,252}$")
 
     @model_validator(mode="after")
@@ -92,8 +92,6 @@ class DemoRunner:
         c = self.controller
         async with c.reconcile_lock:
             spec = self.definition(name, body.serviceUid, allow_suspended=True)
-            if not spec.inference or not spec.policy.approvalRequired:
-                raise HTTPException(403, "AI_service_control_not_enabled")
             if body.action == "start" and spec.suspended and not self.service_status(name, body.serviceUid, spec)["canStart"]:
                 raise HTTPException(409, "service_still_stopping")
             try:
@@ -201,7 +199,7 @@ class DemoRunner:
         try:
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=self.app), base_url="http://runtime") as client:
                 async def invoke():
-                    if run["stopRequested"] or (run["mode"] != "node-load" and run["sent"] >= config["maxRequests"]):
+                    if run["stopRequested"] or (run["mode"] not in {"node-load", "service-load"} and run["sent"] >= config["maxRequests"]):
                         return False
                     if run.get("targetNode") and (c.states.get(run["uid"], {}).get("active") or {}).get("node") != run["targetNode"]:
                         run.update(stopRequested=True, phase="Stopping", reason="node_route_changed")
@@ -215,6 +213,7 @@ class DemoRunner:
                     run["requests"].append(item)
                     c.journal.demo_save(run)
                     started = time.monotonic()
+                    good = False
                     try:
                         response = await client.post("/services/" + run["name"] + "/invoke",
                             json=config["payload"], headers={"X-Request-ID": request_id, "X-Runtime-Service-Uid": run["uid"],
@@ -233,13 +232,17 @@ class DemoRunner:
                     finally:
                         item["elapsedMilliseconds"] = (time.monotonic() - started) * 1000
                         self.observe(run)
-                        if run["mode"] == "node-load":
+                        if run["mode"] in {"node-load", "service-load"}:
                             # Keep all outstanding identities for stop/restart accounting.
                             # Completed dispatch receipts remain in the request journal.
                             keep = {r["id"] for r in run["requests"] if r["state"] == "pending"}
                             keep.update(r["id"] for r in run["requests"][-64:])
                             run["requests"] = [r for r in run["requests"] if r["id"] in keep]
                         c.journal.demo_save(run)
+                    if run["mode"] in {"node-load", "service-load"}:
+                        # Immediate gateway rejection must leave the event loop free
+                        # for stop commands, observations and route reconciliation.
+                        await asyncio.sleep(0 if good else .25)
                     return True
 
                 self.observe(run)
@@ -264,7 +267,7 @@ class DemoRunner:
                         run["stage"] = "pressure"
                     until = time.monotonic() + config["pressureSeconds"]
                     async def pressure():
-                        while run["mode"] == "node-load" or time.monotonic() < until:
+                        while run["mode"] in {"node-load", "service-load"} or time.monotonic() < until:
                             if not await invoke():
                                 break
                     # Wait every child, including failure paths, before closing the run.
@@ -272,9 +275,9 @@ class DemoRunner:
                     for result in results:
                         if isinstance(result, BaseException):
                             raise result
-                    run["stage"] = "finished" if run["mode"] == "node-load" else "recovery"
+                    run["stage"] = "finished" if run["mode"] in {"node-load", "service-load"} else "recovery"
                     until = time.monotonic() + config["recoverySeconds"]
-                    while run["mode"] != "node-load" and time.monotonic() < until and not run["stopRequested"]:
+                    while run["mode"] not in {"node-load", "service-load"} and time.monotonic() < until and not run["stopRequested"]:
                         if not await invoke():
                             break
                         if run["returned"]:
@@ -282,10 +285,10 @@ class DemoRunner:
                         await asyncio.sleep(config["recoveryIntervalSeconds"])
                 self.observe(run)
                 run["phase"] = ("Stopped" if run["stopRequested"] else "Completed"
-                    if run["sent"] == run["succeeded"] and (run["mode"] in {"single", "load", "node-load"} or run["returned"])
+                    if run["sent"] == run["succeeded"] and (run["mode"] in {"single", "load", "node-load", "service-load"} or run["returned"])
                     else "Incomplete")
                 run["reason"] = (run.get("reason", "operator_stopped_demo") if run["stopRequested"] else "requests_and_route_verified"
-                    if run["phase"] == "Completed" and run["mode"] not in {"load", "node-load"}
+                    if run["phase"] == "Completed" and run["mode"] not in {"load", "node-load", "service-load"}
                     else "bounded_load_completed" if run["phase"] == "Completed" else "request_or_round_trip_gate_not_met")
         except asyncio.CancelledError:
             run.update(phase="Interrupted", reason="controller_shutdown_no_automatic_replay")
@@ -338,7 +341,7 @@ def router(app):
                           "recoverySeconds": spec.demo.recoverySeconds, "concurrency": spec.demo.concurrency,
                           "nodes": runner.node_status(uid, spec),
                           "retryAfterSeconds": cooldown,
-                          "serviceControl": runner.service_status(name, uid, spec) if spec.inference and spec.policy.approvalRequired else None,
+                          "serviceControl": runner.service_status(name, uid, spec),
                           "available": bool(not spec.suspended and state.get("serving") and not state.get("target") and not state.get("retiring")
                                             and not cooldown and not c.journal.demo_list(uid, active=True))})
         return {"items": items, "runs": [public(r) for r in c.journal.demo_list()], "observedAt": c.clock(),
