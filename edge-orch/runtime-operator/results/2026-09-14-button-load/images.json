@@ -1,0 +1,11 @@
+{
+  "state-aggregator": {
+    "baseImage": "192.168.0.56:5000/state-aggregator@sha256:cb650d2e2046850e8feda16a169a55735d65b1033926f7618daa433ef3048f89",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:f95a77623b5b42d489ed7f14f515e3f96856b255e43d6ebca68e52b30c6f84a0",
+    "files": {
+      "static/nexus/common-runtime.js": "026ea5c334b76b4e2374507680bae8a0679fad1b340e50fbb6ab1326c01056dd",
+      "static/nexus/common-runtime-demo.js": "595b78b967b28983353ab7e0f5c41784be886ca250913f165203eb6f4df5e1fd",
+      "static/nexus/index.html": "ec8a0eb29f79ae3ffb228170738d997d3f829c23125cde558d07fd33b6db7d6b"
+    }
+  }
+}

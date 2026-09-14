@@ -99,15 +99,20 @@ test('each node has its own paired controls and only the current route accepts l
  const stale=D.nodeActions(value,'u','nano','Nano',false);assert.doesNotMatch(stale,/runtime-spinner|role="progressbar"/);assert.match(stale,/상태 확인 불가/);
 });
 
-test('node-started load follows route and moves the same removal action to the serving node',()=>{
+test('origin button remains the only owner of a following load after node moves',()=>{
  const value={...data,runs:[{uid:'u',id:'same-run',name:'svc',mode:'node-load',followsService:true,
    targetNode:'nano',startNode:'nano',currentNode:'orin',phase:'Running',sent:10,succeeded:8}],
-   items:[{...data.items[0],nodes:[{node:'nano',currentRoute:false},{node:'orin',currentRoute:true}]}]};
- const nano=D.nodeActions(value,'u','nano','Nano',true);
- assert.doesNotMatch(nano,/data-demo-stop=/);assert.match(nano,/계속 실행 중/);
- for(const current of [true,false]){
-   const orin=D.nodeActions(value,'u','orin','Orin',current);
-   assert.match(orin,/data-demo-stop="same-run"/);
-   assert.doesNotMatch(orin.match(/<button id="node-unload-u-orin"[^>]*>/)[0],/disabled/);
+   items:[{...data.items[0],nodes:[{node:'nano',label:'Nano',currentRoute:false},{node:'orin',label:'Orin',currentRoute:true},{node:'spark',label:'Spark'}]}]};
+ for(const serving of ['orin','spark']){
+  value.runs[0].currentNode=serving;
+  for(const current of [true,false]){
+   const nano=D.nodeActions(value,'u','nano','Nano',current);
+   assert.match(nano,/data-demo-stop="same-run"/);
+   assert.doesNotMatch(nano.match(/<button id="node-unload-u-nano"[^>]*>/)[0],/disabled/);
+   for(const node of ['orin','spark'])assert.doesNotMatch(D.nodeActions(value,'u',node,node,true),/data-demo-stop=/);
+  }
+  assert.match(D.nodeActions(value,'u',serving,serving,true),/Nano에서 시작한 부하 처리 중 · 제거는 Nano 버튼/);
  }
+ value.runs[0].phase='Stopped';
+ assert.match(D.nodeActions(value,'u','nano','Nano',true).match(/<button id="node-unload-u-nano"[^>]*>/)[0],/disabled/);
 });
