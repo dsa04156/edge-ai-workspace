@@ -1,0 +1,21 @@
+{
+  "operatorTests": 13,
+  "browserLogicTests": 25,
+  "visibleNodeControlPairs": 3,
+  "nestedButtons": 0,
+  "duplicateIds": [],
+  "desktop": [
+    1440,
+    900
+  ],
+  "mobile": [
+    390,
+    844
+  ],
+  "overflow": false,
+  "liveRuntimeAndAggregatorHashesMatch": true,
+  "llamaPhase": "Draining",
+  "activeTests": [],
+  "loadMutationPerformed": false,
+  "note": "User-stopped Llama preserved. Node-specific start/stop verified through existing tests and new unstaged HTTP AI test; no live load was added."
+}
