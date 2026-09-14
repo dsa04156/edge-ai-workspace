@@ -1,0 +1,137 @@
+{
+  "runtime-operator": {
+    "pod": "runtime-operator-b8df65545-bj6kc",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:c6d6403bd38d5eb4500ee30f0ca0c38ee11cfdcb24c54a9d3a5392724ec281ff",
+    "sourceHashesMatch": true
+  },
+  "state-aggregator": {
+    "pod": "state-aggregator-67bfb59cb5-ck4th",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:cb650d2e2046850e8feda16a169a55735d65b1033926f7618daa433ef3048f89",
+    "sourceHashesMatch": true
+  },
+  "ui": {
+    "desktop": [
+      1440,
+      1000
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "pageOverflow": false,
+    "mobileTableScroll": true,
+    "paginationRows": 50,
+    "expandedDetailsSurviveParentRefresh": true,
+    "browserConsoleErrors": 0,
+    "browserConsoleWarnings": 0
+  },
+  "automatedTests": {
+    "liveBaseRuntimeSuite": 108,
+    "diagnosticsAfterTTLFilter": 7,
+    "aggregatorPython": 14,
+    "dashboardJavaScript": 29
+  },
+  "loadRun": {
+    "id": "408c6c0529974d0ab258338e02332343",
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "name": "llama-inference",
+    "label": "등록 센서 입력 재생 부하 시험 · 실시간 수집과 구분",
+    "mode": "node-load",
+    "phase": "Stopped",
+    "stage": "finished",
+    "createdAt": 1789372944.500636,
+    "finishedAt": 1789373036.524096,
+    "sent": 315,
+    "succeeded": 309,
+    "failed": 3,
+    "unknown": 0,
+    "routeHistory": [
+      {
+        "at": 1789372944.5031059,
+        "node": "etri-dev0001-jetorn",
+        "role": "edge",
+        "reason": "sustained_low_load_return"
+      },
+      {
+        "at": 1789372983.2473843,
+        "node": "etri-dev0005-jetagx",
+        "role": "edge",
+        "reason": "sustained_pressure"
+      }
+    ],
+    "startNode": "etri-dev0001-jetorn",
+    "startRole": "edge",
+    "currentNode": "etri-dev0005-jetagx",
+    "returned": false,
+    "retiring": 0,
+    "reason": "operator_stopped_demo",
+    "stopRequested": true,
+    "targetNode": "etri-dev0001-jetorn",
+    "followsService": true,
+    "targetLabel": "Nano",
+    "cancelled": 3
+  },
+  "diagnosticAttemptCount": 315,
+  "artificialContractRejection": {
+    "requestId": "diag-contract-check-16118ebe98ba",
+    "status": 400,
+    "reason": "JSON_object_or_contract_required"
+  },
+  "limitations": [
+    "Earlier round-trip failures were not retrospectively recovered.",
+    "The UI stop check initially targeted Nano after the load moved to Orin; this run was stopped through its exact run-ID API.",
+    "Existing live common-AI input and policy settings were preserved; current image overlays the live base digest."
+  ],
+  "argo": {
+    "sync": "Synced",
+    "health": "Healthy",
+    "revision": "752bb01c6d64716ea283cfa3c5bdc98f9e7ec501"
+  },
+  "unrelatedWorkloadChecks": [
+    {
+      "namespace": "edge-ai-workloads",
+      "name": "sensor-anomaly-demo-replace-17a0d3d0",
+      "replicas": 1,
+      "ready": 0
+    },
+    {
+      "namespace": "edge-ai-workloads",
+      "name": "sensor-anomaly-demo-replace-c049916e",
+      "replicas": 0,
+      "ready": 0
+    },
+    {
+      "namespace": "edgex-edge",
+      "name": "sensor-anomaly-demo",
+      "replicas": 1,
+      "ready": 1
+    }
+  ],
+  "afterLoadRemoval": {
+    "name": "llama-inference",
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "phase": "Serving",
+    "serving": true,
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789373145.02741,
+      "reason": "sustained_low_load_return"
+    },
+    "returnState": {
+      "phase": "Baseline",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "baseline_active",
+      "remainingSeconds": null,
+      "windowSeconds": 30.0,
+      "dwellSeconds": 60.0,
+      "at": 1789373191.5635667,
+      "arrivalRps": null,
+      "maxArrivalRps": null
+    },
+    "activeNode": "etri-dev0001-jetorn"
+  },
+  "activeTestRunsAfterVerification": [],
+  "loadFailuresRetainedAfterRecovery": 3
+}
