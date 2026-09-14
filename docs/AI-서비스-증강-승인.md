@@ -291,3 +291,15 @@ HTTP 시험 서비스는 기존 자동 배치·복귀 정책을 따른다. runti
 계약·부하·제어 원장을 소유하고, aggregator는 기존 Argo CD Application으로 배포한다.
 검증 기준은 UID 격리·노드 전환 후 부하 지속·부하 제거·서비스 중지/재시작·관측 장애·
 데스크톱/모바일 선택 유지이며, 실제 AI 승인 왕복과 HTTP 자동 전환 시험을 구분한다.
+
+운영 반영과 검증을 완료했다. HTTP quality 서비스는 Raspberry Pi → 서버 전환 후에도
+동일 run ID로 요청을 이어가 총 627건, telemetry는 94건 성공 후 제거했다. quality의
+부하 제거 중 telemetry 요청은 28건에서 88건으로 증가해 서비스별 격리를 확인했다.
+두 HTTP 서비스의 기존 `preferredRole=edge`는 원래 노드 복귀를 보장하지 않는다.
+이번에는 가용한 Nano로 복귀했고 quality의 중지·재실행도 확인했다.
+Llama는 브라우저의 서비스 부하 버튼으로 52건 전송, 47건 성공·대기 5건 취소·실패 0건을
+확인했다. 증강 승인 버튼은 누르지 않았으며 Llama의 경로 전환 후 부하 지속은 자동시험
+근거다. 모든 시험 부하를 제거했고 세 서비스는 Nano에서 요청 대기 상태로 종료했다.
+제어기 92개·API 11개·화면 로직 23개 테스트와 1440px/390px 실제 브라우저를 확인했다.
+근거: [서비스 운영 검증](../edge-orch/runtime-operator/results/2026-09-14-service-runtime/verification.json),
+[실제 실행 기록](../edge-orch/runtime-operator/results/2026-09-14-service-runtime/live.json).

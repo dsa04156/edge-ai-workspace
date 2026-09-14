@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-09-14T05:22:39.495700+00:00",
+  "implementationCommit": "12f94b04",
+  "tests": {
+    "runtimeOperator": "92 passed",
+    "aggregatorApi": "11 passed",
+    "runtimeJavaScript": "23 passed",
+    "kustomize": "rendered successfully",
+    "gitDiffCheck": "passed"
+  },
+  "deployment": {
+    "operatorPod": "runtime-operator-7dfcf6d7dc-2dndv",
+    "aggregatorArgo": "Synced Healthy Succeeded",
+    "changedFiles": "All live container SHA-256 values match images.json; new versioned browser assets verified",
+    "operatorBase": "Current live c518ea3d image was preserved as base; only demo.py and kube.py were overlaid after live-to-Git hash verification"
+  },
+  "browser": {
+    "url": "http://aggregator.192.168.0.56.sslip.io/#offload-demo",
+    "desktop": [
+      1440,
+      1080
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "horizontalOverflow": false,
+    "consoleErrors": 0,
+    "consoleWarnings": 0,
+    "checks": [
+      "Three services are selectable; one operations panel is rendered",
+      "HTTP fixtures are labeled as synthetic and have no AI approval control",
+      "Selected UID persists through polling, selection changes and reload",
+      "Deleted UID shows missing-service state with zero mutating controls",
+      "Other service load does not enable Llama load removal",
+      "Live quality load removal uses the exact selected UID and run ID",
+      "Llama start and stop buttons exercised in browser; progress and cancellation observed",
+      "Nano individual load controls remain accessible through native details"
+    ]
+  },
+  "boundaries": {
+    "newServiceCreation": false,
+    "llamaAugmentationApprovedByAgent": false,
+    "llamaRouteContinuity": "Automated controller/gateway test; live operator approval was not clicked",
+    "httpRouteContinuity": "Live edge-to-server service load and isolated removal in live.json",
+    "priorControllers": "ordered-offload-controller=0, continuity-controller=0",
+    "sensorCollectors": "device-serial-jetson=1/1, device-sensehat-raspi=1/1 before and after",
+    "preExistingUnchanged": "sensor-anomaly-inference-server1 desired=1 ready absent before and after"
+  },
+  "screenshots": {
+    "http-service-load.png": "231bc99fd2dfd9726934c7daae0a29f8d7d9fab8d15c01099cb2785c152a6ae7",
+    "llama-recommendation.png": "aef91a245e8a1ecf1663f88c33721f4488e88a96e47989b90f53094620e22fe0",
+    "llama-mobile.png": "0a9cfdd7a0c37ab6e3035605499e60d24ab887e1355d85b9fdbfddfbe3d338e0"
+  }
+}
