@@ -114,21 +114,25 @@ class DemoRunner:
             return self.service_status(name, body.serviceUid, spec)
 
     def node_status(self, uid, spec):
-        if not spec.demo:
+        if not spec.demo or not spec.is_ai:
             return []
         c = self.controller
         state = c.states.get(uid, {})
         history = c.journal.demo_list(uid)
         result = []
         variants = {v.name: v for v in spec.variants}
-        for stage in spec.policy.stages:
-            node = variants[stage.variant].nodeSelector.get("kubernetes.io/hostname")
-            if not node:
-                continue
+        labels = {stage.variant: stage.label for stage in spec.policy.stages}
+        targets = {v.nodeSelector["kubernetes.io/hostname"]: v.name for v in spec.variants
+                   if v.nodeSelector.get("kubernetes.io/hostname")}
+        for target in [*state.get("eligibleCandidates", []), state.get("active")]:
+            if target and target.get("variant") in variants:
+                targets[target["node"]] = target["variant"]
+        for node, variant in targets.items():
             latest = next((r for r in history if r.get("targetNode") == node), None)
             cooldown = max(0, math.ceil(10 - (c.clock() - latest["finishedAt"]))) if latest and latest.get("finishedAt") else 0
-            current = bool(state.get("serving") and (state.get("active") or {}).get("variant") == stage.variant)
-            result.append({"node": node, "label": stage.label, "currentRoute": current,
+            current = bool(state.get("serving") and (state.get("active") or {}).get("node") == node
+                           and (state.get("active") or {}).get("variant") == variant)
+            result.append({"node": node, "label": labels.get(variant, node), "currentRoute": current,
                 "retryAfterSeconds": cooldown,
                 "available": bool(current and not spec.suspended and not state.get("target") and not state.get("retiring")
                                   and not cooldown and not c.journal.demo_list(uid, active=True))})
@@ -150,7 +154,7 @@ class DemoRunner:
         if c.journal.demo_list(body.serviceUid, active=True) or len(c.journal.demo_list(active=True)) >= 2:
             raise HTTPException(409, "demo_already_running")
         if body.mode == "node-load":
-            declared = {stage.variant for stage in spec.policy.stages}
+            declared = {variant.name for variant in spec.variants}
             if state["active"]["node"] != body.targetNode or state["active"]["variant"] not in declared:
                 raise HTTPException(409, "node_is_not_current_service_route")
         recent = [r for r in c.journal.demo_list(body.serviceUid) if body.mode != "node-load" or r.get("targetNode") == body.targetNode][:1]

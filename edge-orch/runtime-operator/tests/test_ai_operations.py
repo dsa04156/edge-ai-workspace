@@ -10,6 +10,28 @@ from test_runtime import rig, activate
 from test_three_tier import three_tier
 
 
+def test_generic_ai_node_load_without_stages_is_bound_to_actual_current_node(rig):
+    async def run():
+        c,k,_,_,_=rig
+        k.resource['spec'].update(serviceKind='ai',demo={'label':'Vision input','payload':{'frame':'fixture'},'concurrency':1})
+        await activate(c,k)
+        uid,name=k.resource['metadata']['uid'],k.resource['metadata']['name']
+        app=create_app(c)
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://local') as client:
+            item=(await client.get('/demos')).json()['items'][0]
+            nodes={n['node']:n for n in item['nodes']}
+            assert nodes['field-any']['available'] and not nodes['datacenter-any']['available']
+            path=f'/demos/{name}/runs/generic-node-test'
+            body={'serviceUid':uid,'mode':'node-load','targetNode':'datacenter-any'}
+            assert (await client.post(path,json=body)).status_code==409
+            body['targetNode']='field-any'
+            assert (await client.post(path,json=body)).status_code==202
+            assert (await client.post(path+'/stop',json={'serviceUid':uid})).status_code==200
+        await app.state.demo_runner.close()
+        await c.transport.aclose()
+    asyncio.run(run())
+
+
 def test_generic_ai_failed_node_moves_to_ready_alternative_without_approval(rig):
     async def run():
         c,k,now,_,_=rig

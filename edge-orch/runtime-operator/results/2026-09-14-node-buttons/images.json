@@ -1,0 +1,18 @@
+{
+  "state-aggregator": {
+    "baseImage": "192.168.0.56:5000/state-aggregator@sha256:bb041767e828d046d0c04daec9387f60253fe02f7bf51fd492b9e42251f39e88",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:1428cf3672e4d9a07d764232eca0fa8aa0ea8c04b2adf2f3988bc8b1e3ca3684",
+    "files": {
+      "static/nexus/common-runtime.js": "2a27a2d0bb476cbe40eeb728f17ac6798281b644371f4f5bc5c4da0ab97a23ff",
+      "static/nexus/common-runtime.css": "9776b069bcd2ce354060cc2ad4eb1e7260bd348a676e9f7f6e7b519bc8b5a246",
+      "static/nexus/index.html": "4b86e2e6c1cb306403469f2cb326112931c3304d2464e50bbd20d6267854ed3e"
+    }
+  },
+  "runtime-operator": {
+    "baseImage": "192.168.0.56:5000/runtime-operator@sha256:e7bdf7aae5e6448e6fbe38092860a457921152f5528ef91fc71be5550d0c4521",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:8e20a8b6adc922c1083cf128206d1d00ce473851d257b4428ae04b15e8b7e42f",
+    "files": {
+      "demo.py": "bf42fe5258106fb8d21c6614dc82a91bc5ac58f6a2bed0ba3ccb52f0c2f520f4"
+    }
+  }
+}
