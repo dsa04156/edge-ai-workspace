@@ -36,6 +36,12 @@ class LatencyWindow:
             "maxP95Milliseconds": policy.maxP95Milliseconds,
             "returnP95Milliseconds": policy.returnP95Milliseconds}
 
+    def service_arrival_rps(self, uid, now, window_seconds):
+        # Route changes must not erase demand when judging a smaller candidate.
+        return sum(now - window_seconds <= at <= now
+                   for (service_uid, _), rows in self.arrivals.items() if service_uid == uid
+                   for at in rows) / window_seconds
+
     def measure(self, uid, target, now, window_seconds=20, since=0):
         rows = [r for r in self.samples.get((uid, target), ())
                 if max(since, now - window_seconds) <= r[0] <= now]

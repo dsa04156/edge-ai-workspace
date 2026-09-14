@@ -126,3 +126,15 @@ def test_idle_return_is_separate_from_latency_recovery_and_removed_when_stale():
     assert project(data, 200).services[0].returnState is None
     data['services'][0]['returnState']['at'] = 50
     assert project(data, 100).services[0].returnState is None
+
+
+def test_policy_dwell_progress_expires_with_observation():
+    data = payload()
+    data['services'][0]['policyObservation'] = {'at':99, 'pressureSeconds':10,
+        'pressureElapsedSeconds':3, 'latencyElapsedSeconds':0, 'returnSeconds':60,
+        'cooldownSeconds':60, 'cooldownRemainingSeconds':12, 'arrivalRps':2,
+        'windowSeconds':20, 'returnHeadroomRatio':.8}
+    assert project(data,100).services[0].policyObservation.pressureElapsedSeconds == 3
+    assert project(data,200).services[0].policyObservation is None
+    data['lastError'] = 'snapshot_unavailable'
+    assert project(data,100).services[0].policyObservation is None

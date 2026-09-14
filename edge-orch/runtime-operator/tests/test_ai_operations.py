@@ -138,7 +138,7 @@ def test_automatic_resident_stages_advance_and_return_without_approval(tmp_path)
                 if visited[-1]!=v:visited.append(v)
                 assert not c.states[uid].get('proposal')
             c.pending[uid]=0
-            for _ in range(14):
+            for _ in range(60):
                 now[0]+=1
                 await c.tick()
                 v=c.states[uid]['active']['variant']

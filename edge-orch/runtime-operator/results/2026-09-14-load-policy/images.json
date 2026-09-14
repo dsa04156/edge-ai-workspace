@@ -1,0 +1,23 @@
+{
+  "state-aggregator": {
+    "baseImage": "192.168.0.56:5000/state-aggregator@sha256:1428cf3672e4d9a07d764232eca0fa8aa0ea8c04b2adf2f3988bc8b1e3ca3684",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:83446b4b1da3359f7081ef37354e85017e618514d7eeae4327f2cc42b0ddc930",
+    "files": {
+      "common_runtime.py": "1032c50248aabff6f37f9217bc00c0fdce69fd8e4deccd50b80153f33ca7d3ed",
+      "common_runtime_demo.py": "6556aaffd32e33a2e6e17f0ba96238bc936c864e3c2c64eec0d13eae7ef0e8fb",
+      "static/nexus/common-runtime.js": "701e5b4079f3382ad9eeb11e4b66f6ae9b00eeed1f431059ce09218b33819b16",
+      "static/nexus/common-runtime-demo.js": "4afa64373560e0da3208d22670d656016e99f630cfcf05df8502bda8db5e7917",
+      "static/nexus/common-runtime.css": "8b98cd33b7af3990b91bb8ca6e114a7c2aa3bd08d25cbf7258b04aecdb21bf25",
+      "static/nexus/index.html": "ea741e0dc8815f77694c5d4b3958c98027a68b5945e904db9385377d43ffa8d3"
+    }
+  },
+  "runtime-operator": {
+    "baseImage": "192.168.0.56:5000/runtime-operator@sha256:8e20a8b6adc922c1083cf128206d1d00ce473851d257b4428ae04b15e8b7e42f",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:2a3ccd646fb78036429a2abb67ffd579be25c8c1afb695b357406b5829b2e08e",
+    "files": {
+      "controller.py": "f1f1323b150bfdf20b98af42f4aaf1cb8d8867ba9abef6cb6c93a5c1dff1a5c1",
+      "latency.py": "415db81e4c890125ea17b4da3e540552f93a4cee66b4e6043d9719d4dc109534",
+      "demo.py": "aea285bff987347057ccf0a318326a0179b936fc9443282b60336f95407da95a"
+    }
+  }
+}

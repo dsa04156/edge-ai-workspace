@@ -98,3 +98,16 @@ test('each node has its own paired controls and only the current route accepts l
  nano=D.nodeActions(value,'u','nano','Nano',true);assert.match(nano,/실행 노드 이동/);assert.match(nano,/취소 2/);
  const stale=D.nodeActions(value,'u','nano','Nano',false);assert.doesNotMatch(stale,/runtime-spinner|role="progressbar"/);assert.match(stale,/상태 확인 불가/);
 });
+
+test('node-started load follows route and moves the same removal action to the serving node',()=>{
+ const value={...data,runs:[{uid:'u',id:'same-run',name:'svc',mode:'node-load',followsService:true,
+   targetNode:'nano',startNode:'nano',currentNode:'orin',phase:'Running',sent:10,succeeded:8}],
+   items:[{...data.items[0],nodes:[{node:'nano',currentRoute:false},{node:'orin',currentRoute:true}]}]};
+ const nano=D.nodeActions(value,'u','nano','Nano',true);
+ assert.doesNotMatch(nano,/data-demo-stop=/);assert.match(nano,/계속 실행 중/);
+ for(const current of [true,false]){
+   const orin=D.nodeActions(value,'u','orin','Orin',current);
+   assert.match(orin,/data-demo-stop="same-run"/);
+   assert.doesNotMatch(orin.match(/<button id="node-unload-u-orin"[^>]*>/)[0],/disabled/);
+ }
+});

@@ -94,3 +94,5 @@
 
 /* Node load controls remain visible independently of hardware detail selection. */
 .runtime-route-card{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}.runtime-route-card>.runtime-route-node{width:100%;flex:none}.runtime-route-card>.runtime-node-controls{flex:1;padding:8px}.runtime-route-card .runtime-node-load-buttons{grid-template-columns:1fr 1fr;gap:8px}.runtime-route-card .runtime-node-controls .button{font-size:11px;min-height:44px}.runtime-route-card .runtime-node-controls p{margin-top:6px}.runtime-route-card .runtime-node-controls small{margin-top:4px}
+
+.runtime-policy-evidence{display:grid;gap:6px;margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5}

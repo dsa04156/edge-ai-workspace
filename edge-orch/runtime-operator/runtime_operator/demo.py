@@ -166,7 +166,8 @@ class DemoRunner:
                "createdAt": c.clock(), "label": spec.demo.label, "contract": spec.demo.model_dump(),
                "signature": signature(spec), "stopRequested": False, "sent": 0, "succeeded": 0,
                "failed": 0, "unknown": 0, "cancelled": 0,
-               "targetNode": body.targetNode, "targetLabel": next((t.label for t in spec.policy.stages if t.variant == active["variant"]), None) if body.targetNode else None, "requests": [], "routeHistory": [], "lastResult": None,
+               "targetNode": body.targetNode, "followsService": body.mode in {"node-load", "service-load"},
+               "targetLabel": next((t.label for t in spec.policy.stages if t.variant == active["variant"]), None) if body.targetNode else None, "requests": [], "routeHistory": [], "lastResult": None,
                "startNode": active["node"], "startRole": active["role"], "leftStartRole": False,
                "baselineVariant": spec.policy.stages[0].variant if spec.policy.stages else None, "leftBaseline": False,
                "returned": False, "retiring": 0}
@@ -207,7 +208,7 @@ class DemoRunner:
                 async def invoke():
                     if run["stopRequested"] or (run["mode"] not in {"node-load", "service-load"} and run["sent"] >= config["maxRequests"]):
                         return False
-                    if run.get("targetNode") and (c.states.get(run["uid"], {}).get("active") or {}).get("node") != run["targetNode"]:
+                    if run.get("targetNode") and not run.get("followsService") and (c.states.get(run["uid"], {}).get("active") or {}).get("node") != run["targetNode"]:
                         run.update(stopRequested=True, phase="Stopping", reason="node_route_changed")
                         return False
                     spec = self.definition(run["name"], run["uid"])
@@ -223,7 +224,7 @@ class DemoRunner:
                     try:
                         response = await client.post("/services/" + run["name"] + "/invoke",
                             json=config["payload"], headers={"X-Request-ID": request_id, "X-Runtime-Service-Uid": run["uid"],
-                                "X-Runtime-Demo-Run": run["id"], **({"X-Runtime-Expected-Node": run["targetNode"]} if run.get("targetNode") else {})})
+                                "X-Runtime-Demo-Run": run["id"], **({"X-Runtime-Expected-Node": run["targetNode"]} if run.get("targetNode") and not run.get("followsService") else {})})
                         result = response.json()
                         outcome = response.headers.get("X-Request-State", "rejected")
                         good = 200 <= response.status_code < 300 and outcome == "completed"

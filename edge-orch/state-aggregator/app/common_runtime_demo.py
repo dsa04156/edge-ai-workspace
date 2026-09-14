@@ -82,6 +82,7 @@ class DemoRun(BaseModel):
     reason: str | None = None
     stopRequested: bool
     targetNode: str | None = None
+    followsService: bool = False
     targetLabel: str | None = None
     cancelled: int = 0
 

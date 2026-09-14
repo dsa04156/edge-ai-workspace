@@ -94,6 +94,7 @@ def test_resident_activation_routing_and_model_release_preserve_pods(tmp_path):
             assert c.states[uid]["reason"] == "healthy_current_placement"
             assert c.states[uid]["active"]["name"] == old
             c.inflight[old] = 1
+            c.pending[uid] = 1  # Queue pressure, not one occupied worker.
             now[0] += 2
             await c.tick()
             now[0] += 2
@@ -103,6 +104,7 @@ def test_resident_activation_routing_and_model_release_preserve_pods(tmp_path):
             assert c.states[uid]["active"]["node"] == "datacenter-any"
             assert states["small"] == "ACTIVE"  # in-flight on source holds memory
             c.inflight[old] = 0
+            c.pending[uid] = 0
             await c.tick()
             await asyncio.sleep(0)
             await c.tick()

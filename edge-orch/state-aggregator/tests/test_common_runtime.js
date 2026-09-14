@@ -20,7 +20,7 @@ test('non-Llama AI has one scoped operation view and automatic labels with measu
 });
 test('automatic return distinguishes dwell, preparation, release, baseline and unavailable observation',()=>{
  const s={serving:true,checkedAt:99,augmentationStages:[{label:'Nano'}],load:{at:99,pending:0,inFlight:0},returnState:{phase:'Waiting',label:'Orin',remainingSeconds:8,at:99,windowSeconds:20,dwellSeconds:8}};
- assert.match(R.returnView(s,100,true),/최소 7초/);
+ assert.match(R.returnView(s,100,true),/복귀 조건 유지 1\/8초/);
  assert.equal(R.serviceMotion(s,100,true).title,'Orin 자동 복귀 대기');
  s.returnState.phase='Preparing';s.target={node:'orin'};
  assert.equal(R.serviceMotion(s,100,true).title,'Orin 복귀 준비 중');

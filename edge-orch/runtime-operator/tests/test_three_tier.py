@@ -64,7 +64,7 @@ def test_three_tier_requires_two_approvals_and_returns_through_same_role_edge(tm
                 assert c.states[uid]["active"]["variant"] == expected
             c.pending[uid] = 0
             returned = []
-            for _ in range(12):
+            for _ in range(30):
                 now[0] += 2
                 await c.tick()
                 name = c.states[uid]["active"]["variant"]

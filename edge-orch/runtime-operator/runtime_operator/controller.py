@@ -36,7 +36,7 @@ class Controller:
             state["recovering"] = True
             state["latencyHighSince"] = None
             state["latencyLowSince"] = None
-            state["idleSince"] = None
+            state.update(highSince=None, lowSince=None, idleSince=None, policyObservation=None)
             state["returnState"] = None
             state.pop("latency", None)
             state["proposal"] = None
@@ -186,6 +186,7 @@ class Controller:
                  "switchedAt": 0, "highSince": None, "lowSince": None,
                  **copy.deepcopy(self.states.get(uid, {}))}
         state["returnState"] = None
+        state["policyObservation"] = None
         state["observedGeneration"] = resource["metadata"].get("generation", 1)
         state["approvalRequired"] = spec.policy.approvalRequired
         state["aiInference"] = spec.is_ai
@@ -283,6 +284,9 @@ class Controller:
                          "at": self.clock()}
         now = self.clock()
         latency_policy = spec.policy.latency
+        demand_window = latency_policy.windowSeconds if latency_policy else 20
+        arrival_rps = self.latencies.service_arrival_rps(uid, now, demand_window)
+        demand_observed = now - max(self.started_at, state.get("switchedAt", now)) >= demand_window
         if active:
             state["requestMetrics"] = self.latencies.measure(uid, active["name"], now,
                 latency_policy.windowSeconds if latency_policy else 20, state.get("switchedAt", 0))
@@ -335,8 +339,54 @@ class Controller:
         else:
             state["idleSince"] = None
 
-        state["highSince"] = (state.get("highSince") or now) if utilization >= spec.policy.highWatermark else None
-        state["lowSince"] = (state.get("lowSince") or now) if utilization <= spec.policy.lowWatermark else None
+        def return_rate_ok(candidate):
+            return (not spec.is_ai or (demand_observed and candidate.variant.qualifiedRps is not None
+                    and arrival_rps <= candidate.variant.qualifiedRps * spec.policy.highWatermark))
+
+        lower = [c for c in eligible if active and (
+            c.variant.name == previous_variant if order else c.role == spec.policy.preferredRole
+            and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"]))
+            and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
+        rate_candidates = [c for c in lower if return_rate_ok(c)]
+        return_candidate = rate_candidates[0] if rate_candidates else None
+        candidate_key = (return_candidate.node, return_candidate.variant.name) if return_candidate else None
+        # JSON journals restore tuples as lists; store a stable string identity.
+        candidate_key = "/".join(candidate_key) if candidate_key else None
+        if spec.is_ai and state.get("returnCandidateKey") != candidate_key:
+            state["lowSince"] = None
+        state["returnCandidateKey"] = candidate_key
+        pressure = utilization >= spec.policy.highWatermark and (not spec.is_ai or self.pending.get(uid, 0) > 0)
+        low = utilization <= spec.policy.lowWatermark and (not spec.is_ai or return_candidate is not None)
+        state["highSince"] = (state.get("highSince") or now) if pressure else None
+        state["lowSince"] = (state.get("lowSince") or now) if low else None
+        cooldown_remaining = max(0, spec.policy.cooldownSeconds - (now - state["switchedAt"]))
+        state["policyObservation"] = {"at": now, "pressureSeconds": spec.policy.pressureSeconds,
+            "pressureElapsedSeconds": now - state["highSince"] if state["highSince"] is not None else 0,
+            "latencyBreachSeconds": latency_policy.breachSeconds if latency_policy else None,
+            "latencyElapsedSeconds": now - state["latencyHighSince"] if state["latencyHighSince"] is not None else 0,
+            "maxP95Milliseconds": latency_policy.maxP95Milliseconds if latency_policy else None,
+            "returnP95Milliseconds": latency_policy.returnP95Milliseconds if latency_policy else None,
+            "returnSeconds": spec.policy.returnSeconds, "cooldownSeconds": spec.policy.cooldownSeconds,
+            "cooldownRemainingSeconds": cooldown_remaining, "arrivalRps": arrival_rps,
+            "windowSeconds": demand_window, "returnHeadroomRatio": spec.policy.highWatermark}
+        back = state.get("returnState")
+        if back and back["phase"] != "Baseline":
+            candidate = return_candidate or (lower[0] if lower else None)
+            if candidate:
+                back.update(node=candidate.node,
+                    label=next((s.label for s in spec.policy.stages if s.variant == candidate.variant.name), candidate.node),
+                    arrivalRps=arrival_rps,
+                    maxArrivalRps=candidate.variant.qualifiedRps * spec.policy.highWatermark if candidate.variant.qualifiedRps else None)
+            if lower and not demand_observed:
+                back.update(phase="Observing", reason="demand_observation", remainingSeconds=None)
+            elif not rate_candidates:
+                back.update(phase="Blocked", reason="return_capacity_unverified_or_insufficient", remainingSeconds=None)
+            elif low and recovered:
+                since = max(state["lowSince"], state["latencyLowSince"])
+                back.update(phase="Waiting", reason="low_load_dwell",
+                    remainingSeconds=max(cooldown_remaining, spec.policy.returnSeconds - (now - since), 0))
+            elif back["phase"] == "Waiting":
+                back["remainingSeconds"] = max(back["remainingSeconds"] or 0, cooldown_remaining)
         choice = None
         reason = "healthy_current_placement"
         if not healthy or not current:
@@ -369,6 +419,7 @@ class Controller:
                          and (c.variant.name == previous_variant if order else
                               c.role == spec.policy.preferredRole and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"]))
                          and load <= c.variant.maxInFlight * spec.policy.highWatermark
+                         and return_rate_ok(c)
                          and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
                 choice = small[0] if small else None
                 reason = ("sustained_idle_return" if idle_ready else "sustained_low_load_return") if choice else "healthy_current_placement"
@@ -426,6 +477,10 @@ class Controller:
             return_interrupted = (target.get("triggerReason") == "sustained_idle_return"
                                   and (not healthy or load > 0 or health["inFlight"] > 0
                                        or not idle_enabled or recent["samples"] > 0 or recent["arrivalRps"] > 0))
+            if (spec.is_ai and candidate and target.get("triggerReason") == "sustained_low_load_return"
+                    and (not healthy or (latency_policy and not recovered) or not return_rate_ok(candidate)
+                         or load > candidate.variant.maxInFlight * spec.policy.highWatermark)):
+                return_interrupted = True
             if return_interrupted or candidate is None or now - target["created"] > spec.policy.prepareTimeoutSeconds:
                 if not return_interrupted:
                     state["failedCandidates"][target["name"]] = now + max(60, spec.policy.prepareTimeoutSeconds)
@@ -462,6 +517,8 @@ class Controller:
                         "qualifiedRps": target.get("qualifiedRps"), "at": self.clock()}
                     state["requestMetrics"] = self.latencies.measure(uid, target["name"], now,
                         latency_policy.windowSeconds if latency_policy else 20, now)
+                    state["policyObservation"].update(pressureElapsedSeconds=0, latencyElapsedSeconds=0,
+                        cooldownRemainingSeconds=spec.policy.cooldownSeconds)
                     self.save(uid, state, "route_switched")
                     reason = "target_ready_route_switched"
                     if target.get("approvalId") and target["approvalId"] == state.get("lastApproval", {}).get("id"):
@@ -516,13 +573,15 @@ class Controller:
         except Exception as exc:
             self.last_error = "snapshot_unavailable:" + type(exc).__name__
             for state in self.states.values():
-                state["idleSince"] = None
+                state.update(highSince=None, lowSince=None, latencyHighSince=None, latencyLowSince=None,
+                             idleSince=None, policyObservation=None, returnState=None)
             self.started_at = self.clock()
             return
         if self.last_error or self.last_snapshot and not 0 <= self.clock() - self.last_snapshot < 15:
             self.started_at = self.clock()
             for state in self.states.values():
-                state["idleSince"] = None
+                state.update(highSince=None, lowSince=None, latencyHighSince=None, latencyLowSince=None,
+                             idleSince=None, policyObservation=None, returnState=None)
         self.last_snapshot = self.clock()
         self.snapshot = snapshot
         self.last_error = None
@@ -551,7 +610,8 @@ class Controller:
                 await self.reconcile(resource, snapshot)
             except Exception as exc:
                 state = copy.deepcopy(self.states.get(uid, {"uid": uid, "name": resource["metadata"]["name"]}))
-                state.update(serving=False, phase="Blocked", reason="reconcile_error:" + type(exc).__name__, idleSince=None, returnState=None)
+                state.update(serving=False, phase="Blocked", reason="reconcile_error:" + type(exc).__name__, idleSince=None, returnState=None, highSince=None, lowSince=None,
+                             latencyHighSince=None, latencyLowSince=None, policyObservation=None)
                 self.save(uid, state)
             state = self.states.get(uid)
             if state:

@@ -129,6 +129,24 @@ class ReturnState(BaseModel):
     windowSeconds: float
     dwellSeconds: float
     at: float
+    arrivalRps: float | None = None
+    maxArrivalRps: float | None = None
+
+
+class PolicyObservation(BaseModel):
+    at: float
+    pressureSeconds: float
+    pressureElapsedSeconds: float
+    latencyBreachSeconds: float | None = None
+    latencyElapsedSeconds: float
+    maxP95Milliseconds: float | None = None
+    returnP95Milliseconds: float | None = None
+    returnSeconds: float
+    cooldownSeconds: float
+    cooldownRemainingSeconds: float
+    arrivalRps: float
+    windowSeconds: float
+    returnHeadroomRatio: float
 
 
 class RuntimeItem(BaseModel):
@@ -137,6 +155,7 @@ class RuntimeItem(BaseModel):
     testConfigured: bool = False
     requestMetrics: RequestMetrics | None = None
     returnState: ReturnState | None = None
+    policyObservation: PolicyObservation | None = None
     augmentationStages: list[AugmentationStage] = Field(default_factory=list)
     name: str
     uid: str
@@ -192,6 +211,8 @@ def project(payload: dict, now: float) -> RuntimeState:
                 stage.eligible = False
         if item.returnState and not 0 <= now - item.returnState.at < 15:
             item.returnState = None
+        if item.policyObservation and (item.observation_error or not 0 <= now - item.policyObservation.at < 15):
+            item.policyObservation = None
         if item.load and (item.load.at is None or not 0 <= now - item.load.at < 15):
             item.load = None
         if (item.latency and (item.observation_error or not item.active

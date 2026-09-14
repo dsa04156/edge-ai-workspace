@@ -65,37 +65,6 @@ def test_node_load_is_identity_bound_and_stop_cancels_queued_without_stopping_se
     asyncio.run(run())
 
 
-def test_route_switch_does_not_send_old_node_load_to_new_node(rig):
-    async def run():
-        c, k, _, _ = rig
-        configure(k)
-        await c.tick()
-        uid, name = k.resource["metadata"]["uid"], k.resource["metadata"]["name"]
-        started, release = asyncio.Event(), asyncio.Event()
-        dispatched = []
-        async def handle(request):
-            dispatched.append(request.url.host)
-            started.set()
-            await release.wait()
-            return response(request)
-        await c.transport.aclose()
-        c.transport = httpx.AsyncClient(transport=httpx.MockTransport(handle))
-        app = create_app(c)
-        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
-            path = f"/demos/{name}/runs/node-load-route"
-            await client.post(path, json={"serviceUid": uid, "mode": "node-load", "targetNode": "field-any"})
-            await started.wait()
-            c.states[uid]["active"] = {**c.states[uid]["active"], "node": "datacenter-any", "variant": "large", "name": "other-route"}
-            await asyncio.sleep(.08)
-            release.set()
-            await asyncio.gather(*list(app.state.demo_runner.tasks.values()))
-            result = (await client.get(path, params={"serviceUid": uid})).json()
-            assert result["phase"] == "Stopped" and result["reason"] == "node_route_changed"
-            assert len(dispatched) == 1 and dispatched[0].startswith("small.")
-            assert result["cancelled"] == 2
-        await app.state.demo_runner.close()
-    asyncio.run(run())
-
 
 def test_service_stop_drains_and_releases_then_start_reactivates_and_stopped_stays_in_catalog(rig):
     async def run():
@@ -183,7 +152,7 @@ def test_continuous_load_runs_past_limits_until_removed_with_bounded_history(rig
             path=f"/demos/{name}/runs/manual-node-load"
             await client.post(path,json={"serviceUid":uid,"mode":mode,**({"targetNode":"field-any"} if mode == "node-load" else {})})
             try:
-                await asyncio.wait_for(after_limit.wait(),timeout=4)
+                await asyncio.wait_for(after_limit.wait(),timeout=10)
                 run = app.state.demo_runner.runs[(uid,"manual-node-load")]
                 assert run["phase"] == "Running" and run["stage"] == "pressure" and run["sent"] >= 100
                 assert len(run["requests"]) <= 65
@@ -200,7 +169,8 @@ def test_continuous_load_runs_past_limits_until_removed_with_bounded_history(rig
     asyncio.run(run())
 
 
-def test_service_load_follows_route_change_without_replaying_dispatched_requests(rig):
+@pytest.mark.parametrize("mode", ["node-load", "service-load"])
+def test_service_load_follows_route_change_without_replaying_dispatched_requests(rig, mode):
     async def run():
         c, k, _, _ = rig
         configure(k)
@@ -226,8 +196,9 @@ def test_service_load_follows_route_change_without_replaying_dispatched_requests
         app = create_app(c)
         async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://local") as client:
             path = f"/demos/{name}/runs/service-route"
-            body = {"serviceUid": uid, "mode": "service-load"}
-            assert (await client.post(path, json={**body, "targetNode": "field-any"})).status_code == 422
+            body = {"serviceUid": uid, "mode": mode, **({"targetNode":"field-any"} if mode == "node-load" else {})}
+            if mode == "service-load":
+                assert (await client.post(path, json={**body, "targetNode": "field-any"})).status_code == 422
             assert (await client.post(path, json=body)).status_code == 202
             try:
                 await asyncio.wait_for(started.wait(), 2)
@@ -237,6 +208,7 @@ def test_service_load_follows_route_change_without_replaying_dispatched_requests
                 release.set()
                 await asyncio.wait_for(reached_new.wait(), 2)
                 assert app.state.demo_runner.runs[(uid, "service-route")]["phase"] == "Running"
+                assert app.state.demo_runner.runs[(uid, "service-route")]["followsService"]
                 await client.post(path + "/stop", json={"serviceUid": uid})
                 await asyncio.gather(*list(app.state.demo_runner.tasks.values()))
                 result = (await client.get(path, params={"serviceUid": uid})).json()

@@ -32,10 +32,10 @@
         "server"
       ],
       "approvalRequired": false,
-      "cooldownSeconds": 5,
+      "cooldownSeconds": 60,
       "highWatermark": 0.8,
       "latency": {
-        "breachSeconds": 4,
+        "breachSeconds": 10,
         "maxP95Milliseconds": 900,
         "minSamples": 10,
         "returnP95Milliseconds": 750,
@@ -45,8 +45,8 @@
       "mode": "automatic",
       "preferredRole": "edge",
       "prepareTimeoutSeconds": 90,
-      "pressureSeconds": 4,
-      "returnSeconds": 8,
+      "pressureSeconds": 10,
+      "returnSeconds": 60,
       "stages": [
         {
           "variant": "resident-llama-nano",
