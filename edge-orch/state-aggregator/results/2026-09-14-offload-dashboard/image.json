@@ -1,0 +1,9 @@
+{
+  "baseImage": "192.168.0.56:5000/state-aggregator@sha256:38676168a594cdd81a54d469f1e83ddcac0fc51dbf70cc0e68b0f6e999a45b3a",
+  "image": "192.168.0.56:5000/state-aggregator@sha256:fb6bac59426d1037e280126babe37cff19c0d9719b3fdc7f11472ac77a226bcd",
+  "files": {
+    "platform.js": "186c625b52e180fc7e76f8c6fbd1b64532d7d848db84fc4a7bbe1e7346322b84",
+    "live-ui.js": "d5342deb10eabb0c71e7f3684d5455ac044d327984e65a22d6b6e274b2469cc2",
+    "index.html": "0a725ed47be6585d2f7acb9ecde7e73dd6fb2ca9f8185ff5e61dd3ee3a2a8493"
+  }
+}
