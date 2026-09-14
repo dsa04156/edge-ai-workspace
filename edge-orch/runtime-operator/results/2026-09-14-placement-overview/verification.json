@@ -1,0 +1,27 @@
+{
+  "image": "192.168.0.56:5000/state-aggregator@sha256:0cf397e3e8dcd8a60f3915c979e4fdc193eb1c56b955dfacffcda8af35cd0694",
+  "readyPod": "state-aggregator-5db86dc7d8-jzkgx",
+  "sourceHashesMatch": true,
+  "argo": {
+    "sync": "Synced",
+    "health": "Healthy"
+  },
+  "javascriptTestsPassed": 32,
+  "placementTestsAfterStyleChange": 6,
+  "pythonTestsPassed": 15,
+  "ui": {
+    "allNodes": 10,
+    "registeredLlamaNodes": 3,
+    "selectedDetailSurvivedRefresh": true,
+    "perServiceFilterRestored": true,
+    "unmanagedServiceLlamaDataLeak": false,
+    "mobilePageOverflow": false,
+    "mobileTableScroll": true,
+    "browserConsoleErrors": 0,
+    "writeRequestsDuringFinalPageLoad": 0
+  },
+  "activeTestsAtCheck": 0,
+  "llamaPhaseAtCheck": "Suspended",
+  "liveLoadStartedByThisTask": false,
+  "runtimePolicyModified": false
+}
