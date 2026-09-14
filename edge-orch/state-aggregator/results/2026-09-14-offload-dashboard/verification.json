@@ -1,0 +1,35 @@
+{
+  "date": "2026-09-14",
+  "route": "http://aggregator.192.168.0.56.sslip.io/#offload-demo",
+  "unitTests": {
+    "passed": 20,
+    "suites": [
+      "test_common_runtime.js",
+      "test_common_runtime_demo.js",
+      "test_runtime_clock.js"
+    ]
+  },
+  "browser": {
+    "desktopWidth": 1440,
+    "mobileWidth": 390,
+    "horizontalOverflow": false,
+    "nestedButtons": 0,
+    "directRouteAndMenuNavigation": "passed",
+    "baselineScope": "Llama approval demo",
+    "liveVersionedAssetsVerified": true,
+    "stoppedServiceStartEnabled": true,
+    "stoppedServiceStopEnabled": false
+  },
+  "deployment": {
+    "argoSync": "Synced",
+    "argoHealth": "Healthy",
+    "liveFileHashes": "matched image.json",
+    "isolatedControllersReplicas": 0
+  },
+  "servicePhase": "Stopped",
+  "controlWritesDuringVerification": false,
+  "limitations": [
+    "Existing service and approval behavior reused; no live load or augmentation approval performed.",
+    "Browser observed transient 502 during rollout and request failures during navigation; subsequent live API and navigation recovered."
+  ]
+}
