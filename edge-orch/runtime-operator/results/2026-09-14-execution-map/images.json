@@ -1,0 +1,20 @@
+{
+  "state-aggregator": {
+    "baseImage": "192.168.0.56:5000/state-aggregator@sha256:0cf397e3e8dcd8a60f3915c979e4fdc193eb1c56b955dfacffcda8af35cd0694",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:ba723490e2f858545ad4e407e40f96ff0a0339c7c54032ad9a3ffa0aea4d662e",
+    "files": {
+      "common_runtime.py": "87ee06b8858c01bfd6d488f477cf7a1e8be9e0133e40e0498babbf1db836881a",
+      "static/nexus/common-runtime.js": "9b1ad43207752428da468f12e769e905c28f4f7c6ec8835de1df41f52ec5f3f7",
+      "static/nexus/runtime-execution-map.js": "502e0d6be548a9e25b14243aeb929098121e88dbc8159f1e0ea4ca0cb9871b77",
+      "static/nexus/runtime-execution-map.css": "792d97ab44bc26abef796104f5f1a4fcbd792f10f8fcb0839bc930f6b65dca30",
+      "static/nexus/index.html": "9290ae4a9207e16a78532cdba91b9557d3216544d486684d91c1a63984c3b953"
+    }
+  },
+  "runtime-operator": {
+    "baseImage": "192.168.0.56:5000/runtime-operator@sha256:c6d6403bd38d5eb4500ee30f0ca0c38ee11cfdcb24c54a9d3a5392724ec281ff",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:60531ef20cab7288ced309bbbb267d6fbbef669b3d757fd87f7fc2a5ba135668",
+    "files": {
+      "controller.py": "b7c606118de5aea4a610bec55ad7c32d882d73b2028ff75206513628f3f6fbc6"
+    }
+  }
+}

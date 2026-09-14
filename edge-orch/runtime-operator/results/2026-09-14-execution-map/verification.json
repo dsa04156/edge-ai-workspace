@@ -1,0 +1,36 @@
+{
+  "runtime-operator": {
+    "image": "192.168.0.56:5000/runtime-operator@sha256:60531ef20cab7288ced309bbbb267d6fbbef669b3d757fd87f7fc2a5ba135668",
+    "readyPod": "runtime-operator-57fb7d674d-fmfqc",
+    "sourceHashesMatch": true,
+    "otherLiveModulesPreserved": true
+  },
+  "state-aggregator": {
+    "image": "192.168.0.56:5000/state-aggregator@sha256:ba723490e2f858545ad4e407e40f96ff0a0339c7c54032ad9a3ffa0aea4d662e",
+    "readyPod": "state-aggregator-85444c785c-wr9wk",
+    "sourceHashesMatch": true
+  },
+  "runtimePolicyUnchanged": true,
+  "llamaPhase": "Suspended",
+  "apiHasPlacementDecision": true,
+  "argo": {
+    "sync": "Synced",
+    "health": "Healthy"
+  },
+  "controllerTestsPassed": 42,
+  "projectionTestsPassed": 11,
+  "javascriptTestsPassed": 55,
+  "liveLoadStarted": false,
+  "activeTestRuns": 0,
+  "ui": {
+    "browserErrors": 0,
+    "writeRequests": 0,
+    "selectedNodeSurvivedRefresh": true,
+    "mobilePageOverflow": false,
+    "stoppedNodeCount": 3,
+    "stoppedRankingCount": 0,
+    "fullClusterDetailsCollapsed": true,
+    "mockLlamaPreparationRankCount": 1,
+    "mockPreparationMobileOverflow": false
+  }
+}

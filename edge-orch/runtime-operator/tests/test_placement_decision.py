@@ -84,3 +84,27 @@ def test_empty_qualified_set_is_not_a_fabricated_recommendation(rig):
         assert d['candidates'] == [] and d['selectedRevision'] is None
         assert d['status'] == 'Evaluated' and d['reason'] == 'latency_no_qualified_target'
     asyncio.run(run())
+
+
+def test_return_ranking_follows_recovered_latency_and_clears_on_restart(rig):
+    async def run():
+        c, k, now, _, _ = rig
+        configure(k)
+        old = await activate(c, k)
+        uid = k.resource['metadata']['uid']
+        add(c, uid, old, now[0], 200)
+        await c.tick(); now[0] += 2; await c.tick()
+        target = c.states[uid]['target']
+        k.ready(target['name']); await c.tick()
+        now[0] += 2
+        add(c, uid, target['name'], now[0], 40); await c.tick()
+        now[0] += 2
+        add(c, uid, target['name'], now[0], 40); await c.tick()
+        state = c.states[uid]; d = state['placementDecision']
+        assert d['reason'] == 'sustained_low_load_return'
+        assert d['sourceRevision'] == target['name']
+        assert d['candidates'][0]['node'] == 'field-any'
+        assert d['selectedRevision'] == state['target']['name']
+        restarted = type(c)(k, c.journal, c.transport, c.clock)
+        assert restarted.states[uid]['placementDecision'] is None
+    asyncio.run(run())
