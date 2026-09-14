@@ -65,7 +65,7 @@ function capacity(row){
 }
 function qualifications(row){
  const measured=row.qualifications.filter(q=>finite(q.qualifiedRps)||finite(q.qualifiedP95Milliseconds));
- if(!measured.length)return '<span class="note">성능 값 미연결</span>';
+ if(!measured.length)return '<span class="placement-missing">성능 값 미연결</span>';
  return measured.map(q=>`<span>${finite(q.qualifiedRps)?number(q.qualifiedRps)+'건/s':'처리율 미측정'} · p95 ${finite(q.qualifiedP95Milliseconds)?number(q.qualifiedP95Milliseconds)+'ms':'미측정'}</span>`).join('');
 }
 function detail(row,s,o){
