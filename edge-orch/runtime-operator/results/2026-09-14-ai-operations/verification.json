@@ -1,0 +1,63 @@
+{
+  "operatorTests": {
+    "passed": 97,
+    "command": "pytest -q"
+  },
+  "aggregatorProjectionTests": {
+    "passed": 12,
+    "command": "pytest -q tests/test_common_runtime.py tests/test_common_runtime_demo.py"
+  },
+  "browserLogicTests": {
+    "passed": 25,
+    "command": "node --test tests/test_common_runtime.js tests/test_common_runtime_demo.js tests/test_runtime_clock.js"
+  },
+  "browser": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "loadStartButton": {
+      "x": 625.21875,
+      "y": 728.78125,
+      "width": 201.265625,
+      "height": 44
+    },
+    "desktopOverflow": false,
+    "approvalButtonsInAutomaticMode": 0,
+    "mobile": [
+      390,
+      844
+    ],
+    "mobileOverflow": false,
+    "selectionRetained": true,
+    "actionUidsMatchSelectedService": true,
+    "unintegratedSensorRuntimeActions": 0
+  },
+  "liveRun": {
+    "id": "7b17fa60815a47c9b122cc33e5c8c782",
+    "service": "llama-inference",
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "startAndRemove": "browser buttons",
+    "phase": "Stopped",
+    "sent": 477,
+    "succeeded": 472,
+    "cancelled": 5,
+    "failed": 0,
+    "unknown": 0,
+    "route": [
+      "etri-dev0001-jetorn",
+      "etri-dev0005-jetagx",
+      "etri-ser0003-cg0ms0",
+      "etri-dev0005-jetagx",
+      "etri-dev0001-jetorn"
+    ],
+    "automatic": true,
+    "retiringAtEnd": 0
+  },
+  "limits": [
+    "Real AI round trip verified for Llama; generic HTTP AI behavior covered by model-independent controller tests.",
+    "Existing sensor-anomaly-demo remains outside common runtime control; STANDBY execution ownership and rejected candidate qualification are displayed.",
+    "An existing commonAI local-input compatibility module was preserved from the live base image; the input adapter retains its local-only contract."
+  ],
+  "metricsFollowup": "After round trip, route-switch capacity and request observations were corrected to use the new revision in the same reconciliation; 97 operator tests cover the final code."
+}

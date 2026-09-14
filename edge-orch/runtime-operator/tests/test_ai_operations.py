@@ -61,6 +61,9 @@ def test_non_llama_ai_automatically_moves_on_pressure_and_returns_without_sample
         k.ready(c.states[uid]['target']['name'])
         await c.tick()
         assert c.states[uid]['active']['role'] == 'server'
+        assert c.states[uid]['load']['qualifiedRps'] == 8
+        assert c.states[uid]['load']['capacity'] == c.states[uid]['active']['capacity']
+        assert c.states[uid]['requestMetrics']['target'] == c.states[uid]['active']['name']
         c.pending[uid] = 0
         for _ in range(12):
             now[0] += 1

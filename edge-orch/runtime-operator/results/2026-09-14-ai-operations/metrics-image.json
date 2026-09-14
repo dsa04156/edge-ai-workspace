@@ -1,0 +1,7 @@
+{
+  "baseImage": "192.168.0.56:5000/runtime-operator@sha256:c95695488156ffb75699fecd4e2cc5c01a0d4f73fab906db1e95676912618fcb",
+  "image": "192.168.0.56:5000/runtime-operator@sha256:e7bdf7aae5e6448e6fbe38092860a457921152f5528ef91fc71be5550d0c4521",
+  "files": {
+    "controller.py": "3ad804ab0281e427d029c3752e4b3d36e9b04d42ff0deb3f0d8ea43f78bf8223"
+  }
+}

@@ -452,6 +452,16 @@ class Controller:
                     state.update(active=target, target=None, serving=True, recovering=False,
                                  switchedAt=now, highSince=None, lowSince=None,
                                  latency=None, latencyHighSince=None, latencyLowSince=None, idleSince=None)
+                    # A route switch must not label the old revision's capacity
+                    # or request measurements as the newly active node's values.
+                    running = self.inflight.get(target["name"], 0)
+                    pending = self.pending.get(uid, 0)
+                    state["load"] = {"inFlightAndPending": running + pending,
+                        "utilization": (running + pending) / target["capacity"],
+                        "pending": pending, "inFlight": running, "capacity": target["capacity"],
+                        "qualifiedRps": target.get("qualifiedRps"), "at": self.clock()}
+                    state["requestMetrics"] = self.latencies.measure(uid, target["name"], now,
+                        latency_policy.windowSeconds if latency_policy else 20, now)
                     self.save(uid, state, "route_switched")
                     reason = "target_ready_route_switched"
                     if target.get("approvalId") and target["approvalId"] == state.get("lastApproval", {}).get("id"):
