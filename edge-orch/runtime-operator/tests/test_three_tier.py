@@ -107,15 +107,17 @@ def test_latency_never_skips_the_next_stage_for_a_faster_server(tmp_path, unavai
     asyncio.run(run())
 
 
-def test_stage_contract_rejects_duplicate_missing_and_unapproved_stages(tmp_path):
+def test_stage_contract_rejects_duplicate_and_missing_stages_and_accepts_automatic(tmp_path):
     c, k, _, _ = three_tier(tmp_path)
     data = k.resource["spec"]
     try:
-        for change in ["duplicate", "missing", "unapproved"]:
+        automatic = copy.deepcopy(data)
+        automatic["policy"]["approvalRequired"] = False
+        assert ServiceSpec.model_validate(automatic).is_ai
+        for change in ["duplicate", "missing"]:
             modified = copy.deepcopy(data)
             if change == "duplicate": modified["policy"]["stages"][1]["variant"] = "small"
             if change == "missing": modified["policy"]["stages"].pop()
-            if change == "unapproved": modified["policy"]["approvalRequired"] = False
             with pytest.raises(ValidationError): ServiceSpec.model_validate(modified)
     finally:
         asyncio.run(c.transport.aclose())

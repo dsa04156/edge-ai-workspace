@@ -29,18 +29,23 @@ class LatencyWindow:
                 del self.samples[key]
 
     def observe(self, uid, target, now, policy, since=0):
+        result = self.measure(uid, target, now, policy.windowSeconds, since)
+        valid = result["successfulSamples"] >= policy.minSamples and result["failures"] == 0
+        return result | {"valid": valid,
+            "reason": "recent_request_failure" if result["failures"] else "measured" if valid else "insufficient_samples",
+            "maxP95Milliseconds": policy.maxP95Milliseconds,
+            "returnP95Milliseconds": policy.returnP95Milliseconds}
+
+    def measure(self, uid, target, now, window_seconds=20, since=0):
         rows = [r for r in self.samples.get((uid, target), ())
-                if max(since, now - policy.windowSeconds) <= r[0] <= now]
+                if max(since, now - window_seconds) <= r[0] <= now]
         successes = sorted(r[1] for r in rows if r[2])
         failures = len(rows) - len(successes)
-        valid = len(successes) >= policy.minSamples and failures == 0
         return {"at": now, "target": target, "samples": len(rows), "successfulSamples": len(successes),
-                "completedRps": len(successes) / policy.windowSeconds,
-                "arrivalRps": sum(max(since, now - policy.windowSeconds) <= at <= now
-                                  for at in self.arrivals.get((uid, target), ())) / policy.windowSeconds,
+                "completedRps": len(successes) / window_seconds,
+                "arrivalRps": sum(max(since, now - window_seconds) <= at <= now
+                                  for at in self.arrivals.get((uid, target), ())) / window_seconds,
                 "failureRatio": failures / len(rows) if rows else None,
                 "failures": failures, "p95Milliseconds": successes[math.ceil(.95 * len(successes)) - 1] if successes else None,
-                "valid": valid, "reason": "recent_request_failure" if failures else "measured" if valid else "insufficient_samples",
-                "windowSeconds": policy.windowSeconds, "maxP95Milliseconds": policy.maxP95Milliseconds,
-                "returnP95Milliseconds": policy.returnP95Milliseconds,
+                "windowSeconds": window_seconds,
                 "scope": "gateway_queue_and_worker_response", "processLocal": True}

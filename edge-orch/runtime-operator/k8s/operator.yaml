@@ -39,7 +39,7 @@ spec:
         fsGroup: 65532
       containers:
         - name: operator
-          image: 192.168.0.56:5000/runtime-operator@sha256:e7395d6d1d44662aedc2499ffe6a58512ddb0601e9a08cbe97421fe8518977b7
+          image: 192.168.0.56:5000/runtime-operator@sha256:c95695488156ffb75699fecd4e2cc5c01a0d4f73fab906db1e95676912618fcb
           ports:
             - containerPort: 8080
           env:

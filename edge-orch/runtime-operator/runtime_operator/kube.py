@@ -56,7 +56,7 @@ class Kube:
         if resource["metadata"]["uid"] != uid or resource["metadata"].get("deletionTimestamp"):
             raise ValueError("service_identity_changed")
         spec = ServiceSpec.model_validate(resource["spec"])
-        if not spec.demo:
+        if not spec.demo and not spec.is_ai:
             raise ValueError("service_demo_control_not_enabled")
         if spec.suspended == suspended:
             return resource

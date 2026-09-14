@@ -59,7 +59,7 @@ class RuntimeCandidate(BaseModel):
     role: str
 
 
-class LatencyObservation(BaseModel):
+class RequestMetrics(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False)
     at: float
     target: str
@@ -67,16 +67,19 @@ class LatencyObservation(BaseModel):
     successfulSamples: int = Field(ge=0)
     failures: int = Field(ge=0)
     p95Milliseconds: float | None = Field(default=None, ge=0)
-    valid: bool
-    reason: str
-    maxP95Milliseconds: float = Field(gt=0)
-    returnP95Milliseconds: float = Field(gt=0)
     windowSeconds: float = Field(gt=0)
     scope: Literal["gateway_queue_and_worker_response"]
     processLocal: bool
     completedRps: float | None = Field(default=None, ge=0)
     arrivalRps: float | None = Field(default=None, ge=0)
     failureRatio: float | None = Field(default=None, ge=0, le=1)
+
+
+class LatencyObservation(RequestMetrics):
+    valid: bool
+    reason: str
+    maxP95Milliseconds: float = Field(gt=0)
+    returnP95Milliseconds: float = Field(gt=0)
 
 
 class RuntimeLoad(BaseModel):
@@ -129,6 +132,10 @@ class ReturnState(BaseModel):
 
 
 class RuntimeItem(BaseModel):
+    serviceKind: Literal["ai", "service", "test"] = "service"
+    placementMode: Literal["automatic", "preferred", "approval"] = "preferred"
+    testConfigured: bool = False
+    requestMetrics: RequestMetrics | None = None
     returnState: ReturnState | None = None
     augmentationStages: list[AugmentationStage] = Field(default_factory=list)
     name: str
@@ -190,6 +197,9 @@ def project(payload: dict, now: float) -> RuntimeState:
         if (item.latency and (item.observation_error or not item.active
                 or item.latency.target != item.active.name or not 0 <= now - item.latency.at < 15)):
             item.latency = None
+        if (item.requestMetrics and (item.observation_error or not item.active
+                or item.requestMetrics.target != item.active.name or not 0 <= now - item.requestMetrics.at < 15)):
+            item.requestMetrics = None
         for target in [item.active, item.target, *item.retiring]:
             if target:
                 target.memoryOnlyRelease = target.resident is not None

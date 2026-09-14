@@ -38,6 +38,13 @@ spec:
             type: object
           spec:
             properties:
+              serviceKind:
+                default: service
+                enum:
+                - ai
+                - service
+                - test
+                type: string
               execution:
                 default: http-json-v1
                 type: string
@@ -356,6 +363,113 @@ spec:
                 required:
                 - label
                 - payload
+                type: object
+                default: null
+                nullable: true
+              commonAI:
+                properties:
+                  service:
+                    properties:
+                      id:
+                        maxLength: 128
+                        minLength: 1
+                        type: string
+                      model:
+                        maxLength: 128
+                        minLength: 1
+                        type: string
+                      version:
+                        pattern: ^[a-f0-9]{64}$
+                        type: string
+                    required:
+                    - id
+                    - model
+                    - version
+                    type: object
+                  placement:
+                    properties:
+                      default_node:
+                        minLength: 1
+                        type: string
+                      candidate_nodes:
+                        items:
+                          type: string
+                        maxItems: 32
+                        minItems: 1
+                        type: array
+                    required:
+                    - default_node
+                    - candidate_nodes
+                    type: object
+                  resources:
+                    properties:
+                      cpu:
+                        type: string
+                      memory:
+                        type: string
+                      gpu:
+                        type: string
+                    required:
+                    - cpu
+                    - memory
+                    - gpu
+                    type: object
+                  input:
+                    properties:
+                      type:
+                        enum:
+                        - sensor
+                        - text
+                        type: string
+                      source:
+                        type: string
+                        enum:
+                        - edgex
+                    required:
+                    - type
+                    - source
+                    type: object
+                  monitoring:
+                    properties:
+                      cpu:
+                        default: true
+                        type: boolean
+                      memory:
+                        default: true
+                        type: boolean
+                      gpu:
+                        default: true
+                        type: boolean
+                      queue:
+                        default: true
+                        type: boolean
+                      latency:
+                        default: true
+                        type: boolean
+                    type: object
+                  offload:
+                    properties:
+                      enabled:
+                        default: false
+                        type: boolean
+                        enum:
+                        - false
+                    type: object
+                  adapter:
+                    default: llama-worker-v1
+                    type: string
+                    enum:
+                    - llama-worker-v1
+                  max_tokens:
+                    default: 64
+                    maximum: 128
+                    minimum: 1
+                    type: integer
+                required:
+                - service
+                - placement
+                - resources
+                - input
                 type: object
                 default: null
                 nullable: true

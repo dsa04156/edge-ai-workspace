@@ -120,7 +120,11 @@ class DemoContract(Contract):
     recoveryIntervalSeconds: float = Field(default=1, ge=.5, le=10)
 
 
+from .common_ai import AIServiceConfig
+
+
 class ServiceSpec(Contract):
+    serviceKind: Literal["ai", "service", "test"] = "service"
     execution: Literal["http-json-v1"] = "http-json-v1"
     ioContract: str = Field(min_length=1, max_length=128)
     port: int = Field(default=8080, ge=1024, le=65535)
@@ -133,6 +137,11 @@ class ServiceSpec(Contract):
     suspended: bool = False
     inference: InferenceContract | None = None
     demo: DemoContract | None = None
+    commonAI: AIServiceConfig | None = None
+
+    @property
+    def is_ai(self):
+        return self.serviceKind == "ai" or self.inference is not None
 
     @field_validator("readyPath", "requestPath")
     @classmethod
@@ -143,16 +152,24 @@ class ServiceSpec(Contract):
 
     @model_validator(mode="after")
     def unique_variants(self):
-        if self.policy.approvalRequired and (not self.inference or not self.demo):
-            raise ValueError("approval requires an opted-in AI inference demo")
+        if self.commonAI:
+            if not self.inference or self.commonAI.service.version != self.inference.modelDigest:
+                raise ValueError("common AI model must match the resident runtime digest")
+            if not any(v.nodeSelector.get("kubernetes.io/hostname") == self.commonAI.placement.default_node
+                       for v in self.variants):
+                raise ValueError("common AI default node must have a registered variant")
+        if self.inference and self.serviceKind == "test":
+            raise ValueError("an inference runtime cannot be classified as a synthetic test")
+        if self.policy.approvalRequired and not self.is_ai:
+            raise ValueError("approval requires an AI service")
         if len({v.name for v in self.variants}) != len(self.variants):
             raise ValueError("duplicate variant")
         if self.policy.stages:
             ordered = [s.variant for s in self.policy.stages]
-            if (not self.policy.approvalRequired or not self.inference
+            if (not self.is_ai
                     or len(ordered) != len(set(ordered))
                     or set(ordered) != {v.name for v in self.variants}):
-                raise ValueError("stages require an approval-enabled AI service and each variant exactly once")
+                raise ValueError("stages require an AI service and each variant exactly once")
             variants = {v.name: v for v in self.variants}
             capacities = [variants[name].qualifiedRps for name in ordered]
             if (any(value is None for value in capacities)

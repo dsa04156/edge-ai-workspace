@@ -27,6 +27,7 @@ class DemoNode(BaseModel):
 
 
 class DemoItem(BaseModel):
+    testConfigured: bool = True
     name: str
     uid: str
     label: str

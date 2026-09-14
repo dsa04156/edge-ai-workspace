@@ -1,5 +1,23 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../app/static/nexus/common-runtime.js');
+test('AI catalog retains unintegrated AI with honest ownership and no runtime actions',()=>{
+ const raw={service_id:'detector',display_name:'Vision',category:'ai_inference',node:'edge-2',execution_ownership:{effective_mode:'STANDBY'},descriptor:{augmentation_qualification:{status:'rejected',reason:'latency_regression'}}};
+ const services=R.catalogServices({data:{services:[]}},{data:{services:[raw]}});
+ assert.equal(services.length,1);assert.equal(services[0].uid,'catalog:detector');
+ let html=R.operationsView(services[0],100,true);
+ assert.match(html,/현재 관측 확인 불가/);assert.match(html,/공통 제어 미연결/);assert.match(html,/latency_regression/);
+ assert.doesNotMatch(html,/data-demo-start|data-service-action/);
+ services[0].catalogCurrent=true;assert.equal(R.catalogStatus(services[0]),'추론 대기 · 실행 권한 없음');
+});
+test('non-Llama AI has one scoped operation view and automatic labels with measured request metrics',()=>{
+ const s={name:'vision',uid:'vision-uid',aiInference:true,placementMode:'automatic',serving:true,phase:'Serving',checkedAt:99,active:{name:'revision',node:'edge',variant:'cpu'},retiring:[],excludedCandidates:[],requestMetrics:{at:99,arrivalRps:2,completedRps:1.5,p95Milliseconds:321,failures:1,samples:20,windowSeconds:20}};
+ const value={data:{observed_at:99,services:[s]}};
+ const html=R.renderWorkspace(value,s.uid,100);
+ assert.equal((html.match(/data-augmentation-service=/g)||[]).length,1);
+ assert.match(html,/runtime-service-catalog/);assert.match(html,/자동 이동 · 복귀/);assert.match(html,/321/);
+ assert.doesNotMatch(html,/data-augmentation-approve|Llama/);
+ assert.doesNotMatch(R.renderWorkspace({...value,error:'offline'},s.uid,100),/321/);
+});
 test('automatic return distinguishes dwell, preparation, release, baseline and unavailable observation',()=>{
  const s={serving:true,checkedAt:99,augmentationStages:[{label:'Nano'}],load:{at:99,pending:0,inFlight:0},returnState:{phase:'Waiting',label:'Orin',remainingSeconds:8,at:99,windowSeconds:20,dwellSeconds:8}};
  assert.match(R.returnView(s,100,true),/최소 7초/);
@@ -10,7 +28,7 @@ test('automatic return distinguishes dwell, preparation, release, baseline and u
  s.returnState.phase='Releasing';assert.match(R.returnView(s,100,true),/상위 모델 메모리 해제 중/);
  s.returnState.phase='Baseline';s.returnState.label='Nano';assert.match(R.returnView(s,100,true),/Nano에서 서비스를 유지/);
  for(const current of [true,false]){assert.match(R.returnView(s,200,current),/관측 확인 불가/);assert.doesNotMatch(R.returnView(s,200,current),/Nano에서 서비스를 유지/);}
- assert.equal(R.returnView({...s,augmentationStages:[]},100,true),'');
+ assert.match(R.returnView({...s,augmentationStages:[]},100,true),/선호 위치 자동 복귀/);
 });
 const target={node:'new-edge',variant:'gpu',role:'edge',memoryOnlyRelease:true,observation:{at:99,health:{nodeState:'ACTIVE',ready:true,inFlight:1,modelVramMiB:1234}}};
 const entry={data:{schema_version:'edgeai.common-runtime/v1',observed_at:99,services:[{name:'service-a',uid:'uid-a',phase:'Preparing',serving:true,active:target,target:{...target,node:'server-any'},retiring:[],excludedCandidates:[],reason:'waiting_for_pod_and_application_ready',lastRelease:{node:'old-edge',at:50,modelVramMiB:0,reservationRetained:true}}]}};
@@ -22,11 +40,11 @@ test('service selection scopes operations, preserves explicit missing UID and la
  assert.equal(R.selectedService(value.data.services,'deleted-uid'),null);
  const html=R.renderWorkspace(value,'uid-a',100);
  assert.match(html,/data-augmentation-service="uid-a"/);assert.doesNotMatch(html,/data-augmentation-service="uid-llama"|data-augmentation-approve=/);
- assert.match(html,/HTTP 시험 서비스 · 합성 응답/);assert.match(html,/data-runtime-service="uid-llama"/);
+ assert.match(html,/HTTP 시험·일반 서비스/);assert.match(html,/data-runtime-service="uid-llama"/);
  const missing=R.renderWorkspace(value,'deleted-uid',100);
  assert.match(missing,/선택한 서비스를 찾을 수 없습니다/);assert.doesNotMatch(missing,/data-demo-start|data-service-action|data-augmentation-service/);
  const stale=R.renderWorkspace({...value,error:'offline'},'uid-a',100);
- assert.match(stale,/마지막 경로/);assert.doesNotMatch(stale,/현재 경로 ·/);
+ assert.match(stale,/마지막 관측/);assert.doesNotMatch(stale,/현재 경로 ·/);
 });
 test('current route, preparing target and past memory release stay distinct',()=>{
  const html=R.renderState(entry,100);
@@ -74,7 +92,7 @@ test('node map distinguishes idle, observed traffic, recommendation, preparation
  s.load.inFlight=1;m=R.serviceMotion(s,100,true);assert.equal(m.title,'AI 추론 실행 중');assert.match(R.runtimeMap(s,m,100),/flowing/);
  s.proposal={node:'candidate',role:'server',expiresAt:160};m=R.serviceMotion(s,100,true);assert.equal(m.title,'추천 도착 · 승인 대기');
  assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'recommended');
- s.target={node:'candidate',role:'server'};m=R.serviceMotion(s,100,true);assert.equal(m.title,'모델 준비 중');assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'preparing');
+ s.target={node:'candidate',role:'server'};m=R.serviceMotion(s,100,true);assert.equal(m.title,'실행체 준비 중');assert.equal(R.mapNodes(s,m,100).find(n=>n.node==='candidate').state,'preparing');
  m=R.serviceMotion(s,200,true);assert.equal(m.ok,false);assert.doesNotMatch(R.runtimeMap(s,m,200),/flowing|runtime-spinner|1234/);
 });
 

@@ -188,7 +188,11 @@ class Controller:
         state["returnState"] = None
         state["observedGeneration"] = resource["metadata"].get("generation", 1)
         state["approvalRequired"] = spec.policy.approvalRequired
-        state["aiInference"] = spec.inference is not None
+        state["aiInference"] = spec.is_ai
+        state["serviceKind"] = "ai" if spec.is_ai else spec.serviceKind
+        state["placementMode"] = "approval" if spec.policy.approvalRequired else spec.policy.mode
+        state["testConfigured"] = spec.demo is not None
+        state["requestMetrics"] = None
         policy_key = spec.policy.model_dump_json()
         if state.get("policyKey") != policy_key:
             state.update(policyKey=policy_key, highSince=None, lowSince=None,
@@ -279,6 +283,9 @@ class Controller:
                          "at": self.clock()}
         now = self.clock()
         latency_policy = spec.policy.latency
+        if active:
+            state["requestMetrics"] = self.latencies.measure(uid, active["name"], now,
+                latency_policy.windowSeconds if latency_policy else 20, state.get("switchedAt", 0))
         observed_latency = self.latencies.observe(uid, active["name"], now, latency_policy,
                                                   state.get("switchedAt", 0)) if latency_policy and active else None
         state["latency"] = observed_latency
@@ -300,7 +307,7 @@ class Controller:
         # An idle resident AI service cannot produce the success samples required
         # by latency recovery. Use a separate, explicit idle gate; never label
         # missing samples as successful latency recovery.
-        idle_enabled = bool(order and spec.inference and active and active.get("resident") and latency_policy)
+        idle_enabled = bool(spec.is_ai and active and latency_policy)
         idle_ready = False
         if idle_enabled:
             recent = self.latencies.observe(uid, active["name"], now, latency_policy)
@@ -311,11 +318,17 @@ class Controller:
             state["idleSince"] = (state.get("idleSince") if state.get("idleSince") is not None else now) if idle else None
             idle_ready = state["idleSince"] is not None and now - state["idleSince"] >= spec.policy.returnSeconds
             prior_stage = next((t for t in state["augmentationStages"] if t["variant"] == previous_variant), None)
+            if not order:
+                prior = next((c for c in eligible if c.role == spec.policy.preferredRole
+                    and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"])
+                    and qualified(c, latency_policy.returnP95Milliseconds)), None)
+                prior_stage = {"node": prior.node, "label": prior.node} if prior else None
+            baseline = position == 0 if order else active["role"] == spec.policy.preferredRole and prior_stage is None
             state["returnState"] = {
-                "phase": "Baseline" if position == 0 else "Waiting" if idle else "Observing",
+                "phase": "Baseline" if baseline else "Waiting" if idle else "Observing",
                 "node": prior_stage["node"] if prior_stage else active["node"],
-                "label": prior_stage["label"] if prior_stage else state["augmentationStages"][0]["label"],
-                "reason": "baseline_active" if position == 0 else "idle_dwell" if idle else "idle_observation",
+                "label": prior_stage["label"] if prior_stage else state["augmentationStages"][0]["label"] if order else active["node"],
+                "reason": "baseline_active" if baseline else "idle_dwell" if idle else "idle_observation",
                 "remainingSeconds": max(0, spec.policy.returnSeconds - (now - state["idleSince"])) if idle else None,
                 "windowSeconds": latency_policy.windowSeconds, "dwellSeconds": spec.policy.returnSeconds,
                 "at": now}
@@ -359,7 +372,7 @@ class Controller:
                          and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
                 choice = small[0] if small else None
                 reason = ("sustained_idle_return" if idle_ready else "sustained_low_load_return") if choice else "healthy_current_placement"
-                if idle_ready and not choice and previous_variant:
+                if idle_ready and not choice and (previous_variant or (not order and active["role"] != spec.policy.preferredRole)):
                     state["returnState"].update(phase="Blocked", reason="previous_stage_not_qualified_or_available")
         if choice and active and self.target(resource, spec, choice)["name"] == active["name"]:
             choice = None
@@ -452,10 +465,10 @@ class Controller:
             target = state.get("target")
             returning = {"sustained_idle_return", "sustained_low_load_return"}
             if target and target.get("triggerReason") in returning:
-                stage = next(t for t in state["augmentationStages"] if t["variant"] == target["variant"])
+                stage = next((t for t in state["augmentationStages"] if t["variant"] == target["variant"]), {"label": target["node"]})
                 state["returnState"].update(phase="Preparing", node=target["node"], label=stage["label"], reason="preparing_previous_stage", remainingSeconds=None)
             elif state.get("lastTransition", {}).get("reason") in returning and state.get("retiring"):
-                stage = next(t for t in state["augmentationStages"] if t["variant"] == state["active"]["variant"])
+                stage = next((t for t in state["augmentationStages"] if t["variant"] == state["active"]["variant"]), {"label": state["active"]["node"]})
                 state["returnState"].update(phase="Releasing", node=state["active"]["node"], label=stage["label"], reason="draining_upper_stage", remainingSeconds=None)
         self.save(uid, state)
         await self.drain(uid, state, snapshot)

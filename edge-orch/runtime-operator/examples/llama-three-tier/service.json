@@ -31,7 +31,7 @@
         "edge",
         "server"
       ],
-      "approvalRequired": true,
+      "approvalRequired": false,
       "cooldownSeconds": 5,
       "highWatermark": 0.8,
       "latency": {
@@ -195,6 +195,7 @@
           "kubernetes.io/hostname": "etri-ser0003-cg0ms0"
         }
       }
-    ]
+    ],
+    "serviceKind": "ai"
   }
 }

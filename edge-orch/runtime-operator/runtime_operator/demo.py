@@ -59,7 +59,7 @@ class DemoRunner:
     def controller(self):
         return self.app.state.controller
 
-    def definition(self, name, uid, *, allow_suspended=False):
+    def definition(self, name, uid, *, allow_suspended=False, allow_unconfigured=False):
         c = self.controller
         if c.stopping or not c.snapshot or c.clock() - c.last_snapshot >= 15:
             raise HTTPException(503, "runtime_snapshot_unavailable")
@@ -68,7 +68,7 @@ class DemoRunner:
         if len(matches) != 1:
             raise HTTPException(409, "service_identity_changed")
         spec = ServiceSpec.model_validate(matches[0]["spec"])
-        if (spec.suspended and not allow_suspended) or not spec.demo:
+        if (spec.suspended and not allow_suspended) or (not spec.demo and not (allow_unconfigured and spec.is_ai)):
             raise HTTPException(403, "demo_not_enabled")
         return spec
 
@@ -91,7 +91,7 @@ class DemoRunner:
         from kubernetes.client.exceptions import ApiException
         c = self.controller
         async with c.reconcile_lock:
-            spec = self.definition(name, body.serviceUid, allow_suspended=True)
+            spec = self.definition(name, body.serviceUid, allow_suspended=True, allow_unconfigured=True)
             if body.action == "start" and spec.suspended and not self.service_status(name, body.serviceUid, spec)["canStart"]:
                 raise HTTPException(409, "service_still_stopping")
             try:
@@ -114,6 +114,8 @@ class DemoRunner:
             return self.service_status(name, body.serviceUid, spec)
 
     def node_status(self, uid, spec):
+        if not spec.demo:
+            return []
         c = self.controller
         state = c.states.get(uid, {})
         history = c.journal.demo_list(uid)
@@ -140,8 +142,8 @@ class DemoRunner:
                 raise HTTPException(409, "run_id_conflict")
             return public(existing)
         spec = self.definition(name, body.serviceUid)
-        if body.mode in {"load", "node-load"} and (not spec.inference or not spec.policy.approvalRequired):
-            raise HTTPException(403, "load_requires_approval_enabled_AI_service")
+        if body.mode in {"load", "node-load"} and not spec.is_ai:
+            raise HTTPException(403, "load_requires_AI_service")
         state = c.states.get(body.serviceUid, {})
         if not state.get("serving") or not state.get("active") or state.get("target") or state.get("retiring"):
             raise HTTPException(409, "service_not_stable_for_demo")
@@ -329,20 +331,22 @@ def router(app):
         for resource in (c.snapshot or {}).get("services", []):
             name, uid = resource["metadata"]["name"], resource["metadata"]["uid"]
             try:
-                spec = runner.definition(name, uid, allow_suspended=True)
+                spec = runner.definition(name, uid, allow_suspended=True, allow_unconfigured=True)
             except HTTPException:
                 continue
             state = c.states.get(uid, {})
             latest = c.journal.demo_list(uid, limit=1)
             cooldown = max(0, math.ceil(10 - (c.clock() - latest[0]["finishedAt"]))) if latest and latest[0].get("finishedAt") else 0
-            items.append({"name": name, "uid": uid, "label": spec.demo.label,
-                          "inputPreview": json.dumps(spec.demo.payload, ensure_ascii=False),
-                          "maxRequests": spec.demo.maxRequests, "pressureSeconds": spec.demo.pressureSeconds,
-                          "recoverySeconds": spec.demo.recoverySeconds, "concurrency": spec.demo.concurrency,
+            demo = spec.demo
+            items.append({"name": name, "uid": uid, "label": demo.label if demo else "시험 입력 미등록",
+                          "testConfigured": demo is not None,
+                          "inputPreview": json.dumps(demo.payload, ensure_ascii=False) if demo else "",
+                          "maxRequests": demo.maxRequests if demo else 0, "pressureSeconds": demo.pressureSeconds if demo else 0,
+                          "recoverySeconds": demo.recoverySeconds if demo else 0, "concurrency": demo.concurrency if demo else 0,
                           "nodes": runner.node_status(uid, spec),
                           "retryAfterSeconds": cooldown,
                           "serviceControl": runner.service_status(name, uid, spec),
-                          "available": bool(not spec.suspended and state.get("serving") and not state.get("target") and not state.get("retiring")
+                          "available": bool(demo and not spec.suspended and state.get("serving") and not state.get("target") and not state.get("retiring")
                                             and not cooldown and not c.journal.demo_list(uid, active=True))})
         return {"items": items, "runs": [public(r) for r in c.journal.demo_list()], "observedAt": c.clock(),
                 "observation_error": "runtime_snapshot_unavailable" if c.clock() - c.last_snapshot >= 15 else None}

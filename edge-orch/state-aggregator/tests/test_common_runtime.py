@@ -25,6 +25,24 @@ def test_projection_retains_model_evidence_but_excludes_internal_contract():
     assert "private" not in result and "not exposed" not in result
 
 
+def test_request_metrics_without_latency_policy_require_current_revision_and_observation():
+    data = payload()
+    raw = data['services'][0]
+    raw.update(serviceKind='ai', aiInference=True, placementMode='automatic', testConfigured=False)
+    raw['requestMetrics'] = {'at':99,'target':'revision','samples':3,'successfulSamples':2,
+        'failures':1,'p95Milliseconds':150,'arrivalRps':.15,'completedRps':.1,
+        'windowSeconds':20,'scope':'gateway_queue_and_worker_response','processLocal':True}
+    item = project(data,100).services[0]
+    assert item.latency is None and item.requestMetrics.failures == 1
+    assert item.serviceKind == 'ai' and item.placementMode == 'automatic' and not item.testConfigured
+    for field, value in [('target','other'),('at',50)]:
+        old = raw['requestMetrics'][field]
+        raw['requestMetrics'][field] = value
+        assert project(data,100).services[0].requestMetrics is None
+        raw['requestMetrics'][field] = old
+    assert project(data,200).services[0].requestMetrics is None
+
+
 def test_stale_snapshot_service_or_worker_cannot_claim_current_model_state():
     for field in ("snapshot", "service", "worker"):
         data = payload()

@@ -151,9 +151,12 @@ def test_kube_service_toggle_preserves_latest_spec_and_fences_uid(rig):
         adapter.set_suspended(resource["metadata"]["name"], "recreated-uid", True)
     assert len(writes) == 1
     resource["spec"].pop("demo")
+    assert adapter.set_suspended(resource["metadata"]["name"], resource["metadata"]["uid"], True)
+    from test_runtime import spec_data
+    resource["spec"] = spec_data()
     with pytest.raises(ValueError):
         adapter.set_suspended(resource["metadata"]["name"], resource["metadata"]["uid"], True)
-    assert len(writes) == 1
+    assert len(writes) == 2
 
 
 @pytest.mark.parametrize("mode", ["node-load", "service-load"])
