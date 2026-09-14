@@ -1,0 +1,20 @@
+{
+  "image": "192.168.0.56:5000/state-aggregator@sha256:f95a77623b5b42d489ed7f14f515e3f96856b255e43d6ebca68e52b30c6f84a0",
+  "sourceHashesMatch": true,
+  "argo": {
+    "sync": "Synced",
+    "health": "Healthy"
+  },
+  "activeTests": 0,
+  "llamaPhase": "Suspended",
+  "javascriptTestsPassed": 23,
+  "mockBrowser": {
+    "nanoRemovalEnabledOnSpark": true,
+    "orinAndSparkRemovalDisabled": true,
+    "postsBeforeClick": 0,
+    "stopPostsAfterClick": 1,
+    "stopRunId": "browser-mock-only",
+    "allControlPostsIntercepted": true
+  },
+  "liveLoadStarted": false
+}
