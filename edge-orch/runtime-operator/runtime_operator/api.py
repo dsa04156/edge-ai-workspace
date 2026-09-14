@@ -15,6 +15,7 @@ from .controller import Controller
 from .journal import Journal
 from .kube import Kube
 from . import resident
+from . import diagnostics
 from .demo import router as demo_router
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -49,6 +50,7 @@ def create_app(controller=None):
     app = FastAPI(title="Common Service Runtime", lifespan=lifespan)
     app.state.controller = controller
     app.include_router(demo_router(app))
+    diagnostics.install(app)
 
     @app.get("/health")
     async def health():
@@ -121,6 +123,7 @@ def create_app(controller=None):
         fingerprint = hashlib.sha256(canonical.encode()).hexdigest()
 
         def replay(existing):
+            diagnostics.mark(request, "replay", existing)
             if existing["fingerprint"] != fingerprint:
                 return JSONResponse({"reason": "request_id_payload_conflict"}, status_code=409)
             if existing["state"] == "dispatched":
@@ -142,6 +145,7 @@ def create_app(controller=None):
         started = time.monotonic()
         c.pending[uid] = c.pending.get(uid, 0) + 1
         admitted_revision = state["active"]["name"]
+        diagnostics.mark(request, "queued")
         deadline = time.monotonic() + spec["timeoutSeconds"]
         target = None
         try:
@@ -170,6 +174,7 @@ def create_app(controller=None):
                             return JSONResponse({"reason": "inference_contract_changed", "accepted": False}, status_code=409)
                     target = active
                     c.journal.dispatch(uid, request_id, fingerprint, target["name"])
+                    diagnostics.mark(request, "dispatch", target)
                     c.inflight[target["name"]] = c.inflight.get(target["name"], 0) + 1
                     break
                 await asyncio.sleep(0.05)
@@ -198,14 +203,23 @@ def create_app(controller=None):
                     if target.get("resident"):
                         response.raise_for_status()
                         resident.validate_result(target, request_id, decoded)
+                    if target.get("resident"):
+                        diagnostics.mark(request, "metrics", decoded.get("worker_result") or decoded)
                     result, status, outcome = decoded, response.status_code, "completed"
-        except (httpx.HTTPError, ValueError, TypeError, TimeoutError):
-            pass
+        except httpx.HTTPStatusError as exc:
+            diagnostics.mark(request, "failure", ("worker_http_error", exc.response.status_code))
+        except (httpx.TimeoutException, TimeoutError):
+            diagnostics.mark(request, "failure", ("worker_timeout", None))
+        except httpx.HTTPError:
+            diagnostics.mark(request, "failure", ("worker_transport_error", None))
+        except (ValueError, TypeError):
+            diagnostics.mark(request, "failure", ("worker_response_invalid", None))
         except asyncio.CancelledError:
             c.journal.finish(uid, request_id, outcome, status, result)
             c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000, False)
             raise
         finally:
+            diagnostics.mark(request, "worker_finished")
             c.inflight[target["name"]] -= 1
         c.journal.finish(uid, request_id, outcome, status, result)
         c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000,

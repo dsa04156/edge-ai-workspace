@@ -95,6 +95,37 @@ class DemoState(BaseModel):
     observation_error: str | None = None
 
 
+class RequestDiagnostic(BaseModel):
+    seq: int
+    uid: str
+    requestId: str
+    runId: str | None = None
+    startedAt: float
+    finishedAt: float | None = None
+    state: str
+    status: int | None = None
+    reason: str | None = None
+    replay: bool = False
+    admittedNode: str | None = None
+    node: str | None = None
+    revision: str | None = None
+    gatewayQueueMilliseconds: float | None = None
+    workerRoundTripMilliseconds: float | None = None
+    workerQueueMilliseconds: float | None = None
+    inferenceMilliseconds: float | None = None
+    totalMilliseconds: float | None = None
+    upstreamStatus: int | None = None
+
+
+class RequestHistory(BaseModel):
+    items: list[RequestDiagnostic]
+    nextBefore: int | None = None
+    observedAt: float
+    retentionSeconds: int
+    retainedPerOutcomeClass: int
+    failuresOnly: bool
+
+
 class DemoStart(BaseModel):
     model_config = ConfigDict(extra="forbid")
     serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
@@ -172,6 +203,25 @@ def create_common_demo_router(settings, *, transport=None, clock=time.time):
             return DemoRun.model_validate(await upstream("GET", f"/demos/{name}/runs/{run_id}", params={"serviceUid": serviceUid}))
         except ValueError:
             raise HTTPException(503, "demo_response_invalid") from None
+
+    @router.get("/state/runtime-services/{name}/requests", response_model=RequestHistory)
+    async def request_history(response: Response, name: str = Path(pattern=r"^[a-z0-9-]{1,63}$"),
+                              serviceUid: str = Query(pattern=r"^[A-Za-z0-9-]{1,80}$"),
+                              limit: int = Query(default=25, ge=1, le=100),
+                              before: int | None = Query(default=None, ge=1), failuresOnly: bool = True,
+                              runId: str | None = Query(default=None, pattern=r"^[A-Za-z0-9_-]{8,80}$")):
+        require_enabled()
+        response.headers["Cache-Control"] = "no-store"
+        params = {"serviceUid":serviceUid, "limit":limit, "failuresOnly":str(failuresOnly).lower()}
+        if before is not None: params["before"] = before
+        if runId: params["runId"] = runId
+        try:
+            result = RequestHistory.model_validate(await upstream("GET", f"/services/{name}/request-diagnostics", params=params))
+            if any(row.uid != serviceUid or runId and row.runId != runId for row in result.items):
+                raise ValueError("request_history_identity_mismatch")
+            return result
+        except ValueError:
+            raise HTTPException(503, "request_history_invalid") from None
 
     @router.post("/api/runtime-demos/{name}/runs/{run_id}", status_code=202, response_model=DemoRun)
     async def start(body: DemoStart, request: Request, name: str = Path(pattern=r"^[a-z0-9-]{1,63}$"),

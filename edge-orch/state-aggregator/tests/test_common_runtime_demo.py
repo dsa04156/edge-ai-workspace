@@ -121,3 +121,31 @@ def test_service_control_and_node_load_proxy_preserve_target_and_reject_arbitrar
             assert r.status_code==202 and r.json()['mode']=='service-load' and r.json()['targetNode'] is None
             assert json.loads(calls[-1].content)['serviceUid']=='service-uid'
     asyncio.run(run())
+
+
+def test_request_history_is_read_only_identity_scoped_and_payload_free():
+    async def run():
+        calls=[]
+        row={'seq':1,'uid':'service-uid','requestId':'request','startedAt':100,'state':'rejected',
+             'status':503,'reason':'admission_timeout','body':'private payload'}
+        def handle(req):
+            calls.append(req)
+            return httpx.Response(200,json={'items':[row],'observedAt':100,'retentionSeconds':604800,
+                'retainedPerOutcomeClass':10000,'failuresOnly':True})
+        app=FastAPI();app.include_router(create_common_demo_router(SimpleNamespace(common_runtime_demo_enabled=True,
+            common_runtime_url='http://operator'),transport=httpx.MockTransport(handle)))
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://nexus') as client:
+            path='/state/runtime-services/service/requests'
+            r=await client.get(path,params={'serviceUid':'service-uid','before':30,'runId':'run-one1'})
+            assert r.status_code==503  # Upstream row does not belong to the selected run.
+            row['runId']='run-one1'
+            r=await client.get(path,params={'serviceUid':'service-uid','before':30,'runId':'run-one1'})
+            assert r.status_code==200 and 'private payload' not in r.text
+            assert calls[-1].method=='GET' and calls[-1].url.params['before']=='30'
+            assert r.headers['cache-control']=='no-store'
+            row['uid']='different'
+            assert (await client.get(path,params={'serviceUid':'service-uid'})).status_code==503
+            count=len(calls)
+            assert (await client.get(path,params={'serviceUid':'service-uid','limit':101})).status_code==422
+            assert (await client.post(path,json={})).status_code==405 and len(calls)==count
+    asyncio.run(run())
