@@ -264,3 +264,5 @@ script URL에 파일 SHA-256 기반 버전을 붙여 문서가 갱신될 때 기
 - 현재 노드 readiness, 직전 단계의 검증 성능·가용성, cooldown과 drain을 확인한다. 신규 요청·관측 단절·재시작은 무부하 대기를 다시 시작하며 복귀 준비 중 새 요청은 현재 경로를 유지하고 대상 모델을 정리한다.
 - 화면의 자동 축소·복귀 영역에서 조건 확인, 남은 유지 시간, 복귀 모델 준비, 상위 모델 메모리 해제, 기본 노드 유지와 보류를 구분한다. 조회 실패·오래된 returnState는 현재 복귀로 표시하지 않는다.
 - 서비스 중지는 전체 모델 해제이며, 자동 복귀는 Nano에서 서비스를 계속 유지한다.
+
+실장비 확인: 기존 Spark 무부하 서비스가 `sustained_idle_return` 사유로 Orin, Nano 순서로 복귀했다. 최종 Nano ACTIVE/모델 1348.45 MiB, Orin·Spark CACHED/모델 0 MiB, 반환 중 0개를 확인했다. Operator 75건, aggregator API 7건, JavaScript 21건 테스트 통과. 1440px·390px 실제 화면과 두 배포 Ready/파일 hash 및 Argo Synced/Healthy를 확인했다. 이번 검증에서 새 부하나 증강 승인 요청은 보내지 않았다. 근거는 `edge-orch/runtime-operator/results/2026-09-14-idle-return/`이다.

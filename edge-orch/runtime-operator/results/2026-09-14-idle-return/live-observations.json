@@ -1,0 +1,3476 @@
+[
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359688.9169798,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359688.916977,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359688.917388
+    },
+    "latency": {
+      "at": 1789359688.9173892,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Waiting",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "idle_dwell",
+      "remainingSeconds": 5.309269905090332,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359688.9173892
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359691.6309948,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359691.6309915,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359691.6319132
+    },
+    "latency": {
+      "at": 1789359691.631916,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Waiting",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "idle_dwell",
+      "remainingSeconds": 2.594743013381958,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359691.631916
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359694.3077962,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359694.3077936,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359694.3623278,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359694.3082535
+    },
+    "latency": {
+      "at": 1789359694.3082545,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359694.3082545
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359694.3077962,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359694.3077936,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359694.3623278,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359694.3082535
+    },
+    "latency": {
+      "at": 1789359694.3082545,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359694.3082545
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359697.0283706,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359697.0283685,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359697.0525641,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359697.028674
+    },
+    "latency": {
+      "at": 1789359697.0286746,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359697.0286746
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359699.712647,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359699.712645,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359699.7481234,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359699.712946
+    },
+    "latency": {
+      "at": 1789359699.7129467,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359699.7129467
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359702.4141905,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359702.4141893,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359702.4508872,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359702.4143834
+    },
+    "latency": {
+      "at": 1789359702.414384,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359702.414384
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359705.1109133,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359705.1109107,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359705.1474974,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359705.1112585
+    },
+    "latency": {
+      "at": 1789359705.1112595,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359705.1112595
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359707.817429,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359707.8174274,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359707.8555512,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359707.8177004
+    },
+    "latency": {
+      "at": 1789359707.817701,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359707.817701
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359710.5431037,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359710.543102,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359710.580957,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359710.543359
+    },
+    "latency": {
+      "at": 1789359710.5433598,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359710.5433598
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359713.284894,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359713.2848923,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359713.320795,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359713.285109
+    },
+    "latency": {
+      "at": 1789359713.2851098,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359713.2851098
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359716.0106893,
+    "active": {
+      "name": "rt-a6755c109718-5bce6dbe4cae",
+      "node": "etri-ser0003-cg0ms0",
+      "role": "server",
+      "variant": "resident-llama-spark",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359716.010685,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359716.037241,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359716.0113506
+    },
+    "latency": {
+      "at": 1789359716.011352,
+      "target": "rt-a6755c109718-5bce6dbe4cae",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359716.011352
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789359011.1784332,
+      "reason": "sustained_pressure"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "target_ready_route_switched",
+    "serving": true,
+    "checkedAt": 1789359718.717858,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359718.7530248,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [
+      {
+        "name": "rt-a6755c109718-5bce6dbe4cae",
+        "node": "etri-ser0003-cg0ms0",
+        "role": "server",
+        "variant": "resident-llama-spark",
+        "capacity": 1,
+        "observation": {
+          "at": 1789359718.790372,
+          "health": {
+            "ready": true,
+            "inFlight": 0,
+            "modelVramMiB": 1348.45,
+            "nodeState": "ACTIVE"
+          }
+        },
+        "memoryOnlyRelease": true
+      }
+    ],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359718.7181125
+    },
+    "latency": null,
+    "returnState": {
+      "phase": "Releasing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "draining_upper_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359718.7181132
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "target_ready_route_switched",
+    "serving": true,
+    "checkedAt": 1789359718.717858,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359718.7530248,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [
+      {
+        "name": "rt-a6755c109718-5bce6dbe4cae",
+        "node": "etri-ser0003-cg0ms0",
+        "role": "server",
+        "variant": "resident-llama-spark",
+        "capacity": 1,
+        "observation": {
+          "at": 1789359718.790372,
+          "health": {
+            "ready": true,
+            "inFlight": 0,
+            "modelVramMiB": 1348.45,
+            "nodeState": "ACTIVE"
+          }
+        },
+        "memoryOnlyRelease": true
+      }
+    ],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 6.0,
+      "at": 1789359718.7181125
+    },
+    "latency": null,
+    "returnState": {
+      "phase": "Releasing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "draining_upper_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359718.7181132
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359016.627511,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359721.528047,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359721.5280447,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359721.5283492
+    },
+    "latency": {
+      "at": 1789359721.5283504,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Releasing",
+      "node": "etri-dev0005-jetagx",
+      "label": "Orin",
+      "reason": "draining_upper_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359721.5283504
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359724.212373,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359724.2123663,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359724.2133389
+    },
+    "latency": {
+      "at": 1789359724.213342,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359724.213342
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359726.8953416,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359726.895335,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359726.8963947
+    },
+    "latency": {
+      "at": 1789359726.8963976,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359726.8963976
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359729.5747285,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359729.5747266,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359729.5749621
+    },
+    "latency": {
+      "at": 1789359729.5749629,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359729.5749629
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359729.5747285,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359729.5747266,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359729.5749621
+    },
+    "latency": {
+      "at": 1789359729.5749629,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359729.5749629
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359732.2098463,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359732.2098405,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359732.2106357
+    },
+    "latency": {
+      "at": 1789359732.2106383,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359732.2106383
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359734.9273415,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359734.927339,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359734.9276772
+    },
+    "latency": {
+      "at": 1789359734.927678,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359734.927678
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359737.597954,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359737.597949,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359737.5985956
+    },
+    "latency": {
+      "at": 1789359737.598598,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359737.598598
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359737.597954,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359737.597949,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359737.5985956
+    },
+    "latency": {
+      "at": 1789359737.598598,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Observing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_observation",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359737.598598
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359740.3156695,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359740.315663,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359740.3165507
+    },
+    "latency": {
+      "at": 1789359740.3165534,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Waiting",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_dwell",
+      "remainingSeconds": 8.0,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359740.3165534
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359743.0127141,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359743.0127087,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359743.0134277
+    },
+    "latency": {
+      "at": 1789359743.0134304,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Waiting",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_dwell",
+      "remainingSeconds": 5.3031229972839355,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359743.0134304
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359745.6968842,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359745.696881,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359745.6972606
+    },
+    "latency": {
+      "at": 1789359745.697262,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Waiting",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_dwell",
+      "remainingSeconds": 2.619291305541992,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359745.697262
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359748.3134575,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359748.3134518,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359748.3142362
+    },
+    "latency": {
+      "at": 1789359748.3142385,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Waiting",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_dwell",
+      "remainingSeconds": 0.0023148059844970703,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359748.3142385
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359748.3134575,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359748.3134518,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359748.3142362
+    },
+    "latency": {
+      "at": 1789359748.3142385,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Waiting",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "idle_dwell",
+      "remainingSeconds": 0.0023148059844970703,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359748.3142385
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359751.0071673,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359751.0071616,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359751.0564058,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359751.0079808
+    },
+    "latency": {
+      "at": 1789359751.0079827,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359751.0079827
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359753.7115421,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359753.7115357,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359753.7427983,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359753.7123044
+    },
+    "latency": {
+      "at": 1789359753.7123065,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359753.7123065
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359756.3731134,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359756.373111,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359756.4091322,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359756.373379
+    },
+    "latency": {
+      "at": 1789359756.37338,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359756.37338
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359759.0827334,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359759.082726,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359759.120263,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359759.0835931
+    },
+    "latency": {
+      "at": 1789359759.0835958,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359759.0835958
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359761.8265512,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359761.8265493,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359761.859966,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359761.8268297
+    },
+    "latency": {
+      "at": 1789359761.8268304,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359761.8268304
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359761.8265512,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359761.8265493,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359761.859966,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359761.8268297
+    },
+    "latency": {
+      "at": 1789359761.8268304,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359761.8268304
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359764.5123851,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359764.5123832,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359764.5438375,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359764.5126061
+    },
+    "latency": {
+      "at": 1789359764.5126069,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359764.5126069
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359767.212426,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359767.2124197,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359767.2475805,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359767.213253
+    },
+    "latency": {
+      "at": 1789359767.2132554,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359767.2132554
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359769.9353378,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359769.935331,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359769.9773917,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359769.9362433
+    },
+    "latency": {
+      "at": 1789359769.936246,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359769.936246
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Preparing",
+    "reason": "waiting_for_pod_and_application_ready",
+    "serving": true,
+    "checkedAt": 1789359772.6996856,
+    "active": {
+      "name": "rt-a6755c109718-c70ba39507b1",
+      "node": "etri-dev0005-jetagx",
+      "role": "edge",
+      "variant": "resident-llama-agx",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359772.6996791,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359772.7433689,
+        "health": {
+          "ready": false,
+          "inFlight": 0,
+          "modelVramMiB": 0.0,
+          "nodeState": "CACHED"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359772.700587
+    },
+    "latency": {
+      "at": 1789359772.70059,
+      "target": "rt-a6755c109718-c70ba39507b1",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Preparing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "preparing_previous_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359772.70059
+    },
+    "lastTransition": {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "target_ready_route_switched",
+    "serving": true,
+    "checkedAt": 1789359775.4467995,
+    "active": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359775.4812012,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [
+      {
+        "name": "rt-a6755c109718-c70ba39507b1",
+        "node": "etri-dev0005-jetagx",
+        "role": "edge",
+        "variant": "resident-llama-agx",
+        "capacity": 1,
+        "observation": {
+          "at": 1789359775.5391665,
+          "health": {
+            "ready": true,
+            "inFlight": 0,
+            "modelVramMiB": 1348.45,
+            "nodeState": "ACTIVE"
+          }
+        },
+        "memoryOnlyRelease": true
+      }
+    ],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359775.447184
+    },
+    "latency": null,
+    "returnState": {
+      "phase": "Releasing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "draining_upper_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359775.4471855
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789359775.4812093,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "target_ready_route_switched",
+    "serving": true,
+    "checkedAt": 1789359775.4467995,
+    "active": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359775.4812012,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [
+      {
+        "name": "rt-a6755c109718-c70ba39507b1",
+        "node": "etri-dev0005-jetagx",
+        "role": "edge",
+        "variant": "resident-llama-agx",
+        "capacity": 1,
+        "observation": {
+          "at": 1789359775.5391665,
+          "health": {
+            "ready": true,
+            "inFlight": 0,
+            "modelVramMiB": 1348.45,
+            "nodeState": "ACTIVE"
+          }
+        },
+        "memoryOnlyRelease": true
+      }
+    ],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 4.8,
+      "at": 1789359775.447184
+    },
+    "latency": null,
+    "returnState": {
+      "phase": "Releasing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "draining_upper_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359775.4471855
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789359775.4812093,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-ser0003-cg0ms0",
+      "at": 1789359721.5457795,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359778.2216187,
+    "active": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359778.221612,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 2.0,
+      "at": 1789359778.2222302
+    },
+    "latency": {
+      "at": 1789359778.222233,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Releasing",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "draining_upper_stage",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359778.222233
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789359775.4812093,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359778.271153,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  {
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "serving": true,
+    "checkedAt": 1789359780.972666,
+    "active": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789359780.972661,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 2.0,
+      "at": 1789359780.9731653
+    },
+    "latency": {
+      "at": 1789359780.9731674,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null
+    },
+    "returnState": {
+      "phase": "Baseline",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "baseline_active",
+      "remainingSeconds": null,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 8.0,
+      "at": 1789359780.9731674
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789359775.4812093,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789359778.271153,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  }
+]

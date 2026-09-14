@@ -1,0 +1,161 @@
+{
+  "nano": {
+    "timestamp": 1789359845.1910841,
+    "node_id": "etri-dev0001-jetorn",
+    "node_state": "ACTIVE",
+    "model_vram_mib": 1348.45,
+    "active_requests": 0,
+    "queue_length": 0,
+    "management_runtime_running": true,
+    "inference_worker_running": true,
+    "last_activation": {
+      "activation_required": true,
+      "node_state_before": "CACHED",
+      "node_state": "ACTIVE",
+      "activation_started_timestamp": 1789359751.0845685,
+      "ready_timestamp": 1789359774.4430156,
+      "worker_start_ms": 1.007,
+      "model_remote_download_ms": 0.0,
+      "model_load_ms": 23347.672,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 23358.594,
+      "activation_time_ms": 23358.598,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "transition": {
+        "timestamp": 1789359774.443026,
+        "node": "nano",
+        "physical_node": "etri-dev0001-jetorn",
+        "old_state": "CACHED",
+        "new_state": "ACTIVE",
+        "reason": "common_runtime_operator"
+      }
+    },
+    "last_deactivation": {
+      "deactivation_required": true,
+      "node_state_before": "ACTIVE",
+      "node_state": "CACHED",
+      "deactivation_started_timestamp": 1789352246.3669596,
+      "deactivation_timestamp": 1789352246.6532562,
+      "worker_start_ms": 1.162,
+      "model_unload_ms": 282.498,
+      "model_delete_ms": 0.0,
+      "worker_stop_ms": 282.498,
+      "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+      "deactivation_time_ms": 286.324,
+      "transition": {
+        "timestamp": 1789352246.6530995,
+        "node": "nano",
+        "physical_node": "etri-dev0001-jetorn",
+        "old_state": "ACTIVE",
+        "new_state": "CACHED",
+        "reason": "common_runtime_operator"
+      }
+    }
+  },
+  "agx": {
+    "timestamp": 1789359845.231182,
+    "node_id": "etri-dev0005-jetagx",
+    "node_state": "CACHED",
+    "model_vram_mib": 0.0,
+    "active_requests": 0,
+    "queue_length": 0,
+    "management_runtime_running": true,
+    "inference_worker_running": false,
+    "last_activation": {
+      "activation_required": true,
+      "node_state_before": "CACHED",
+      "node_state": "ACTIVE",
+      "activation_started_timestamp": 1789359694.4001665,
+      "ready_timestamp": 1789359716.491269,
+      "worker_start_ms": 1.243,
+      "model_remote_download_ms": 0.0,
+      "model_load_ms": 22080.432,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 22091.248,
+      "activation_time_ms": 22091.252,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "transition": {
+        "timestamp": 1789359716.491283,
+        "node": "agx",
+        "physical_node": "etri-dev0005-jetagx",
+        "old_state": "CACHED",
+        "new_state": "ACTIVE",
+        "reason": "common_runtime_operator"
+      }
+    },
+    "last_deactivation": {
+      "deactivation_required": true,
+      "node_state_before": "ACTIVE",
+      "node_state": "CACHED",
+      "deactivation_started_timestamp": 1789359775.5667772,
+      "deactivation_timestamp": 1789359776.1670256,
+      "worker_start_ms": 0.93,
+      "model_unload_ms": 597.366,
+      "model_delete_ms": 0.0,
+      "worker_stop_ms": 597.366,
+      "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+      "deactivation_time_ms": 600.267,
+      "transition": {
+        "timestamp": 1789359776.166931,
+        "node": "agx",
+        "physical_node": "etri-dev0005-jetagx",
+        "old_state": "ACTIVE",
+        "new_state": "CACHED",
+        "reason": "common_runtime_operator"
+      }
+    }
+  },
+  "spark": {
+    "timestamp": 1789359845.2463222,
+    "node_id": "etri-ser0003-cg0ms0",
+    "node_state": "CACHED",
+    "model_vram_mib": 0.0,
+    "active_requests": 0,
+    "queue_length": 0,
+    "management_runtime_running": true,
+    "inference_worker_running": false,
+    "last_activation": {
+      "activation_required": true,
+      "node_state_before": "CACHED",
+      "node_state": "ACTIVE",
+      "activation_started_timestamp": 1789359005.6836793,
+      "ready_timestamp": 1789359008.7719445,
+      "worker_start_ms": 0.091,
+      "model_remote_download_ms": 0.0,
+      "model_load_ms": 3085.675,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 3088.312,
+      "activation_time_ms": 3088.312,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "transition": {
+        "timestamp": 1789359008.771948,
+        "node": "server",
+        "physical_node": "etri-ser0003-cg0ms0",
+        "old_state": "CACHED",
+        "new_state": "ACTIVE",
+        "reason": "common_runtime_operator"
+      }
+    },
+    "last_deactivation": {
+      "deactivation_required": true,
+      "node_state_before": "ACTIVE",
+      "node_state": "CACHED",
+      "deactivation_started_timestamp": 1789359718.8144436,
+      "deactivation_timestamp": 1789359719.0469844,
+      "worker_start_ms": 0.258,
+      "model_unload_ms": 231.51,
+      "model_delete_ms": 0.0,
+      "worker_stop_ms": 231.51,
+      "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+      "deactivation_time_ms": 232.548,
+      "transition": {
+        "timestamp": 1789359719.04695,
+        "node": "server",
+        "physical_node": "etri-ser0003-cg0ms0",
+        "old_state": "ACTIVE",
+        "new_state": "CACHED",
+        "reason": "common_runtime_operator"
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-14",
+  "tests": {
+    "operator": 75,
+    "aggregator": 7,
+    "frontend": 21
+  },
+  "liveTransitions": [
+    {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789359718.7530303,
+      "reason": "sustained_idle_return"
+    },
+    {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789359775.4812093,
+      "reason": "sustained_idle_return"
+    }
+  ],
+  "finalNode": "etri-dev0001-jetorn",
+  "finalReturnPhase": "Baseline",
+  "retiring": [],
+  "workerModelMemoryMiB": {
+    "nano": 1348.45,
+    "agx": 0.0,
+    "spark": 0.0
+  },
+  "browser": {
+    "desktop": 1440,
+    "mobile": 390,
+    "overflow": false,
+    "realReturnPhases": [
+      "Preparing",
+      "Baseline"
+    ],
+    "versionedScript": "4606e148a0df"
+  },
+  "deployment": {
+    "argo": "Synced/Healthy",
+    "bothDeploymentsReady": true,
+    "podFilesMatchImages": true
+  },
+  "verificationBoundary": "Existing idle Spark service returned automatically after deployment. No synthetic load or augmentation approval was submitted during verification. Existing Node/Pod/GPU reservations were retained. Browser preview mock had an in-flight callback error during rollout; fresh unmocked browser verified real phases."
+}
