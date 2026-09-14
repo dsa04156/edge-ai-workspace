@@ -138,3 +138,22 @@ def test_policy_dwell_progress_expires_with_observation():
     assert project(data,200).services[0].policyObservation is None
     data['lastError'] = 'snapshot_unavailable'
     assert project(data,100).services[0].policyObservation is None
+
+
+def test_contract_summary_exposes_only_configuration_and_retains_it_when_suspended():
+    data = payload()
+    item = data["services"][0]
+    item.update(phase="Suspended", serving=False, active=None, commonAI={
+        "adapter":"generic-ai-test", "service":{"model":"vision-test","version":"a"*64,"secret":"hidden"},
+        "input":{"type":"image","source":"registered-camera","payload":"private-input"},
+        "resources":{"cpu":"500m","memory":"1Gi","gpu":"nvidia.com/gpu=1"},
+        "placement":{"default_node":"node-a","candidate_nodes":["node-a","node-b"]},
+        "worker_models":{"private_endpoint":"hidden"}})
+    result = project(data,100).services[0]
+    assert result.contractSummary.model == "vision-test"
+    assert result.contractSummary.candidateNodes == ["node-a","node-b"]
+    assert result.contractSummary.cpuRequest == "500m"
+    assert all(x not in result.model_dump_json() for x in ["private-input","private_endpoint","hidden"])
+    assert project(data,200).services[0].contractSummary.model == "vision-test"
+    item["commonAI"]["placement"] = []
+    assert project(data,100).services[0].contractSummary.candidateNodes == []

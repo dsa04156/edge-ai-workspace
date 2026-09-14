@@ -149,7 +149,40 @@ class PolicyObservation(BaseModel):
     returnHeadroomRatio: float
 
 
+class RuntimeContractSummary(BaseModel):
+    adapter: str | None = None
+    model: str | None = None
+    modelVersion: str | None = None
+    inputType: str | None = None
+    inputSource: str | None = None
+    cpuRequest: str | None = None
+    memoryRequest: str | None = None
+    acceleratorRequest: str | None = None
+    defaultNode: str | None = None
+    candidateNodes: list[str] = Field(default_factory=list)
+
+
+def contract_summary(raw: dict) -> RuntimeContractSummary | None:
+    """Allowlisted configuration only; never expose input payloads or worker endpoints."""
+    common = raw.get("commonAI")
+    if not isinstance(common, dict):
+        return None
+    sections = {key: common.get(key) if isinstance(common.get(key), dict) else {}
+                for key in ("service", "input", "resources", "placement")}
+    selected = {"adapter": common.get("adapter"),
+        "model": sections["service"].get("model"), "modelVersion": sections["service"].get("version"),
+        "inputType": sections["input"].get("type"), "inputSource": sections["input"].get("source"),
+        "cpuRequest": sections["resources"].get("cpu"), "memoryRequest": sections["resources"].get("memory"),
+        "acceleratorRequest": sections["resources"].get("gpu"),
+        "defaultNode": sections["placement"].get("default_node")}
+    selected = {key: value for key, value in selected.items() if isinstance(value, str)}
+    candidates = sections["placement"].get("candidate_nodes")
+    selected["candidateNodes"] = [n for n in candidates if isinstance(n, str)] if isinstance(candidates, list) else []
+    return RuntimeContractSummary(**selected)
+
+
 class RuntimeItem(BaseModel):
+    contractSummary: RuntimeContractSummary | None = None
     serviceKind: Literal["ai", "service", "test"] = "service"
     placementMode: Literal["automatic", "preferred", "approval"] = "preferred"
     testConfigured: bool = False
@@ -197,6 +230,7 @@ def project(payload: dict, now: float) -> RuntimeState:
         result.observation_error = "runtime_snapshot_stale" if age >= 15 else "runtime_operator_error"
     for raw in payload["services"]:
         item = RuntimeItem.model_validate(raw)
+        item.contractSummary = contract_summary(raw)
         if item.phase in {"Deleted", "Missing"}:
             continue
         current = item.checkedAt is not None and 0 <= now - item.checkedAt < 15
