@@ -1,0 +1,52 @@
+{
+  "operatorImage": "192.168.0.56:5000/runtime-operator@sha256:e7bdf7aae5e6448e6fbe38092860a457921152f5528ef91fc71be5550d0c4521",
+  "operatorPod": "runtime-operator-dc7fd755-tjrt4",
+  "controllerHash": "3ad804ab0281e427d029c3752e4b3d36e9b04d42ff0deb3f0d8ea43f78bf8223",
+  "observedAt": 1789368009.11981,
+  "services": [
+    {
+      "name": "llama-inference",
+      "phase": "Serving",
+      "node": "etri-dev0001-jetorn",
+      "serviceKind": "ai",
+      "placementMode": "automatic"
+    },
+    {
+      "name": "quality-api-demo",
+      "phase": "Serving",
+      "node": "etri-dev0001-jetorn",
+      "serviceKind": "test",
+      "placementMode": "automatic"
+    },
+    {
+      "name": "telemetry-transform-demo",
+      "phase": "Serving",
+      "node": "etri-dev0001-jetorn",
+      "serviceKind": "test",
+      "placementMode": "automatic"
+    }
+  ],
+  "activeTests": 0,
+  "collectors": [
+    {
+      "name": "device-sensehat-raspi",
+      "desired": 1,
+      "ready": 1
+    },
+    {
+      "name": "device-serial-jetson",
+      "desired": 1,
+      "ready": 1
+    }
+  ],
+  "legacyControllers": [
+    {
+      "name": "continuity-controller",
+      "replicas": 0
+    },
+    {
+      "name": "ordered-offload-controller",
+      "replicas": 0
+    }
+  ]
+}
