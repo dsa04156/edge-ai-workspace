@@ -107,6 +107,19 @@ def test_map_candidates_are_typed_public_metadata_and_removed_when_stale():
     assert project(data, 200).services[0].eligibleCandidates == []
 
 
+def test_actual_placement_ranking_is_allowlisted_and_hidden_when_observation_is_stale():
+    data = payload()
+    data['services'][0]['placementDecision'] = {
+        'at': 99, 'generation': 1, 'status': 'Preparing', 'reason': 'sustained_pressure',
+        'basis': 'smallest_sufficient_capacity', 'staged': False,
+        'selectedRevision': 'next', 'private': 'hidden', 'candidates': [
+            {'rank': 1, 'node': 'node-b', 'variant': 'gpu', 'role': 'server', 'capacity': 2, 'endpoint': 'private'}]}
+    item = project(data, 100).services[0]
+    assert item.placementDecision.candidates[0].rank == 1
+    assert 'hidden' not in item.model_dump_json() and 'endpoint' not in item.model_dump_json()
+    assert project(data, 200).services[0].placementDecision is None
+
+
 def test_ordered_stages_retain_configuration_but_not_live_eligibility_when_stale():
     data = payload()
     data["services"][0]["augmentationStages"] = [{"step": 1, "label": "Nano", "variant": "nano", "node": "nano-node", "eligible": True, "qualifiedRps": 2}]

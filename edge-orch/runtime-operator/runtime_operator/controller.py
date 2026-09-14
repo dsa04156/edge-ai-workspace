@@ -39,6 +39,7 @@ class Controller:
             state.update(highSince=None, lowSince=None, idleSince=None, policyObservation=None)
             state["returnState"] = None
             state.pop("latency", None)
+            state["placementDecision"] = None
             state["proposal"] = None
             approval = state.get("lastApproval")
             if approval and approval["status"] == "Approved":
@@ -187,6 +188,11 @@ class Controller:
                  **copy.deepcopy(self.states.get(uid, {}))}
         state["returnState"] = None
         state["policyObservation"] = None
+        decision = state.get("placementDecision")
+        if decision and decision["status"] == "Evaluated":
+            decision["status"] = "Historical"
+        if decision and decision["generation"] != resource["metadata"].get("generation", 1):
+            state["placementDecision"] = None
         state["observedGeneration"] = resource["metadata"].get("generation", 1)
         state["approvalRequired"] = spec.policy.approvalRequired
         state["aiInference"] = spec.is_ai
@@ -206,7 +212,7 @@ class Controller:
         state["serving"] = False
         state["phase"] = "Reconciling"
         if spec.suspended or resource["metadata"].get("deletionTimestamp"):
-            state.update(checkedAt=self.clock(), proposal=None, load=None, latency=None, eligibleCandidates=[])
+            state.update(checkedAt=self.clock(), proposal=None, placementDecision=None, load=None, latency=None, eligibleCandidates=[])
             for stage in state.get("augmentationStages", []):
                 stage["eligible"] = False
             had_admission = bool(state.get("active") or state.get("target"))
@@ -388,9 +394,12 @@ class Controller:
             elif back["phase"] == "Waiting":
                 back["remainingSeconds"] = max(back["remainingSeconds"] or 0, cooldown_remaining)
         choice = None
+        ranked = None
+        basis = "stage_order" if order else "preferred_role_then_capacity"
         reason = "healthy_current_placement"
         if not healthy or not current:
             alternatives = [c for c in eligible if not active or self.target(resource, spec, c)["name"] != active["name"]]
+            ranked = alternatives
             choice = alternatives[0] if alternatives else None
             reason = "initial_or_unhealthy_or_policy_changed"
         elif not state.get("target") and now - state["switchedAt"] >= spec.policy.cooldownSeconds:
@@ -401,7 +410,9 @@ class Controller:
                                or (c.variant.qualifiedP95Milliseconds is not None
                                    and c.variant.qualifiedP95Milliseconds < current.variant.qualifiedP95Milliseconds))
                           and qualified(c, latency_policy.maxP95Milliseconds)]
-                choice = min(faster, key=lambda c: (c.variant.qualifiedP95Milliseconds, c.node)) if faster else None
+                ranked = sorted(faster, key=lambda c: (c.variant.qualifiedP95Milliseconds, c.node))
+                basis = "qualified_latency"
+                choice = ranked[0] if ranked else None
                 reason = "sustained_latency_breach" if choice else "latency_no_qualified_target"
             elif spec.policy.mode == "automatic" and state["highSince"] is not None and now - state["highSince"] >= spec.policy.pressureSeconds:
                 larger = [c for c in eligible if (not order or c.variant.name == next_variant) and (
@@ -411,7 +422,9 @@ class Controller:
                               and c.variant.maxInFlight > active["capacity"]))]
                 if latency_policy:
                     larger = [c for c in larger if qualified(c, latency_policy.maxP95Milliseconds)]
-                choice = min(larger, key=lambda c: (c.variant.qualifiedRps or c.variant.maxInFlight, c.node)) if larger else None
+                ranked = sorted(larger, key=lambda c: (c.variant.qualifiedRps or c.variant.maxInFlight, c.node))
+                basis = "smallest_sufficient_capacity"
+                choice = ranked[0] if ranked else None
                 reason = "sustained_pressure" if choice else "pressure_no_qualified_capacity"
             elif state["lowSince"] is not None and now - state["lowSince"] >= spec.policy.returnSeconds:
                 return_ready = (idle_ready or not latency_policy or (recovered and now - state["latencyLowSince"] >= spec.policy.returnSeconds))
@@ -421,6 +434,7 @@ class Controller:
                          and load <= c.variant.maxInFlight * spec.policy.highWatermark
                          and return_rate_ok(c)
                          and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
+                ranked = small if small else None
                 choice = small[0] if small else None
                 reason = ("sustained_idle_return" if idle_ready else "sustained_low_load_return") if choice else "healthy_current_placement"
                 if idle_ready and not choice and (previous_variant or (not order and active["role"] != spec.policy.preferredRole)):
@@ -433,6 +447,20 @@ class Controller:
         if choice and any(t["name"] == self.target(resource, spec, choice)["name"] for t in state["retiring"]):
             choice = None
             reason = "candidate_still_draining"
+        # Decision-time evidence uses the exact ordered set used above, not a UI score.
+        # Freeze it while preparing; later reconciles may have different candidates.
+        if ranked is not None and not state.get("target"):
+            state["placementDecision"] = {
+                "at": now, "generation": state["observedGeneration"], "status": "Evaluated",
+                "reason": reason, "basis": basis, "staged": bool(order),
+                "sourceNode": active["node"] if active else None,
+                "sourceRevision": active["name"] if active else None,
+                "selectedRevision": self.target(resource, spec, choice)["name"] if choice else None,
+                "candidates": [{"rank": i + 1, "node": c.node, "variant": c.variant.name,
+                    "role": c.role, "capacity": c.variant.maxInFlight,
+                    "qualifiedRps": c.variant.qualifiedRps,
+                    "qualifiedP95Milliseconds": c.variant.qualifiedP95Milliseconds}
+                    for i, c in enumerate(ranked)]}
         # A recommendation never prepares a model. Only the persisted approval
         # for this exact service generation, source and candidate can do that.
         gated = (spec.policy.approvalRequired and choice and active and not state.get("target")
@@ -467,6 +495,8 @@ class Controller:
         if choice and not state.get("target") and now >= state.get("retryAfter", 0):
             state["target"] = self.target(resource, spec, choice)
             state["target"]["triggerReason"] = reason
+            if state.get("placementDecision"):
+                state["placementDecision"]["status"] = "Preparing"
             if gated and state.get("lastApproval", {}).get("status") == "Preparing":
                 state["target"]["approvalId"] = state["lastApproval"]["id"]
                 state["proposal"] = None
@@ -488,6 +518,8 @@ class Controller:
                 state["target"] = None
                 state["retryAfter"] = now + spec.policy.cooldownSeconds
                 reason = "idle_return_interrupted" if return_interrupted else "candidate_invalid_or_prepare_timeout"
+                if state.get("placementDecision"):
+                    state["placementDecision"].update(status="Interrupted", outcomeReason=reason)
                 if target.get("approvalId") and target["approvalId"] == state.get("lastApproval", {}).get("id"):
                     state["lastApproval"].update(status="Failed", reason=reason)
             else:
@@ -504,6 +536,8 @@ class Controller:
                     if active:
                         state["retiring"].append(active)
                     target["everRouted"] = True
+                    if state.get("placementDecision"):
+                        state["placementDecision"].update(status="Applied", appliedAt=now)
                     state.update(active=target, target=None, serving=True, recovering=False,
                                  switchedAt=now, highSince=None, lowSince=None,
                                  latency=None, latencyHighSince=None, latencyLowSince=None, idleSince=None)

@@ -59,6 +59,29 @@ class RuntimeCandidate(BaseModel):
     role: str
 
 
+class RankedCandidate(RuntimeCandidate):
+    model_config = ConfigDict(allow_inf_nan=False)
+    rank: int = Field(ge=1)
+    capacity: int = Field(gt=0)
+    qualifiedRps: float | None = Field(default=None, gt=0)
+    qualifiedP95Milliseconds: float | None = Field(default=None, ge=0)
+
+
+class PlacementDecision(BaseModel):
+    at: float
+    generation: int
+    status: Literal["Evaluated", "Preparing", "Applied", "Interrupted", "Historical"]
+    reason: str
+    basis: Literal["stage_order", "preferred_role_then_capacity", "qualified_latency", "smallest_sufficient_capacity"]
+    staged: bool
+    sourceNode: str | None = None
+    sourceRevision: str | None = None
+    selectedRevision: str | None = None
+    appliedAt: float | None = None
+    outcomeReason: str | None = None
+    candidates: list[RankedCandidate] = Field(default_factory=list)
+
+
 class RequestMetrics(BaseModel):
     model_config = ConfigDict(allow_inf_nan=False)
     at: float
@@ -182,6 +205,7 @@ def contract_summary(raw: dict) -> RuntimeContractSummary | None:
 
 
 class RuntimeItem(BaseModel):
+    placementDecision: PlacementDecision | None = None
     contractSummary: RuntimeContractSummary | None = None
     serviceKind: Literal["ai", "service", "test"] = "service"
     placementMode: Literal["automatic", "preferred", "approval"] = "preferred"
@@ -240,6 +264,7 @@ def project(payload: dict, now: float) -> RuntimeState:
             item.load = None
             item.returnState = None
             item.proposal = None
+            item.placementDecision = None
             item.eligibleCandidates = []
             for stage in item.augmentationStages:
                 stage.eligible = False
