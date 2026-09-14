@@ -1,0 +1,249 @@
+{
+  "codeCommit": "3fb8fb183702a9c4b927efbefa90eb44f87e6574",
+  "tests": {
+    "runtimeOperator": 109,
+    "aggregatorPython": 13,
+    "browserJavaScript": 26
+  },
+  "images": {
+    "state-aggregator": {
+      "baseImage": "192.168.0.56:5000/state-aggregator@sha256:1428cf3672e4d9a07d764232eca0fa8aa0ea8c04b2adf2f3988bc8b1e3ca3684",
+      "image": "192.168.0.56:5000/state-aggregator@sha256:83446b4b1da3359f7081ef37354e85017e618514d7eeae4327f2cc42b0ddc930",
+      "files": {
+        "common_runtime.py": "1032c50248aabff6f37f9217bc00c0fdce69fd8e4deccd50b80153f33ca7d3ed",
+        "common_runtime_demo.py": "6556aaffd32e33a2e6e17f0ba96238bc936c864e3c2c64eec0d13eae7ef0e8fb",
+        "static/nexus/common-runtime.js": "701e5b4079f3382ad9eeb11e4b66f6ae9b00eeed1f431059ce09218b33819b16",
+        "static/nexus/common-runtime-demo.js": "4afa64373560e0da3208d22670d656016e99f630cfcf05df8502bda8db5e7917",
+        "static/nexus/common-runtime.css": "8b98cd33b7af3990b91bb8ca6e114a7c2aa3bd08d25cbf7258b04aecdb21bf25",
+        "static/nexus/index.html": "ea741e0dc8815f77694c5d4b3958c98027a68b5945e904db9385377d43ffa8d3"
+      }
+    },
+    "runtime-operator": {
+      "baseImage": "192.168.0.56:5000/runtime-operator@sha256:8e20a8b6adc922c1083cf128206d1d00ce473851d257b4428ae04b15e8b7e42f",
+      "image": "192.168.0.56:5000/runtime-operator@sha256:2a3ccd646fb78036429a2abb67ffd579be25c8c1afb695b357406b5829b2e08e",
+      "files": {
+        "controller.py": "f1f1323b150bfdf20b98af42f4aaf1cb8d8867ba9abef6cb6c93a5c1dff1a5c1",
+        "latency.py": "415db81e4c890125ea17b4da3e540552f93a4cee66b4e6043d9719d4dc109534",
+        "demo.py": "aea285bff987347057ccf0a318326a0179b936fc9443282b60336f95407da95a"
+      }
+    }
+  },
+  "run": {
+    "id": "71af307f214b411ab3945a6d1b49abfa",
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "name": "llama-inference",
+    "label": "Nano → Orin → Spark · 단계별 승인 Llama 부하 시험",
+    "mode": "node-load",
+    "phase": "Stopped",
+    "stage": "finished",
+    "createdAt": 1789370452.9201195,
+    "finishedAt": 1789370646.6302843,
+    "sent": 1371,
+    "succeeded": 1364,
+    "failed": 2,
+    "unknown": 0,
+    "lastResult": "{\"request_id\": \"demo-1c40daa82213b9fc888c02fd-1370\", \"node_id\": \"etri-ser0003-cg0ms0\", \"role\": \"server\", \"node_state\": \"ACTIVE\", \"model\": \"llama3.2:1b\", \"response\": \"Edge computing reduces latency by processing data closer\", \"model_digest\": \"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\", \"queue_wait_ms\": 0.003, \"ttft_ms\": 9.832, \"tokens_per_second\": 179.763, \"inference_ms\": 54.767, \"actual_e2e_ms\": 54.77, \"eval_count\": 8}",
+    "routeHistory": [
+      {
+        "at": 1789370452.9230118,
+        "node": "etri-dev0001-jetorn",
+        "role": "edge",
+        "reason": "sustained_idle_return"
+      },
+      {
+        "at": 1789370489.6010623,
+        "node": "etri-dev0005-jetagx",
+        "role": "edge",
+        "reason": "sustained_pressure"
+      },
+      {
+        "at": 1789370555.304408,
+        "node": "etri-ser0003-cg0ms0",
+        "role": "server",
+        "reason": "sustained_pressure"
+      }
+    ],
+    "recentRequests": [
+      {
+        "id": "demo-1c40daa82213b9fc888c02fd-1366",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-5bce6dbe4cae",
+        "elapsedMilliseconds": 71.21759299843688
+      },
+      {
+        "id": "demo-1c40daa82213b9fc888c02fd-1367",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-5bce6dbe4cae",
+        "elapsedMilliseconds": 71.56301499708206
+      },
+      {
+        "id": "demo-1c40daa82213b9fc888c02fd-1368",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-5bce6dbe4cae",
+        "elapsedMilliseconds": 82.90205299999798
+      },
+      {
+        "id": "demo-1c40daa82213b9fc888c02fd-1369",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-5bce6dbe4cae",
+        "elapsedMilliseconds": 82.06033899841714
+      },
+      {
+        "id": "demo-1c40daa82213b9fc888c02fd-1370",
+        "state": "completed",
+        "status": 200,
+        "target": "rt-a6755c109718-5bce6dbe4cae",
+        "elapsedMilliseconds": 80.37706399773015
+      }
+    ],
+    "startNode": "etri-dev0001-jetorn",
+    "startRole": "edge",
+    "currentNode": "etri-ser0003-cg0ms0",
+    "returned": false,
+    "retiring": 0,
+    "reason": "operator_stopped_demo",
+    "stopRequested": true,
+    "targetNode": "etri-dev0001-jetorn",
+    "followsService": true,
+    "targetLabel": "Nano",
+    "cancelled": 5
+  },
+  "transitions": [
+    {
+      "fromNode": "etri-dev0001-jetorn",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789370489.4559069,
+      "reason": "sustained_pressure"
+    },
+    {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-ser0003-cg0ms0",
+      "at": 1789370555.2820675,
+      "reason": "sustained_pressure"
+    },
+    {
+      "fromNode": "etri-ser0003-cg0ms0",
+      "toNode": "etri-dev0005-jetagx",
+      "at": 1789370755.0034356,
+      "reason": "sustained_idle_return"
+    },
+    {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789370863.4969466,
+      "reason": "sustained_idle_return"
+    }
+  ],
+  "finalService": {
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "name": "llama-inference",
+    "phase": "Serving",
+    "serving": true,
+    "checkedAt": 1789370917.8326552,
+    "active": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "role": "edge",
+      "variant": "resident-llama-nano",
+      "capacity": 1,
+      "observation": {
+        "at": 1789370917.8326492,
+        "health": {
+          "ready": true,
+          "inFlight": 0,
+          "modelVramMiB": 1348.45,
+          "nodeState": "ACTIVE"
+        }
+      },
+      "memoryOnlyRelease": true
+    },
+    "target": null,
+    "retiring": [],
+    "load": {
+      "inFlightAndPending": 0,
+      "utilization": 0.0,
+      "pending": 0,
+      "inFlight": 0,
+      "capacity": 1,
+      "qualifiedRps": 2.0,
+      "at": 1789370917.833265
+    },
+    "latency": {
+      "at": 1789370917.8332682,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "samples": 0,
+      "successfulSamples": 0,
+      "failures": 0,
+      "p95Milliseconds": null,
+      "windowSeconds": 20.0,
+      "scope": "gateway_queue_and_worker_response",
+      "processLocal": true,
+      "completedRps": 0.0,
+      "arrivalRps": 0.0,
+      "failureRatio": null,
+      "valid": false,
+      "reason": "insufficient_samples",
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0
+    },
+    "policyObservation": {
+      "at": 1789370917.8332682,
+      "pressureSeconds": 10.0,
+      "pressureElapsedSeconds": 0.0,
+      "latencyBreachSeconds": 10.0,
+      "latencyElapsedSeconds": 0.0,
+      "maxP95Milliseconds": 900.0,
+      "returnP95Milliseconds": 750.0,
+      "returnSeconds": 60.0,
+      "cooldownSeconds": 60.0,
+      "cooldownRemainingSeconds": 5.612722635269165,
+      "arrivalRps": 0.0,
+      "windowSeconds": 20.0,
+      "returnHeadroomRatio": 0.8
+    },
+    "returnState": {
+      "phase": "Baseline",
+      "node": "etri-dev0001-jetorn",
+      "label": "Nano",
+      "reason": "baseline_active",
+      "remainingSeconds": 27.357908487319946,
+      "windowSeconds": 20.0,
+      "dwellSeconds": 60.0,
+      "at": 1789370917.8332682,
+      "arrivalRps": null,
+      "maxArrivalRps": null
+    },
+    "lastTransition": {
+      "fromNode": "etri-dev0005-jetagx",
+      "toNode": "etri-dev0001-jetorn",
+      "at": 1789370863.4969466,
+      "reason": "sustained_idle_return"
+    },
+    "lastRelease": {
+      "node": "etri-dev0005-jetagx",
+      "at": 1789370869.0244853,
+      "modelVramMiB": 0.0,
+      "reservationRetained": true
+    },
+    "observation_error": null
+  },
+  "checks": {
+    "upAndDownSequence": true,
+    "loadPersistsPastSparkCooldown": true,
+    "sameRunStopOnSpark": true,
+    "noNewRequestsAfterRemoval": true,
+    "serviceRemainsRunning": true,
+    "sourceHashesMatchDeployment": true,
+    "desktopOverflow": false,
+    "mobileOverflow": false,
+    "AIServiceLoadStartButtonCount": 0,
+    "nodeLoadButtonCount": 3
+  },
+  "limitations": [
+    "2 requests counted as failed during pressure; this is not a zero-error throughput qualification. Their exact gateway responses were not retained in the five-request public observation window."
+  ]
+}
