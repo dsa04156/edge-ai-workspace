@@ -289,3 +289,30 @@ Flannel 및 두 Helm release의 서버 dry-run과 자동시험 41개를 통과�
 - GPU device plugin·GPU 추론 workload는 이번 워커 등록 범위에 포함하지 않았다. 실제 재부팅 복구도 미검증이다.
 
 최종 확인: 기존 7대와 신규 워커 2대, 총 9대 Ready. 신규 두 워커의 필수 DaemonSet·Prometheus·대시보드 정상. 네트워크 설정 테스트 41개 통과. 확인 근거: `kubeedge-tools/results/worker-onboarding-20260909.json`.
+
+## 2026-09-14 Tinker 지표 수집 복구
+
+`etri-dev0004-tedger`는 SSH·EdgeCore·containerd와 node-exporter가 정상인데
+Prometheus에서는 `192.168.0.7:9100` 수집이 시간 초과되고 대시보드는 unavailable이었다.
+VPN 반환 경로 `10.77.0.0/24 via 192.168.0.56`이 빠져 VPN 서버로의 응답이
+기본 공유기 `192.168.0.1`로 나가는 상태였다.
+
+부팅 journal에서 경로 복원 서비스가 10:12:05에 실패했고 eth0 DHCP 주소는
+10:12:14에 준비됐다. `NetworkManager-wait-online.service`는 masked였으며
+기존 oneshot 서비스에는 실패 재시도가 없었다. 부팅 초기에 보드 시계가 잘못돼
+2019년으로 기록됐으므로 이 시각은 같은 부팅 안의 사건 순서로만 사용한다.
+
+기존 경로 복원 서비스를 재실행해 즉시 복구하고 다음 구성을 영속 적용했다.
+
+- `Type=simple`, `RemainAfterExit=yes`: 성공 후 완료 상태 유지
+- `Restart=on-failure`, `RestartSec=5s`, `StartLimitIntervalSec=0`: LAN 준비 전 실패 재시도
+- Debian 10의 systemd는 `Type=oneshot`과 재시도 조합을 거부하므로 사용하지 않는다.
+- 기존 unit 백업: `/var/backups/edgeai-network/return-route-retry-1789350620/`
+
+대상 호스트에서 unit 구문 검증과 별도 임시 unit의 1회 실패→자동 재시도→성공을
+확인하고 임시 unit을 정리했다. 실제 재부팅 시험은 하지 않았다. 운영 unit과
+`prepare_vpn_routes.py` 생성 결과의 해시가 같다. Prometheus Pod에서 HTTP 수집 성공,
+Prometheus up=1, 대시보드 healthy 및 실제 CPU·메모리·온도 수신, CloudStream 로그 조회를 확인했다.
+EdgeCore 재설치·재시작, Node 삭제, WireGuard 변경이나 workload 재배치는 하지 않았다.
+
+근거: `kubeedge-tools/results/dev0004-return-route-20260914/verification.json`.

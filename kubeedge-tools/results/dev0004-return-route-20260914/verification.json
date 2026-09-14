@@ -1,0 +1,75 @@
+{
+  "verifiedAt": "2026-09-14T01:52:29.384552+00:00",
+  "node": "etri-dev0004-tedger",
+  "ready": {
+    "lastHeartbeatTime": "2026-09-14T01:52:20Z",
+    "lastTransitionTime": "2026-09-11T02:40:19Z",
+    "message": "edge is posting ready status",
+    "reason": "EdgeReady",
+    "status": "True",
+    "type": "Ready"
+  },
+  "cause": {
+    "returnRouteAbsent": true,
+    "priorRouteToVpn": "10.77.0.5 via 192.168.0.1 dev eth0",
+    "routeServiceBootFailure": "10:12:05 boot-local time, ip -4 failure",
+    "dhcpAddressReady": "10:12:14 same boot-local time",
+    "networkManagerWaitOnline": "masked",
+    "bootClockInitiallyIncorrect": true
+  },
+  "repair": {
+    "route": "10.77.0.0/24 via 192.168.0.56",
+    "service": "edgeai-vpn-return-route.service",
+    "type": "simple",
+    "remainAfterExit": true,
+    "restart": "on-failure",
+    "restartSeconds": 5,
+    "startLimitIntervalSeconds": 0,
+    "enabled": true,
+    "backup": "/var/backups/edgeai-network/return-route-retry-1789350620",
+    "liveAndGeneratedUnitSha256": "ea52c1b66ae5efe05c535a898b797a0b8819b27baabe484d0d795dda68317495"
+  },
+  "validation": {
+    "systemdAnalyzeVerifyPassed": true,
+    "transientRetryProbeAttempts": 2,
+    "transientRetryProbeRestarts": 1,
+    "transientProbeRemoved": true,
+    "prometheusPodHttpGetPassed": true,
+    "cloudStreamLogsPassed": true,
+    "actualRebootTested": false
+  },
+  "prometheus": {
+    "scrapeUrl": "http://192.168.0.7:9100/metrics",
+    "health": "up",
+    "lastError": "",
+    "lastScrape": "2026-09-14T01:52:00.968683804Z"
+  },
+  "dashboard": {
+    "hostname": "etri-dev0004-tedger",
+    "instance": "192.168.0.7:9100",
+    "node_type": "edge_device",
+    "collected_at": "2026-09-14T01:52:23.211531Z",
+    "raw_metrics": {
+      "up": 1.0,
+      "cpu_utilization": 0.4500614561111105,
+      "memory_usage_ratio": 0.14036239002284623,
+      "load_average": 0.93,
+      "network_rx_rate": 2547.074346133333,
+      "network_tx_rate": 2420.7586326,
+      "cpu_logical_cores": 6.0,
+      "load_per_cpu_ratio": 0.155,
+      "gpu_temperature_celsius": 32.777
+    },
+    "compute_pressure": "low",
+    "memory_pressure": "low",
+    "network_pressure": "low",
+    "node_health": "healthy"
+  },
+  "untouched": [
+    "EdgeCore",
+    "containerd",
+    "node identity",
+    "WireGuard configuration",
+    "workloads"
+  ]
+}

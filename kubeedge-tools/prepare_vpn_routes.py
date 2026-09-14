@@ -155,7 +155,9 @@ def main():
         writeback[drop] = '[Service]\nExecStartPost=/usr/bin/python3 ' + str(INSTALLED) + ' --runtime\n'
         writeback[Path('/etc/sysctl.d/99-edgeai-wireguard-routing.conf')] = 'net.ipv4.conf.all.rp_filter = 2\n' + ('net.ipv4.ip_forward = 1\n' if vpn == '1' else '')
     else:
-        writeback[Path('/etc/systemd/system/edgeai-vpn-return-route.service')] = ('[Unit]\nDescription=Edge AI VPN return route\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStart=/usr/bin/python3 ' + str(INSTALLED) + ' --runtime\n[Install]\nWantedBy=multi-user.target\n')
+        # Debian 10 systemd rejects Restart=on-failure with Type=oneshot.
+        # Keep successful completion active, but retry until the LAN is ready.
+        writeback[Path('/etc/systemd/system/edgeai-vpn-return-route.service')] = ('[Unit]\nDescription=Edge AI VPN return route\nAfter=network-online.target\nWants=network-online.target\nStartLimitIntervalSec=0\n[Service]\nType=simple\nRemainAfterExit=yes\nRestart=on-failure\nRestartSec=5s\nExecStart=/usr/bin/python3 ' + str(INSTALLED) + ' --runtime\n[Install]\nWantedBy=multi-user.target\n')
     writeback[INSTALLED] = Path(__file__).read_text()
     state = {}
     for i, (path, text) in enumerate(writeback.items()):
