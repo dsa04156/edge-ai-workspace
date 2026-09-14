@@ -22,6 +22,7 @@ class Controller:
         self.inflight = {}
         self.pending = {}
         self.pending_ids = {}
+        self.started_at = clock()
         self.last_snapshot = 0
         self.last_error = None
         self.stopping = False
@@ -35,6 +36,8 @@ class Controller:
             state["recovering"] = True
             state["latencyHighSince"] = None
             state["latencyLowSince"] = None
+            state["idleSince"] = None
+            state["returnState"] = None
             state.pop("latency", None)
             state["proposal"] = None
             approval = state.get("lastApproval")
@@ -182,13 +185,14 @@ class Controller:
         state = {"name": name, "uid": uid, "active": None, "target": None, "retiring": [],
                  "switchedAt": 0, "highSince": None, "lowSince": None,
                  **copy.deepcopy(self.states.get(uid, {}))}
+        state["returnState"] = None
         state["observedGeneration"] = resource["metadata"].get("generation", 1)
         state["approvalRequired"] = spec.policy.approvalRequired
         state["aiInference"] = spec.inference is not None
         policy_key = spec.policy.model_dump_json()
         if state.get("policyKey") != policy_key:
             state.update(policyKey=policy_key, highSince=None, lowSince=None,
-                         latencyHighSince=None, latencyLowSince=None)
+                         latencyHighSince=None, latencyLowSince=None, idleSince=None)
         if FINALIZER not in resource["metadata"].get("finalizers", []):
             if resource["metadata"].get("deletionTimestamp"):
                 return
@@ -293,6 +297,31 @@ class Controller:
             recent = self.latencies.observe(uid, candidate_name, now, latency_policy)
             return not recent["failures"] and not (recent["valid"] and recent["p95Milliseconds"] > limit)
 
+        # An idle resident AI service cannot produce the success samples required
+        # by latency recovery. Use a separate, explicit idle gate; never label
+        # missing samples as successful latency recovery.
+        idle_enabled = bool(order and spec.inference and active and active.get("resident") and latency_policy)
+        idle_ready = False
+        if idle_enabled:
+            recent = self.latencies.observe(uid, active["name"], now, latency_policy)
+            observed_window = now - max(self.started_at, state.get("switchedAt", now)) >= latency_policy.windowSeconds
+            idle = (healthy and load == 0 and health["inFlight"] == 0
+                    and recent["samples"] == 0 and recent["arrivalRps"] == 0
+                    and observed_window and not state.get("target") and not state.get("retiring"))
+            state["idleSince"] = (state.get("idleSince") if state.get("idleSince") is not None else now) if idle else None
+            idle_ready = state["idleSince"] is not None and now - state["idleSince"] >= spec.policy.returnSeconds
+            prior_stage = next((t for t in state["augmentationStages"] if t["variant"] == previous_variant), None)
+            state["returnState"] = {
+                "phase": "Baseline" if position == 0 else "Waiting" if idle else "Observing",
+                "node": prior_stage["node"] if prior_stage else active["node"],
+                "label": prior_stage["label"] if prior_stage else state["augmentationStages"][0]["label"],
+                "reason": "baseline_active" if position == 0 else "idle_dwell" if idle else "idle_observation",
+                "remainingSeconds": max(0, spec.policy.returnSeconds - (now - state["idleSince"])) if idle else None,
+                "windowSeconds": latency_policy.windowSeconds, "dwellSeconds": spec.policy.returnSeconds,
+                "at": now}
+        else:
+            state["idleSince"] = None
+
         state["highSince"] = (state.get("highSince") or now) if utilization >= spec.policy.highWatermark else None
         state["lowSince"] = (state.get("lowSince") or now) if utilization <= spec.policy.lowWatermark else None
         choice = None
@@ -322,14 +351,16 @@ class Controller:
                 choice = min(larger, key=lambda c: (c.variant.qualifiedRps or c.variant.maxInFlight, c.node)) if larger else None
                 reason = "sustained_pressure" if choice else "pressure_no_qualified_capacity"
             elif state["lowSince"] is not None and now - state["lowSince"] >= spec.policy.returnSeconds:
-                return_ready = (not latency_policy or (recovered and now - state["latencyLowSince"] >= spec.policy.returnSeconds))
+                return_ready = (idle_ready or not latency_policy or (recovered and now - state["latencyLowSince"] >= spec.policy.returnSeconds))
                 small = [c for c in eligible if return_ready
                          and (c.variant.name == previous_variant if order else
                               c.role == spec.policy.preferredRole and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"]))
                          and load <= c.variant.maxInFlight * spec.policy.highWatermark
                          and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
                 choice = small[0] if small else None
-                reason = "sustained_low_load_return" if choice else "healthy_current_placement"
+                reason = ("sustained_idle_return" if idle_ready else "sustained_low_load_return") if choice else "healthy_current_placement"
+                if idle_ready and not choice and previous_variant:
+                    state["returnState"].update(phase="Blocked", reason="previous_stage_not_qualified_or_available")
         if choice and active and self.target(resource, spec, choice)["name"] == active["name"]:
             choice = None
         if not choice and not state.get("target") and active and active.get("resident") and health and not healthy:
@@ -379,12 +410,16 @@ class Controller:
         target = state.get("target")
         if target:
             candidate = next((c for c in eligible if self.target(resource, spec, c)["name"] == target["name"]), None)
-            if candidate is None or now - target["created"] > spec.policy.prepareTimeoutSeconds:
-                state["failedCandidates"][target["name"]] = now + max(60, spec.policy.prepareTimeoutSeconds)
+            return_interrupted = (target.get("triggerReason") == "sustained_idle_return"
+                                  and (not healthy or load > 0 or health["inFlight"] > 0
+                                       or not idle_enabled or recent["samples"] > 0 or recent["arrivalRps"] > 0))
+            if return_interrupted or candidate is None or now - target["created"] > spec.policy.prepareTimeoutSeconds:
+                if not return_interrupted:
+                    state["failedCandidates"][target["name"]] = now + max(60, spec.policy.prepareTimeoutSeconds)
                 state["retiring"].append(target)
                 state["target"] = None
                 state["retryAfter"] = now + spec.policy.cooldownSeconds
-                reason = "candidate_invalid_or_prepare_timeout"
+                reason = "idle_return_interrupted" if return_interrupted else "candidate_invalid_or_prepare_timeout"
                 if target.get("approvalId") and target["approvalId"] == state.get("lastApproval", {}).get("id"):
                     state["lastApproval"].update(status="Failed", reason=reason)
             else:
@@ -403,7 +438,7 @@ class Controller:
                     target["everRouted"] = True
                     state.update(active=target, target=None, serving=True, recovering=False,
                                  switchedAt=now, highSince=None, lowSince=None,
-                                 latency=None, latencyHighSince=None, latencyLowSince=None)
+                                 latency=None, latencyHighSince=None, latencyLowSince=None, idleSince=None)
                     self.save(uid, state, "route_switched")
                     reason = "target_ready_route_switched"
                     if target.get("approvalId") and target["approvalId"] == state.get("lastApproval", {}).get("id"):
@@ -413,6 +448,15 @@ class Controller:
         # Refresh in-memory routing before yielding to network drain probes.
         state["reason"] = reason
         state["phase"] = "Preparing" if state.get("target") else "Serving" if state["serving"] else "Blocked"
+        if state.get("returnState"):
+            target = state.get("target")
+            returning = {"sustained_idle_return", "sustained_low_load_return"}
+            if target and target.get("triggerReason") in returning:
+                stage = next(t for t in state["augmentationStages"] if t["variant"] == target["variant"])
+                state["returnState"].update(phase="Preparing", node=target["node"], label=stage["label"], reason="preparing_previous_stage", remainingSeconds=None)
+            elif state.get("lastTransition", {}).get("reason") in returning and state.get("retiring"):
+                stage = next(t for t in state["augmentationStages"] if t["variant"] == state["active"]["variant"])
+                state["returnState"].update(phase="Releasing", node=state["active"]["node"], label=stage["label"], reason="draining_upper_stage", remainingSeconds=None)
         self.save(uid, state)
         await self.drain(uid, state, snapshot)
         self.save(uid, state)
@@ -448,7 +492,14 @@ class Controller:
             snapshot = await asyncio.to_thread(self.kube.snapshot)
         except Exception as exc:
             self.last_error = "snapshot_unavailable:" + type(exc).__name__
+            for state in self.states.values():
+                state["idleSince"] = None
+            self.started_at = self.clock()
             return
+        if self.last_error or self.last_snapshot and not 0 <= self.clock() - self.last_snapshot < 15:
+            self.started_at = self.clock()
+            for state in self.states.values():
+                state["idleSince"] = None
         self.last_snapshot = self.clock()
         self.snapshot = snapshot
         self.last_error = None
@@ -477,7 +528,7 @@ class Controller:
                 await self.reconcile(resource, snapshot)
             except Exception as exc:
                 state = copy.deepcopy(self.states.get(uid, {"uid": uid, "name": resource["metadata"]["name"]}))
-                state.update(serving=False, phase="Blocked", reason="reconcile_error:" + type(exc).__name__)
+                state.update(serving=False, phase="Blocked", reason="reconcile_error:" + type(exc).__name__, idleSince=None, returnState=None)
                 self.save(uid, state)
             state = self.states.get(uid)
             if state:

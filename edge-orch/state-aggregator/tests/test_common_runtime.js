@@ -1,5 +1,17 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../app/static/nexus/common-runtime.js');
+test('automatic return distinguishes dwell, preparation, release, baseline and unavailable observation',()=>{
+ const s={serving:true,checkedAt:99,augmentationStages:[{label:'Nano'}],load:{at:99,pending:0,inFlight:0},returnState:{phase:'Waiting',label:'Orin',remainingSeconds:8,at:99,windowSeconds:20,dwellSeconds:8}};
+ assert.match(R.returnView(s,100,true),/최소 7초/);
+ assert.equal(R.serviceMotion(s,100,true).title,'Orin 자동 복귀 대기');
+ s.returnState.phase='Preparing';s.target={node:'orin'};
+ assert.equal(R.serviceMotion(s,100,true).title,'Orin 복귀 준비 중');
+ assert.match(R.returnView(s,100,true),/복귀 모델 준비 중/);
+ s.returnState.phase='Releasing';assert.match(R.returnView(s,100,true),/상위 모델 메모리 해제 중/);
+ s.returnState.phase='Baseline';s.returnState.label='Nano';assert.match(R.returnView(s,100,true),/Nano에서 서비스를 유지/);
+ for(const current of [true,false]){assert.match(R.returnView(s,200,current),/관측 확인 불가/);assert.doesNotMatch(R.returnView(s,200,current),/Nano에서 서비스를 유지/);}
+ assert.equal(R.returnView({...s,augmentationStages:[]},100,true),'');
+});
 const target={node:'new-edge',variant:'gpu',role:'edge',memoryOnlyRelease:true,observation:{at:99,health:{nodeState:'ACTIVE',ready:true,inFlight:1,modelVramMiB:1234}}};
 const entry={data:{schema_version:'edgeai.common-runtime/v1',observed_at:99,services:[{name:'service-a',uid:'uid-a',phase:'Preparing',serving:true,active:target,target:{...target,node:'server-any'},retiring:[],excludedCandidates:[],reason:'waiting_for_pod_and_application_ready',lastRelease:{node:'old-edge',at:50,modelVramMiB:0,reservationRetained:true}}]}};
 test('current route, preparing target and past memory release stay distinct',()=>{

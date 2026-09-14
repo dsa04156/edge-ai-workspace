@@ -117,7 +117,19 @@ class AugmentationStage(BaseModel):
     qualifiedP95Milliseconds: float | None = None
 
 
+class ReturnState(BaseModel):
+    phase: Literal["Baseline", "Observing", "Waiting", "Preparing", "Releasing", "Blocked"]
+    node: str | None = None
+    label: str
+    reason: str
+    remainingSeconds: float | None = None
+    windowSeconds: float
+    dwellSeconds: float
+    at: float
+
+
 class RuntimeItem(BaseModel):
+    returnState: ReturnState | None = None
     augmentationStages: list[AugmentationStage] = Field(default_factory=list)
     name: str
     uid: str
@@ -166,10 +178,13 @@ def project(payload: dict, now: float) -> RuntimeState:
             item.observation_error = result.observation_error or "runtime_service_observation_stale"
             item.serving = False
             item.load = None
+            item.returnState = None
             item.proposal = None
             item.eligibleCandidates = []
             for stage in item.augmentationStages:
                 stage.eligible = False
+        if item.returnState and not 0 <= now - item.returnState.at < 15:
+            item.returnState = None
         if item.load and (item.load.at is None or not 0 <= now - item.load.at < 15):
             item.load = None
         if (item.latency and (item.observation_error or not item.active

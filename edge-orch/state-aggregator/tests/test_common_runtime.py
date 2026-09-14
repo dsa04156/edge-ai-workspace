@@ -95,3 +95,16 @@ def test_ordered_stages_retain_configuration_but_not_live_eligibility_when_stale
     assert project(data, 100).services[0].augmentationStages[0].eligible
     stage = project(data, 200).services[0].augmentationStages[0]
     assert stage.label == "Nano" and not stage.eligible
+
+
+def test_idle_return_is_separate_from_latency_recovery_and_removed_when_stale():
+    data = payload()
+    data['services'][0]['returnState'] = {
+        'phase': 'Waiting', 'node': 'orin', 'label': 'Orin', 'reason': 'idle_dwell',
+        'remainingSeconds': 7, 'windowSeconds': 20, 'dwellSeconds': 8, 'at': 99}
+    item = project(data, 100).services[0]
+    assert item.returnState.remainingSeconds == 7
+    assert item.latency is None
+    assert project(data, 200).services[0].returnState is None
+    data['services'][0]['returnState']['at'] = 50
+    assert project(data, 100).services[0].returnState is None
