@@ -39,6 +39,8 @@ class ServiceControlRequest(StopRequest):
 def signature(spec):
     value = {"demo": spec.demo.model_dump() if spec.demo else None, "ioContract": spec.ioContract,
              "inference": spec.inference.model_dump() if spec.inference else None}
+    if spec.modelRuntime:
+        value["modelRuntime"] = spec.modelRuntime.model_dump()
     if spec.policy.stages:
         value["stages"] = [stage.model_dump() for stage in spec.policy.stages]
     return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
@@ -124,6 +126,8 @@ class DemoRunner:
         labels = {stage.variant: stage.label for stage in spec.policy.stages}
         targets = {v.nodeSelector["kubernetes.io/hostname"]: v.name for v in spec.variants
                    if v.nodeSelector.get("kubernetes.io/hostname")}
+        if spec.modelRuntime:
+            targets.update({node: v.name for v in spec.variants for node in v.verifiedNodes})
         for target in [*state.get("eligibleCandidates", []), state.get("active")]:
             if target and target.get("variant") in variants:
                 targets[target["node"]] = target["variant"]

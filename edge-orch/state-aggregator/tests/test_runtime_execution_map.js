@@ -34,3 +34,9 @@ test('selected service scope escaping and existing node actions are preserved',(
  assert.deepEqual(calls,[['service-one','edge-a'],['service-one','server-b']]);assert.match(html,/부하 제거/);assert.doesNotMatch(html,/<script>/);assert.match(html,/&lt;script&gt;/);
  delete globalThis.NexusRuntimeDemo;
 });
+
+test('generic suspended model keeps execution-verified nodes without fabricated stages',()=>{
+ const C=require('../app/static/nexus/common-runtime.js');
+ const x={...s,phase:'Suspended',serving:false,active:null,contractSummary:{candidateNodes:['raspi','server']}};
+ const ns=C.mapNodes(x,m,100);assert.deepEqual(ns.map(n=>n.node),['raspi','server']);assert.ok(ns.every(n=>n.state==='stopped'));
+});

@@ -187,6 +187,14 @@ class RuntimeContractSummary(BaseModel):
 
 def contract_summary(raw: dict) -> RuntimeContractSummary | None:
     """Allowlisted configuration only; never expose input payloads or worker endpoints."""
+    model = raw.get("modelRuntime")
+    if isinstance(model, dict):
+        values = {"adapter": model.get("protocol"), "model": model.get("modelName"),
+                  "modelVersion": model.get("modelVersion"), "inputType": model.get("inputKind"),
+                  "inputSource": "HTTP 요청"}
+        nodes = raw.get("verifiedExecutionNodes")
+        return RuntimeContractSummary(**{k: v for k, v in values.items() if isinstance(v, str)},
+            candidateNodes=[n for n in nodes if isinstance(n, str)] if isinstance(nodes, list) else [])
     common = raw.get("commonAI")
     if not isinstance(common, dict):
         return None

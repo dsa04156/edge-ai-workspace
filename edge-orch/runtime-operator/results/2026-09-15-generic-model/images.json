@@ -1,0 +1,42 @@
+{
+  "runtime-operator": {
+    "baseImage": "192.168.0.56:5000/runtime-operator@sha256:60531ef20cab7288ced309bbbb267d6fbbef669b3d757fd87f7fc2a5ba135668",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:97a85a741d7ddb7d33019d73f518d95a798cda42db367309cba2f331e9ace816",
+    "files": {
+      "contract.py": "f2d51e4b9c6fc59b546bc6727f9cfd749dcb768bd4c7b9843532adc84fabe83d",
+      "api.py": "61f7951b3a95f3668474cfb2717d539d572458ed746fbe1850f7e31efc5adee5",
+      "controller.py": "f06d98f306eb4fd904f5199ff6f08de55fb13c3d1c216d0fe9bb7cbb0bd03c1b",
+      "placement.py": "c4a93fc8025f09786fe425f22de2cc1563813d7eb09f15b18d74839be4511222",
+      "demo.py": "6d1b874b205569813c2f72e71c9a7bf080f835c6c219d8cf74c262ce57dc684e",
+      "model_runtime.py": "0284e3c43e93e577116eda040b037473de01f14bd8ece33993afc3f884bb7a50",
+      "adapters.py": "19aa0cc275d7ee471ae9c8cd9243c4cf93613f91c585016b9e2875695eed293c"
+    }
+  },
+  "state-aggregator": {
+    "baseImage": "192.168.0.56:5000/state-aggregator@sha256:ba723490e2f858545ad4e407e40f96ff0a0339c7c54032ad9a3ffa0aea4d662e",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:3b818ef1bc7d6347e91f87e5428c4e3f03878f277b2a8a3996877d954e3d50ad",
+    "files": {
+      "common_runtime.py": "7b8d7540fc76754f55cf4fee64527b3dc2f366a7e31f5cdb85d894a20333a004",
+      "static/nexus/common-runtime.js": "c361fd81fe654d8c4bbe517b7314fcfec36601e718f0df4f7bb2d7dca3e68f01",
+      "static/nexus/runtime-placement-overview.js": "731850ebb770d22a98f02f55d99669183bf64f62b3035fccfb2f39bf5fc7e92b",
+      "static/nexus/runtime-execution-map.js": "05fbad4ad86b939ad5c9a9b4436d552db25f940c285650426a4b5d7b6f1fafea",
+      "static/nexus/index.html": "f1671d6cfc552f3c1b4322d483b8fec2955fce5f04dc27145802c7548d4dee46"
+    }
+  },
+  "digits-model-arm64": {
+    "baseImage": "192.168.0.56:5000/runtime-contract-demo@sha256:0c70aaa5f6f1d3f01bb71e6e6656ceac5bdc197cd23ac0f5c1239883d67d8005",
+    "image": "192.168.0.56:5000/digits-model-arm64@sha256:3d0fedf7141b9359355d6d762d47906a2bb6a6acbbd0f455578476f7cc9109e3",
+    "files": {
+      "server.py": "75b3eef0672aea3480ded1a1f5d52f7c909e219c6a6934776329893ef4469056",
+      "model.json": "c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3"
+    }
+  },
+  "digits-model-amd64": {
+    "baseImage": "192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558",
+    "image": "192.168.0.56:5000/digits-model-amd64@sha256:f1e97a098403e830f18a39ad92f94b29dab057e38c11da6961a8170c45a6697f",
+    "files": {
+      "server.py": "75b3eef0672aea3480ded1a1f5d52f7c909e219c6a6934776329893ef4469056",
+      "model.json": "c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3"
+    }
+  }
+}

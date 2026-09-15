@@ -78,6 +78,8 @@ def candidates(spec: ServiceSpec, nodes: list[dict], pods: list[dict], runtime_c
             base.append("untolerated_taint")
         for variant in spec.variants:
             reasons = list(base)
+            if spec.modelRuntime and name not in variant.verifiedNodes:
+                reasons.append("model_execution_not_verified_on_node")
             selectors = [spec.policy.nodeSelector, variant.nodeSelector,
                          {"kubernetes.io/arch": variant.architecture, "kubernetes.io/os": "linux"}]
             runtime = classes.get(variant.runtimeClassName)

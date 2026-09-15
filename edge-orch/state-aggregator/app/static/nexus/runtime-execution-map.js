@@ -12,7 +12,7 @@ function view(s,m,now){
  const applied=Boolean(d?.status==='Applied'&&s.active?.name===d.selectedRevision&&now-d.appliedAt>=0&&now-d.appliedAt<60);
  const ranking=d&&(linked||evaluated||applied)?d:null;
  const p=m.ok&&fresh(s.policyObservation?.at,now)?s.policyObservation:null;
- const detecting=Boolean(p&&(p.pressureElapsedSeconds>0||p.latencyElapsedSeconds>0));
+ const detecting=Boolean(s.placementMode!=='preferred'&&p&&(p.pressureElapsedSeconds>0||p.latencyElapsedSeconds>0));
  let step=0,title=m.title;
  if(!m.ok||stopped)step=-1;
  else if(s.target){step=3;title=s.returnState?.phase==='Preparing'?'복귀 노드 준비 중':'선택 노드 준비 중';}
@@ -21,7 +21,7 @@ function view(s,m,now){
  else if(evaluated){step=2;title=d.candidates.length?'후보 평가 완료 · 실행 조건 확인':'이동 보류 · 조건을 만족하는 후보 없음';}
  else if(detecting){step=1;title='문제 조건 감지 · 지속 시간 확인';}
  else if(applied){step=4;title='요청 경로 전환 완료';}
- const hint=!m.ok?'최신 관측을 받을 때 실행 경로를 다시 표시합니다.':stopped?'서비스를 실행하면 실제 요청을 받는 노드가 표시됩니다.':detecting?`용량 부족 ${N(p.pressureElapsedSeconds)} / ${N(p.pressureSeconds)}초 · 지연 초과 ${N(p.latencyElapsedSeconds)} / ${N(p.latencyBreachSeconds)}초${p.cooldownRemainingSeconds>0?' · 재이동 대기 '+N(p.cooldownRemainingSeconds)+'초':''}`:ranking?reasons[ranking.reason]||ranking.reason:s.returnState?.phase==='Waiting'?'부하 감소 조건 유지 시간을 확인한 뒤 복귀 후보를 평가합니다.':'문제가 지속되면 제어기가 실행 조건을 확인하고 이동 후보를 평가합니다.';
+ const hint=!m.ok?'최신 관측을 받을 때 실행 경로를 다시 표시합니다.':stopped?'서비스를 실행하면 실제 요청을 받는 노드가 표시됩니다.':detecting?`용량 부족 ${N(p.pressureElapsedSeconds)} / ${N(p.pressureSeconds)}초 · 지연 초과 ${N(p.latencyElapsedSeconds)} / ${N(p.latencyBreachSeconds)}초${p.cooldownRemainingSeconds>0?' · 재이동 대기 '+N(p.cooldownRemainingSeconds)+'초':''}`:ranking?reasons[ranking.reason]||ranking.reason:s.placementMode==='preferred'?'선호 위치를 유지합니다. 실행체 장애나 배치 정책 변경 시 실행 가능한 후보를 재평가합니다.':s.returnState?.phase==='Waiting'?'부하 감소 조건 유지 시간을 확인한 뒤 복귀 후보를 평가합니다.':'문제가 지속되면 제어기가 실행 조건을 확인하고 이동 후보를 평가합니다.';
  return {step,title,hint,ranking,decision:d,detecting};
 }
 function render(s,m,now,o={}){

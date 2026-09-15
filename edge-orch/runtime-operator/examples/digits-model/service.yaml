@@ -1,0 +1,147 @@
+apiVersion: platform.jinuk.io/v1alpha1
+kind: RuntimeService
+metadata:
+  name: digits-classifier
+  namespace: platform-runtime
+spec:
+  serviceKind: ai
+  execution: http-json-v1
+  ioContract: edgeai.image-digits.v1
+  suspended: true
+  requestPath: /v2/models/digits-centroid/infer
+  modelRuntime:
+    protocol: inference-v2-json
+    modelName: digits-centroid
+    modelVersion: c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3
+    inputKind: image
+    inputs:
+    - name: pixels
+      datatype: FP32
+      shape:
+      - 1
+      - 64
+    outputs:
+    - name: class
+      datatype: INT64
+      shape:
+      - 1
+    - name: squared_distances
+      datatype: FP64
+      shape:
+      - 1
+      - 10
+  variants:
+  - name: cpu-arm64
+    image: 192.168.0.56:5000/digits-model-arm64@sha256:3d0fedf7141b9359355d6d762d47906a2bb6a6acbbd0f455578476f7cc9109e3
+    architecture: arm64
+    backend: cpu
+    verifiedNodes:
+    - etri-dev0003-raspi5
+    requests:
+      cpu: 100m
+      memory: 32Mi
+    limits:
+      cpu: 500m
+      memory: 64Mi
+    maxInFlight: 2
+    qualification: execution-only:2026-09-15-digits-arm64; throughput not qualified
+  - name: cpu-amd64
+    image: 192.168.0.56:5000/digits-model-amd64@sha256:f1e97a098403e830f18a39ad92f94b29dab057e38c11da6961a8170c45a6697f
+    architecture: amd64
+    backend: cpu
+    verifiedNodes:
+    - etri-ser0001-cg0msb
+    requests:
+      cpu: 100m
+      memory: 32Mi
+    limits:
+      cpu: 500m
+      memory: 64Mi
+    maxInFlight: 2
+    qualification: execution-only:2026-09-15-digits-amd64; throughput not qualified
+  policy:
+    mode: preferred
+    preferredRole: edge
+    allowedRoles:
+    - edge
+    - server
+    cooldownSeconds: 30
+    prepareTimeoutSeconds: 120
+  demo:
+    label: 실제 손글씨 숫자 분류 · 8×8 이미지 · 성능 자격 미측정
+    payload:
+      inputs:
+      - name: pixels
+        datatype: FP32
+        shape:
+        - 1
+        - 64
+        data:
+        - 0.0
+        - 0.0
+        - 1.0
+        - 11.0
+        - 16.0
+        - 16.0
+        - 8.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 5.0
+        - 11.0
+        - 9.0
+        - 16.0
+        - 11.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 2.0
+        - 16.0
+        - 6.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 6.0
+        - 9.0
+        - 12.0
+        - 16.0
+        - 9.0
+        - 0.0
+        - 0.0
+        - 1.0
+        - 16.0
+        - 16.0
+        - 16.0
+        - 14.0
+        - 3.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 3.0
+        - 5.0
+        - 16.0
+        - 7.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 8.0
+        - 14.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 1.0
+        - 16.0
+        - 5.0
+        - 0.0
+        - 0.0
+        - 0.0
+    maxRequests: 128
+    concurrency: 2
+    pressureSeconds: 10
+    recoverySeconds: 30

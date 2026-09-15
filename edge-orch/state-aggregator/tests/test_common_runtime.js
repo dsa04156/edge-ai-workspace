@@ -131,3 +131,10 @@ test('configured stages stay ordered and visible when the middle node is unavail
  assert.match(html,/단계별 증강 경로/);assert.match(html,/1단계/);assert.match(html,/3단계/);assert.match(html,/검증 4.8건/);
  assert.ok(html.indexOf('>Nano<')<html.indexOf('>Orin<')&&html.indexOf('>Orin<')<html.indexOf('>Spark<'));
 });
+
+test('preferred placement does not promise pressure scaling or automatic return',()=>{
+ const s={name:'digits',uid:'digits-uid',aiInference:true,placementMode:'preferred',serving:true,phase:'Serving',checkedAt:99,active:{name:'revision',node:'edge',variant:'cpu'},retiring:[],policyObservation:{at:99,pressureElapsedSeconds:5,pressureSeconds:10}};
+ const html=R.operationsView(s,100,true);
+ assert.match(html,/부하 기반 자동 증강·복귀는 활성화되지 않았습니다/);
+ assert.doesNotMatch(html,/증강은 자동 처리|자동 복귀 관측 확인 불가|대기 지속/);
+});

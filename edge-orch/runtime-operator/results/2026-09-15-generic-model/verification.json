@@ -1,0 +1,292 @@
+{
+  "date": "2026-09-15",
+  "serviceUid": "b94afe37-0fdb-489c-972e-619b3f0e805d",
+  "scope": "execution interoperability and policy-directed handoff; not pressure autoscaling qualification",
+  "gatewayResponses": [
+    {
+      "status": 200,
+      "headers": {
+        "date": "Tue, 15 Sep 2026 02:50:06 GMT",
+        "server": "uvicorn",
+        "x-runtime-target": "rt-b94afe370fdb-003b4910544c",
+        "x-request-state": "completed",
+        "content-length": "555",
+        "content-type": "application/json",
+        "Connection": "close"
+      },
+      "body": {
+        "model_name": "digits-centroid",
+        "model_version": "c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3",
+        "id": "digits-live-edge-20260915",
+        "outputs": [
+          {
+            "name": "class",
+            "datatype": "INT64",
+            "shape": [
+              1
+            ],
+            "data": [
+              7
+            ]
+          },
+          {
+            "name": "squared_distances",
+            "datatype": "FP64",
+            "shape": [
+              1,
+              10
+            ],
+            "data": [
+              2489.127653243404,
+              1589.3857312722948,
+              2590.0930536693327,
+              1896.8977763182586,
+              1557.5577256944443,
+              1808.8339120095125,
+              2803.4896797839506,
+              559.4401193212382,
+              1482.027172506599,
+              1803.7279610339506
+            ]
+          }
+        ],
+        "parameters": {
+          "inference_ms": 0.3291830071248114,
+          "node": "etri-dev0003-raspi5"
+        }
+      }
+    },
+    {
+      "status": 200,
+      "headers": {
+        "date": "Tue, 15 Sep 2026 02:50:41 GMT",
+        "server": "uvicorn",
+        "x-runtime-target": "rt-b94afe370fdb-b02aceab93b9",
+        "x-request-state": "completed",
+        "content-length": "558",
+        "content-type": "application/json",
+        "Connection": "close"
+      },
+      "body": {
+        "model_name": "digits-centroid",
+        "model_version": "c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3",
+        "id": "digits-live-server-20260915",
+        "outputs": [
+          {
+            "name": "class",
+            "datatype": "INT64",
+            "shape": [
+              1
+            ],
+            "data": [
+              7
+            ]
+          },
+          {
+            "name": "squared_distances",
+            "datatype": "FP64",
+            "shape": [
+              1,
+              10
+            ],
+            "data": [
+              2489.127653243404,
+              1589.3857312722948,
+              2590.0930536693327,
+              1896.8977763182586,
+              1557.5577256944443,
+              1808.8339120095125,
+              2803.4896797839506,
+              559.4401193212382,
+              1482.027172506599,
+              1803.7279610339506
+            ]
+          }
+        ],
+        "parameters": {
+          "inference_ms": 0.08174100366886705,
+          "node": "etri-ser0001-cg0msb"
+        }
+      },
+      "transition": {
+        "fromNode": "etri-dev0003-raspi5",
+        "toNode": "etri-ser0001-cg0msb",
+        "at": 1789440611.880448,
+        "reason": "initial_or_unhealthy_or_policy_changed"
+      },
+      "decision": {
+        "at": 1789440609.0661454,
+        "generation": 3,
+        "status": "Applied",
+        "reason": "initial_or_unhealthy_or_policy_changed",
+        "basis": "preferred_role_then_capacity",
+        "staged": false,
+        "sourceNode": "etri-dev0003-raspi5",
+        "sourceRevision": "rt-b94afe370fdb-003b4910544c",
+        "selectedRevision": "rt-b94afe370fdb-b02aceab93b9",
+        "candidates": [
+          {
+            "rank": 1,
+            "node": "etri-ser0001-cg0msb",
+            "variant": "cpu-amd64",
+            "role": "server",
+            "capacity": 2,
+            "qualifiedRps": null,
+            "qualifiedP95Milliseconds": null
+          }
+        ],
+        "appliedAt": 1789440611.8728604
+      }
+    },
+    {
+      "status": 200,
+      "headers": {
+        "date": "Tue, 15 Sep 2026 02:51:05 GMT",
+        "server": "uvicorn",
+        "x-runtime-target": "rt-b94afe370fdb-003b4910544c",
+        "x-request-state": "completed",
+        "content-length": "557",
+        "content-type": "application/json",
+        "Connection": "close"
+      },
+      "body": {
+        "model_name": "digits-centroid",
+        "model_version": "c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3",
+        "id": "digits-live-return-20260915",
+        "outputs": [
+          {
+            "name": "class",
+            "datatype": "INT64",
+            "shape": [
+              1
+            ],
+            "data": [
+              7
+            ]
+          },
+          {
+            "name": "squared_distances",
+            "datatype": "FP64",
+            "shape": [
+              1,
+              10
+            ],
+            "data": [
+              2489.127653243404,
+              1589.3857312722948,
+              2590.0930536693327,
+              1896.8977763182586,
+              1557.5577256944443,
+              1808.8339120095125,
+              2803.4896797839506,
+              559.4401193212382,
+              1482.027172506599,
+              1803.7279610339506
+            ]
+          }
+        ],
+        "parameters": {
+          "inference_ms": 0.3252209862694144,
+          "node": "etri-dev0003-raspi5"
+        }
+      },
+      "transition": {
+        "fromNode": "etri-ser0001-cg0msb",
+        "toNode": "etri-dev0003-raspi5",
+        "at": 1789440650.1175985,
+        "reason": "initial_or_unhealthy_or_policy_changed"
+      },
+      "decision": {
+        "at": 1789440644.5271156,
+        "generation": 4,
+        "status": "Applied",
+        "reason": "initial_or_unhealthy_or_policy_changed",
+        "basis": "preferred_role_then_capacity",
+        "staged": false,
+        "sourceNode": "etri-ser0001-cg0msb",
+        "sourceRevision": "rt-b94afe370fdb-b02aceab93b9",
+        "selectedRevision": "rt-b94afe370fdb-003b4910544c",
+        "candidates": [
+          {
+            "rank": 1,
+            "node": "etri-dev0003-raspi5",
+            "variant": "cpu-arm64",
+            "role": "edge",
+            "capacity": 2,
+            "qualifiedRps": null,
+            "qualifiedP95Milliseconds": null
+          }
+        ],
+        "appliedAt": 1789440650.109768
+      }
+    }
+  ],
+  "nodeExecution": {
+    "arm64": {
+      "architecture": "aarch64",
+      "modelVersion": "c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3",
+      "class": 7,
+      "scope": "one real inference, not throughput qualification"
+    },
+    "amd64": {
+      "architecture": "x86_64",
+      "modelVersion": "c2f1914a1332d9b69a034f3402ca7dc6da695b0c69d4c4ec9960edec74699af3",
+      "class": 7,
+      "scope": "one real inference, not throughput qualification"
+    }
+  },
+  "existingServiceSpecsUnchanged": {
+    "llama-inference": true,
+    "quality-api-demo": true,
+    "telemetry-transform-demo": true
+  },
+  "finalWorkerPods": 0,
+  "workerDeployments": [
+    {
+      "name": "rt-b94afe370fdb-003b4910544c",
+      "desiredReplicas": 0
+    },
+    {
+      "name": "rt-b94afe370fdb-b02aceab93b9",
+      "desiredReplicas": 0
+    }
+  ],
+  "aggregatorArgo": {
+    "sync": "Synced",
+    "health": "Healthy"
+  },
+  "finalHttp": {
+    "runtime-services": 200,
+    "runtime-demos": 200,
+    "nodes": 200
+  },
+  "ui": {
+    "desktopViewport": [
+      1440,
+      1100
+    ],
+    "mobileViewport": [
+      390,
+      844
+    ],
+    "horizontalOverflow": false,
+    "registeredMapNodes": 2,
+    "serviceStartEnabledWhenStopped": true,
+    "preferredModeAutomaticReturnHidden": true
+  },
+  "deployment": {
+    "runtime-operator": {
+      "pod": "runtime-operator-5fd9c7cd7b-4bbc8",
+      "image": "192.168.0.56:5000/runtime-operator@sha256:97a85a741d7ddb7d33019d73f518d95a798cda42db367309cba2f331e9ace816",
+      "ready": true,
+      "fileHashesMatchPublished": true
+    },
+    "state-aggregator": {
+      "pod": "state-aggregator-5cfcdc5bdb-bhkmv",
+      "image": "192.168.0.56:5000/state-aggregator@sha256:3b818ef1bc7d6347e91f87e5428c4e3f03878f277b2a8a3996877d954e3d50ad",
+      "ready": true,
+      "fileHashesMatchPublished": true
+    }
+  },
+  "newDemoRuns": 0
+}

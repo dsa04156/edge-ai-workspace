@@ -5,7 +5,7 @@ const finite=v=>typeof v==='number'&&Number.isFinite(v)&&v>=0;
 const number=v=>finite(v)?v.toLocaleString('ko-KR',{maximumFractionDigits:2}):'미측정';
 const pct=v=>finite(v)&&v<=1?(v*100).toFixed(0)+'%':'미측정';
 const fresh=(at,now)=>Number.isFinite(at)&&now-at>=0&&now-at<15;
-const reasonLabels={node_not_ready:'노드 준비 안 됨',node_pressure_or_unknown:'노드 압력 또는 상태 확인 필요',node_cordoned:'노드 배치 차단',role_not_allowed:'허용하지 않은 노드 역할',untolerated_taint:'배치 제한 조건',selector_or_architecture_mismatch:'실행 조건·아키텍처 불일치',runtime_class_missing:'실행 환경 미등록',resident_on_different_node:'다른 노드에 연결된 실행체',resident_reservation_below_contract:'실행체 예약량 부족',resident_runtime_class_mismatch:'실행 환경 불일치',resident_binding_ambiguous:'실행체 연결 불명확',resident_not_ready:'실행체 준비 안 됨'};
+const reasonLabels={model_execution_not_verified_on_node:'이 노드에서 모델 실행 미검증',node_not_ready:'노드 준비 안 됨',node_pressure_or_unknown:'노드 압력 또는 상태 확인 필요',node_cordoned:'노드 배치 차단',role_not_allowed:'허용하지 않은 노드 역할',untolerated_taint:'배치 제한 조건',selector_or_architecture_mismatch:'실행 조건·아키텍처 불일치',runtime_class_missing:'실행 환경 미등록',resident_on_different_node:'다른 노드에 연결된 실행체',resident_reservation_below_contract:'실행체 예약량 부족',resident_runtime_class_mismatch:'실행 환경 불일치',resident_binding_ambiguous:'실행체 연결 불명확',resident_not_ready:'실행체 준비 안 됨'};
 function reason(code){return reasonLabels[code]||(code.startsWith('insufficient:')?'예약 자원 부족 · '+code.slice(13):code);}
 function rows(service,options={}){
  const current=options.current!==false&&!service.observation_error&&(service.checkedAt==null||fresh(service.checkedAt,options.now));

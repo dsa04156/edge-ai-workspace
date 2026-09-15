@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 from kubernetes.utils.quantity import parse_quantity
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from .model_runtime import ModelRuntime
 
 
 class Contract(BaseModel):
@@ -49,6 +50,7 @@ class Variant(Contract):
     qualification: str = Field(min_length=1, max_length=256)
     resident: ResidentRuntime | None = None
     qualifiedRps: float | None = Field(default=None, gt=0, le=100000)
+    verifiedNodes: list[str] = Field(default_factory=list, max_length=128)
     qualifiedP95Milliseconds: float | None = Field(default=None, gt=0, le=300000)
 
     @model_validator(mode="after")
@@ -135,6 +137,7 @@ class ServiceSpec(Contract):
     variants: list[Variant] = Field(min_length=1, max_length=32)
     policy: Policy = Field(default_factory=Policy)
     suspended: bool = False
+    modelRuntime: ModelRuntime | None = None
     inference: InferenceContract | None = None
     demo: DemoContract | None = None
     commonAI: AIServiceConfig | None = None
@@ -152,6 +155,17 @@ class ServiceSpec(Contract):
 
     @model_validator(mode="after")
     def unique_variants(self):
+        if self.modelRuntime:
+            if self.serviceKind != "ai" or self.inference or any(v.resident for v in self.variants):
+                raise ValueError("model_runtime_requires_dedicated_AI_workers")
+            if self.requestPath != f"/v2/models/{self.modelRuntime.modelName}/infer":
+                raise ValueError("model_runtime_inference_path_mismatch")
+            # Execution checks do not prove node-specific performance qualification.
+            if self.policy.mode == "automatic":
+                raise ValueError("model_runtime_automatic_policy_requires_future_performance_qualification")
+            if self.demo:
+                from .model_runtime import request_body
+                request_body(self.model_dump(), self.demo.payload, "validation")
         if self.commonAI:
             if not self.inference or self.commonAI.service.version != self.inference.modelDigest:
                 raise ValueError("common AI model must match the resident runtime digest")
@@ -191,6 +205,7 @@ class ServiceSpec(Contract):
 def revision(spec: ServiceSpec, variant: Variant, node: str) -> str:
     # Policy-only edits do not replace healthy workload revisions.
     variant_data = variant.model_dump()
+    variant_data.pop("verifiedNodes")  # Adding an execution-verified node does not replace existing Pods.
     variant_data.pop("qualifiedP95Milliseconds")  # Measurement metadata does not replace a Pod.
     if variant.resident is None:
         variant_data.pop("resident")
@@ -198,6 +213,8 @@ def revision(spec: ServiceSpec, variant: Variant, node: str) -> str:
         variant_data.pop("qualifiedRps")
     content = {"variant": variant_data, "node": node, "port": spec.port,
                "readyPath": spec.readyPath, "ioContract": spec.ioContract}
+    if spec.modelRuntime:
+        content["modelRuntime"] = spec.modelRuntime.model_dump()
     if variant.resident:
         content["inference"] = spec.inference.model_dump()
     return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:12]

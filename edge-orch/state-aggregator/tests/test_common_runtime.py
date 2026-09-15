@@ -170,3 +170,14 @@ def test_contract_summary_exposes_only_configuration_and_retains_it_when_suspend
     assert project(data,200).services[0].contractSummary.model == "vision-test"
     item["commonAI"]["placement"] = []
     assert project(data,100).services[0].contractSummary.candidateNodes == []
+
+
+def test_generic_model_contract_summary_does_not_need_llama_or_leak_tensor_data():
+    data = payload(); raw = data['services'][0]
+    raw.update(phase='Suspended', active=None, serving=False, verifiedExecutionNodes=['raspi','server'],
+        modelRuntime={'protocol':'inference-v2-json','modelName':'digits-centroid','modelVersion':'a'*64,
+                      'inputKind':'image','inputs':[{'privateTensor':'hidden'}]})
+    summary = project(data,100).services[0].contractSummary
+    assert summary.model == 'digits-centroid' and summary.inputType == 'image'
+    assert summary.candidateNodes == ['raspi','server']
+    assert 'hidden' not in project(data,100).model_dump_json()

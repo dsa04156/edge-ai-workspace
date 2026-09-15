@@ -9,7 +9,7 @@ import httpx
 from .contract import ServiceSpec, revision
 from .kube import FINALIZER, owned
 from .placement import candidates
-from . import resident
+from . import resident, adapters
 from .contract import ResidentRuntime
 from .latency import LatencyWindow
 
@@ -74,6 +74,8 @@ class Controller:
             body = response.json()
             if (body.get("ioContract") != target["spec"]["ioContract"] or body.get("ready") is not True
                     or type(body.get("inFlight")) is not int or body["inFlight"] < 0):
+                return None
+            if not adapters.validate_health(target, body):
                 return None
             return body
         except (httpx.HTTPError, ValueError, TypeError):
@@ -198,6 +200,8 @@ class Controller:
         state["aiInference"] = spec.is_ai
         state["serviceKind"] = "ai" if spec.is_ai else spec.serviceKind
         state["placementMode"] = "approval" if spec.policy.approvalRequired else spec.policy.mode
+        state["modelRuntime"] = spec.modelRuntime.model_dump() if spec.modelRuntime else None
+        state["verifiedExecutionNodes"] = sorted({n for v in spec.variants for n in v.verifiedNodes}) if spec.modelRuntime else []
         state["testConfigured"] = spec.demo is not None
         state["requestMetrics"] = None
         policy_key = spec.policy.model_dump_json()
