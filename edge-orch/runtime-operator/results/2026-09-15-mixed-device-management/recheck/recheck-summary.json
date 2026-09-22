@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-09-15T09:49:25.791424+00:00",
+  "runtimeTests": 152,
+  "aggregatorRelatedPythonTests": 99,
+  "javascriptTestsAfterFix": 314,
+  "management100": "passed",
+  "parallelProcesses": 4,
+  "successfulInferenceRequests": 44,
+  "uiWriteFlow": {
+    "profileCreated": true,
+    "devicesCreated": 3,
+    "selectedDevice": "ui-check-002",
+    "nameAndConnectionSaved": true,
+    "stopAccepted": true,
+    "historyReadback": true,
+    "otherDevicesUnchanged": true
+  },
+  "foundAndFixed": "HTML input pattern rejected by Chrome Unicode Sets mode; use explicit hyphen alternative and versioned asset URL",
+  "prefixRecheck": {
+    "invalidRejected": true,
+    "validRegistered": true,
+    "patternErrors": 0
+  },
+  "operationalReadOnly": {
+    "operatorDesiredReplicas": 1,
+    "operatorReadyReplicas": 1,
+    "managedApiHttpStatus": 404
+  },
+  "actualPodParallelTest": "not run: local Docker socket permission denied; operational deployment requires separate approval"
+}

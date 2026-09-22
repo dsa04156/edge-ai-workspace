@@ -1,0 +1,19 @@
+{
+  "runtime-operator": {
+    "baseImage": "192.168.0.56:5000/runtime-operator@sha256:e7af71fa425422d5d7576c9dc0e1903d0cd6f50225fc181438474ae55c481670",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:c518ea3d654c6e56a291359bd093dcf1c156a4eb03d6f8cf8710ace8105190d7",
+    "files": {
+      "api.py": "884ac33bc4ff852796f5d53771977497f309abd69c51b607aa94fd6083e75e24",
+      "contract.py": "c50c718789dc2058e38727264f6099bb49505a8e9a04b78e2d92918079b642a7",
+      "journal.py": "4476054e28b3e558e52eb210cde418ff16224e92b68b8b4ff327b44b53e3d907",
+      "common_ai.py": "0775df8c053d4b7fffcfe2168be4a659746eaa2faecf8825ca78642ac53edd08"
+    }
+  },
+  "source": {
+    "checkout": "d6f40257",
+    "preserved_live_controller_commit": "11232619",
+    "controller_sha256": "20019ff9658c49a391b3206f49f7c76ad6f0c08248fda3a08d371c9080d92d95",
+    "validation": "84 checkout tests and 84 tests with preserved live controller; 11 adapter/EdgeX tests",
+    "reason": "Retain already deployed idle-return behavior from another worktree; only api/contract/journal/common_ai overlay changed."
+  }
+}

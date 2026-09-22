@@ -1,5 +1,9 @@
 # Kubeflow Hub qualification
 
+> 운영 상태: 2026-09-17 사용자 요청으로 `kubeflow-hub-eval`의 Deployment·Service를 제거했다.
+> Namespace·PVC·설정·Secret과 아래 과거 검증 근거는 보존했다. 아래 설치 명령은 재설치용
+> 참고 자료이며 현재 서비스가 실행 중이라는 뜻이 아니다. [정리 기록](../../kubeedge-tools/results/cluster-cleanup-20260917/README.md).
+
 Kubeflow Hub Model Registry `v0.3.14`를 현재 Kubernetes/KubeEdge 클러스터에 standalone으로 격리 설치하고, metadata CRUD와 영속성을 검증한다.
 
 ## 현재 판정

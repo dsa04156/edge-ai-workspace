@@ -1,0 +1,78 @@
+{
+  "freshSources": 12,
+  "timestampsAdvanced": [
+    {
+      "name": "virtual-temperature-001",
+      "before": "2026-09-16T06:59:12.022748Z",
+      "after": "2026-09-16T06:59:35.040824Z",
+      "fresh": true
+    },
+    {
+      "name": "virtual-light-001",
+      "before": "2026-09-16T06:59:12.019237Z",
+      "after": "2026-09-16T06:59:35.036929Z",
+      "fresh": true
+    },
+    {
+      "name": "virtual-magnetic-001",
+      "before": "2026-09-16T06:59:12.026797Z",
+      "after": "2026-09-16T06:59:35.044891Z",
+      "fresh": true
+    },
+    {
+      "name": "virtual-acceleration-x-001",
+      "before": "2026-09-16T06:59:12.034819Z",
+      "after": "2026-09-16T06:59:35.052791Z",
+      "fresh": true
+    },
+    {
+      "name": "virtual-acceleration-y-001",
+      "before": "2026-09-16T06:59:13.034312Z",
+      "after": "2026-09-16T06:59:35.052791Z",
+      "fresh": true
+    },
+    {
+      "name": "virtual-acceleration-z-001",
+      "before": "2026-09-16T06:59:13.034312Z",
+      "after": "2026-09-16T06:59:35.052791Z",
+      "fresh": true
+    },
+    {
+      "name": "env-sensehat-temperature-01",
+      "before": "2026-09-16T06:59:12.206236Z",
+      "after": "2026-09-16T06:59:35.207966Z",
+      "fresh": true
+    },
+    {
+      "name": "env-sensehat-humidity-01",
+      "before": "2026-09-16T06:59:12.206236Z",
+      "after": "2026-09-16T06:59:35.207966Z",
+      "fresh": true
+    },
+    {
+      "name": "env-sensehat-pressure-01",
+      "before": "2026-09-16T06:59:12.206236Z",
+      "after": "2026-09-16T06:59:35.207966Z",
+      "fresh": true
+    },
+    {
+      "name": "imu-sensehat-compass-01",
+      "before": "2026-09-16T06:59:12.206236Z",
+      "after": "2026-09-16T06:59:35.207966Z",
+      "fresh": true
+    },
+    {
+      "name": "imu-sensehat-orientation-01",
+      "before": "2026-09-16T06:59:13.206248Z",
+      "after": "2026-09-16T06:59:35.207966Z",
+      "fresh": true
+    },
+    {
+      "name": "imu-sensehat-gyroscope-01",
+      "before": "2026-09-16T06:59:13.206248Z",
+      "after": "2026-09-16T06:59:35.207966Z",
+      "fresh": true
+    }
+  ],
+  "allDevices": 13
+}

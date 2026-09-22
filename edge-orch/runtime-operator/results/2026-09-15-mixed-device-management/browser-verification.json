@@ -1,0 +1,42 @@
+{
+  "fixture": "simulated EdgeX 1 + dormant virtual 99",
+  "desktop": {
+    "viewport": [
+      1440,
+      1000
+    ],
+    "rows": 100,
+    "summary": [
+      100,
+      100,
+      0,
+      100,
+      0
+    ],
+    "listHeight": 360,
+    "virtualScrollHeight": 7170,
+    "scrollPreserved": 350
+  },
+  "mobile": {
+    "viewport": [
+      390,
+      844
+    ],
+    "documentWidth": 390,
+    "listHeight": 280,
+    "individualSelection": "qualification-vd-098"
+  },
+  "sourceFailureSummary": [
+    "확인 불가",
+    0,
+    0,
+    0,
+    100
+  ],
+  "profileDraftPreserved": true,
+  "consoleErrors": "only the two injected HTTP 503 responses",
+  "screenshots": [
+    "output/playwright/mixed100-desktop.png",
+    "output/playwright/mixed100-mobile.png"
+  ]
+}

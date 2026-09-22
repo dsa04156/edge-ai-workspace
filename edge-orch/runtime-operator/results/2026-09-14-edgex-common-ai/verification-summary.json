@@ -1,0 +1,24 @@
+{
+  "edgex_and_llama_pod_uids_unchanged": true,
+  "existing_runtime_spec_unchanged_except_commonAI": true,
+  "active_node": "etri-dev0001-jetorn",
+  "sqlite_readonly_and_api_equal": true,
+  "nano_health": {
+    "agent_healthy": true,
+    "inference_ready": true,
+    "node_state": "ACTIVE",
+    "management_runtime_running": true,
+    "inference_worker_running": true,
+    "runtime_running": true,
+    "model_cached": true,
+    "model_loaded": true,
+    "node_id": "etri-dev0001-jetorn",
+    "role": "nano",
+    "model": "llama3.2:1b-instruct-q8_0",
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "runtime": "ollama"
+  },
+  "gpu_resident_bytes": [
+    1413952307
+  ]
+}

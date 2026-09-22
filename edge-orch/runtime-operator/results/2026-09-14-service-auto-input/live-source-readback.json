@@ -1,0 +1,304 @@
+{
+  "receipts": [
+    {
+      "serviceUid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "requestId": "edgex-7f5354d6c05903e8f8a97a836961410b2ab25124a724a5600c2997d3153118a8",
+      "target": "rt-a6755c109718-e05f788cc279",
+      "state": "completed",
+      "status": 200,
+      "result": {
+        "schema_version": "edgeai.execution/v1",
+        "request_id": "edgex-7f5354d6c05903e8f8a97a836961410b2ab25124a724a5600c2997d3153118a8",
+        "service_id": "llama-inference",
+        "source": {
+          "type": "edgex",
+          "device_id": "virtual-temperature-001",
+          "event_id": "0603c3b5-2f0a-4e49-91d3-19d636db609b",
+          "profile_id": "etri-arduino-temperature",
+          "origin_ns": "1789372510673819600"
+        },
+        "input_timestamp": "2026-09-14T07:55:10.673819+00:00",
+        "input": {
+          "type": "sensor",
+          "data": {
+            "measurements": [
+              {
+                "name": "temperature_raw",
+                "value": 345,
+                "unit": "raw"
+              }
+            ]
+          }
+        },
+        "model": {
+          "name": "llama3.2:1b-instruct-q8_0",
+          "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+        },
+        "result": {
+          "status": "success",
+          "output": {
+            "text": "The temperature is 345 degrees raw."
+          },
+          "reason": null
+        },
+        "execution": {
+          "node": "etri-dev0001-jetorn",
+          "location": "edge",
+          "offloaded": false,
+          "runtime_target": "rt-a6755c109718-e05f788cc279",
+          "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+        },
+        "performance": {
+          "queue_ms": 1067.807,
+          "inference_ms": 239.538,
+          "total_ms": 1427.126,
+          "scope": "gateway_receipt_to_result_before_journal_commit"
+        },
+        "timestamp": "2026-09-14T07:55:12.489566+00:00",
+        "worker_result": {
+          "request_id": "edgex-7f5354d6c05903e8f8a97a836961410b2ab25124a724a5600c2997d3153118a8",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature is 345 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.012,
+          "ttft_ms": 45.283,
+          "tokens_per_second": 46.58,
+          "inference_ms": 239.538,
+          "actual_e2e_ms": 239.549,
+          "eval_count": 9
+        }
+      }
+    },
+    {
+      "serviceUid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "requestId": "edgex-5cf06a6bf3f0736f6d1cd31b87be09b23b50b17e97b22acd4a095578297e1980",
+      "target": "rt-a6755c109718-8018d410711d",
+      "state": "completed",
+      "status": 200,
+      "result": {
+        "schema_version": "edgeai.execution/v1",
+        "request_id": "edgex-5cf06a6bf3f0736f6d1cd31b87be09b23b50b17e97b22acd4a095578297e1980",
+        "service_id": "llama-inference",
+        "source": {
+          "type": "edgex",
+          "device_id": "virtual-temperature-001",
+          "event_id": "150fa61f-0c21-4e89-8b1d-83eb612cc1ed",
+          "profile_id": "etri-arduino-temperature",
+          "origin_ns": "1789372748845435600"
+        },
+        "input_timestamp": "2026-09-14T07:59:08.845435+00:00",
+        "input": {
+          "type": "sensor",
+          "data": {
+            "measurements": [
+              {
+                "name": "temperature_raw",
+                "value": 289,
+                "unit": "raw"
+              }
+            ]
+          }
+        },
+        "model": {
+          "name": "llama3.2:1b-instruct-q8_0",
+          "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+        },
+        "result": {
+          "status": "success",
+          "output": {
+            "text": "The temperature is 289 degrees raw."
+          },
+          "reason": null
+        },
+        "execution": {
+          "node": "etri-dev0005-jetagx",
+          "location": "edge",
+          "offloaded": true,
+          "runtime_target": "rt-a6755c109718-8018d410711d",
+          "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+        },
+        "performance": {
+          "queue_ms": 4.553,
+          "inference_ms": 402.694,
+          "total_ms": 428.77,
+          "scope": "gateway_receipt_to_result_before_journal_commit"
+        },
+        "timestamp": "2026-09-14T07:59:09.986823+00:00",
+        "worker_result": {
+          "request_id": "edgex-5cf06a6bf3f0736f6d1cd31b87be09b23b50b17e97b22acd4a095578297e1980",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 289 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.016,
+          "ttft_ms": 251.91,
+          "tokens_per_second": 60.51,
+          "inference_ms": 402.694,
+          "actual_e2e_ms": 402.71,
+          "eval_count": 9
+        }
+      }
+    },
+    {
+      "serviceUid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "requestId": "edgex-231bc63f4c8b4bf1873e62e58089c57f7dffbafd5de508bece23e2d74166c941",
+      "target": "rt-a6755c109718-87da82ba1ea9",
+      "state": "completed",
+      "status": 200,
+      "result": {
+        "schema_version": "edgeai.execution/v1",
+        "request_id": "edgex-231bc63f4c8b4bf1873e62e58089c57f7dffbafd5de508bece23e2d74166c941",
+        "service_id": "llama-inference",
+        "source": {
+          "type": "edgex",
+          "device_id": "virtual-temperature-001",
+          "event_id": "63de632e-7db1-48eb-8c08-eb544067d738",
+          "profile_id": "etri-arduino-temperature",
+          "origin_ns": "1789372692803686100"
+        },
+        "input_timestamp": "2026-09-14T07:58:12.803686+00:00",
+        "input": {
+          "type": "sensor",
+          "data": {
+            "measurements": [
+              {
+                "name": "temperature_raw",
+                "value": 326,
+                "unit": "raw"
+              }
+            ]
+          }
+        },
+        "model": {
+          "name": "llama3.2:1b-instruct-q8_0",
+          "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+        },
+        "result": {
+          "status": "success",
+          "output": {
+            "text": "The temperature is 326 degrees Celsius."
+          },
+          "reason": null
+        },
+        "execution": {
+          "node": "etri-ser0003-cg0ms0",
+          "location": "server",
+          "offloaded": true,
+          "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+          "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+        },
+        "performance": {
+          "queue_ms": 4.813,
+          "inference_ms": 100.873,
+          "total_ms": 190.501,
+          "scope": "gateway_receipt_to_result_before_journal_commit"
+        },
+        "timestamp": "2026-09-14T07:58:13.148913+00:00",
+        "worker_result": {
+          "request_id": "edgex-231bc63f4c8b4bf1873e62e58089c57f7dffbafd5de508bece23e2d74166c941",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 326 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 12.81,
+          "tokens_per_second": 103.073,
+          "inference_ms": 100.873,
+          "actual_e2e_ms": 100.877,
+          "eval_count": 9
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "apiVersion": "v3",
+      "statusCode": 200,
+      "event": {
+        "apiVersion": "v3",
+        "id": "0603c3b5-2f0a-4e49-91d3-19d636db609b",
+        "deviceName": "virtual-temperature-001",
+        "profileName": "etri-arduino-temperature",
+        "sourceName": "temperature",
+        "origin": 1789372510673886500,
+        "readings": [
+          {
+            "origin": 1789372510673819600,
+            "deviceName": "virtual-temperature-001",
+            "resourceName": "temperature_raw",
+            "profileName": "etri-arduino-temperature",
+            "valueType": "Int32",
+            "units": "raw",
+            "value": 345
+          }
+        ],
+        "tags": {
+          "nodeName": "etri-dev0001-jetorn",
+          "physicalDeviceId": "arduino-001"
+        }
+      }
+    },
+    {
+      "apiVersion": "v3",
+      "statusCode": 200,
+      "event": {
+        "apiVersion": "v3",
+        "id": "150fa61f-0c21-4e89-8b1d-83eb612cc1ed",
+        "deviceName": "virtual-temperature-001",
+        "profileName": "etri-arduino-temperature",
+        "sourceName": "temperature",
+        "origin": 1789372748845591300,
+        "readings": [
+          {
+            "origin": 1789372748845435600,
+            "deviceName": "virtual-temperature-001",
+            "resourceName": "temperature_raw",
+            "profileName": "etri-arduino-temperature",
+            "valueType": "Int32",
+            "units": "raw",
+            "value": 289
+          }
+        ],
+        "tags": {
+          "nodeName": "etri-dev0001-jetorn",
+          "physicalDeviceId": "arduino-001"
+        }
+      }
+    },
+    {
+      "apiVersion": "v3",
+      "statusCode": 200,
+      "event": {
+        "apiVersion": "v3",
+        "id": "63de632e-7db1-48eb-8c08-eb544067d738",
+        "deviceName": "virtual-temperature-001",
+        "profileName": "etri-arduino-temperature",
+        "sourceName": "temperature",
+        "origin": 1789372692803886800,
+        "readings": [
+          {
+            "origin": 1789372692803686100,
+            "deviceName": "virtual-temperature-001",
+            "resourceName": "temperature_raw",
+            "profileName": "etri-arduino-temperature",
+            "valueType": "Int32",
+            "units": "raw",
+            "value": 326
+          }
+        ],
+        "tags": {
+          "nodeName": "etri-dev0001-jetorn",
+          "physicalDeviceId": "arduino-001"
+        }
+      }
+    }
+  ],
+  "verified": true
+}

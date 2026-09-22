@@ -1,0 +1,758 @@
+[
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-7276bff5ca90211fc89f1fb73f44c4a195018ab32b6a4bdbbd0a794c49b801cd",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-003b51850ab1846d48ea6b21fd4fd3248eb12b87057567c8b5417ad741377b06",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-d83502538757ba4ca33860366142e88421809d8ead117f5fd54fb8842958d60e",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-849d493a2c111b06e7f6f3335bfc9a9fa6857a546a12383adc6243298cf796a2",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-83ffa520694935e35db687f5dadb5be2dec0a6a575639eda1eec1c1e86d62602",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-229cb409d2f9412feca4bcbe01fbf8047b09a071f85952c082b037648a34fb83",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-5b07925826ff422f0993ceb2de6648d71d1370a669ebb8e81d5576d23735ce5d",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-a9dec5bf5ffcccf17442f7c5522e11aa40000f5f40c9f69141d65d83de168fa8",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-cd67f1615382057fb9450375ce28f49d2d9780fc40c00ce1f4a27bce0fe08ba0",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-5409094aa75504eda26cfc0e1616ad5c4fabf429cc0a5937e0c200625628456a",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-3ecaea7d2f051229865d8037d08c35d31098f5d30415414de09254f000236c24",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-dd84a698778b8df595ce493fe727c951c7083bb378606b50855efcd885dfa845",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-dc17f1f1f344d38b0358ab0df350e5cf219ca32a111b033feb0652f57367bfa7",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-2e9af7964a0fb8e1cedc11473a621e183b35364559ac61a463609bae5601ce28",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-631333e594f72cef886b21383e5cb172d731fc37ed281d2172f539ab8f88c8b1",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-d4ffd713c2fe3f91b4fb4820dfe2f66e88d6de93684e4704f54941ab98ef3538",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-7f5354d6c05903e8f8a97a836961410b2ab25124a724a5600c2997d3153118a8",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0001-jetorn",
+      "location": "edge",
+      "offloaded": false,
+      "runtime_target": "rt-a6755c109718-e05f788cc279",
+      "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-5b2b8ae89b2c8f871673f29175dad2e23cd707387d4edc0911e5700b0c2a3ebc",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-4d08755538fd7a142230cc4bfb794c7a0338fe301c79b559bfe572d17ebeb075",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-4dedf427b196b6f5ae162a3466ce4365bf947e34e132875dd7148a3529934a0e",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-20ce450395afb15403fd6cd1268230292185a07126a69acaff88a869828d099f",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-07abc2ed90904884c06d56b807f2f957e12bb6bfad92e2fd59dff98a75ad27f6",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-cb54ee47ce1d44e3ce52bd21ec494afb82d996b7aa6ea6bb2b7a6a15d8f1b37c",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-63c9a5f5b0dca71387be43950c9df814b51421b516c3801f4b4f8967cb88646c",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-09b47c66254cee9a4c646554af95f7eb031ad81596e97b3e636d16cc48b4c86d",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-9aba92cf7d38bc923bc470bd2662f01dd8e16986da7d212d80cfbae03ef9063b",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-903282b4a33273ec40618887abe43308c9a723eca4cb213083581ee8c10004d9",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-742107b5f20395429298e251a8568759b2a3bc1643cd22fb150d4d1cadd21124",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-915fbaa8fbe9d6b865337d48d7c04cb4497116496ee16d87774f5ce9cf3ac14d",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-4b1a092bd254b5b110ca3872e6752dab427b085533c020e94cea0644e069edf2",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-a86e5be5fad41b8c649a09f5f0751ffdd4a383c8dae450e1bb782be37f4ae9a3",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-60ede0071d443be6ff320eedafa2841b3ea978f0bb520d78a9476e8284dfee48",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-bb48eb97a753392029a219d9cf08dff2feb09df121f545759271b6b08a39e7de",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-fd4b7c9db26183cd73c0c0e0939b842a915e5c27095a82e110d86014abd494b7",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-f2be38e19d4cba32e643467360c24fadb762fb47076fc4608792aa409b0666bc",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-dab8a3107312320ac72d00bf391ed7ca5552828c697489ad862b77fcdec04972",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-af67aee4b123314f0b30139c2566eda00c436508fa7ffe7faea88765c2f38fbf",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-48672f555e227c9fe94f4f6715810b99e8afd5168efc53b2deb11678d318f9c4",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-96c97e58fbd2f6314f1f435e127a9cbdc2d2119a5e938205f885cada5a5cdbd8",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-a821ddd2f553b1739897e25f65555ae66dcca10e074ad1642220a95a412d3611",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-7c98c40ffc1a543fb16976de09289c7b27b3b1f852f1cccab25f2f394b5b685d",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-257b24f77342738607ae7f897094f00fe852df33f749a7d245374bf77722ea81",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-a11312c6d7ff97b746795f7bad761e49a2795810c2ae935567a5635a6d0b1636",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-231bc63f4c8b4bf1873e62e58089c57f7dffbafd5de508bece23e2d74166c941",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-ser0003-cg0ms0",
+      "location": "server",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+      "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-44b306ee548b354beca74bb9e8b3aef08bab885e19d6ad19ffefddecc47e4e2a",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-5f8165be34a4ddb2a37179e8708e3b1f5b2afd865ccf03559b651f4805b26925",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-f7c85f5d6902c3c6d4ef8709e2c44f1c2572fe0aa880bec0629048f82c8f8bcc",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-2243411d0e95ccb27f466e29281c8aac4fc3a7db75fd3a22d6399f2732f28a3f",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-6b44f42eb0749421a2e02f6bb00aa83faa598e42def6caf1930f3c95e2da0a48",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-8121889663cbbff224fdd2dfe462f9546ff4c31352d12927c812431a6de00e0d",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-b1c1ee2f324c619a9b4d49877a374eafe5b8694dbc635ac9a5fd5b6b2135fd25",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-41d46abaddaba5fc3a9bf6a44b8de7923a762d76b610cb363c964e38ea5c897a",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-2d0fa4cc1cc526d1e40dcf86784a05cd990b8b0fd24aa420b1d640b20a536ae0",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  },
+  {
+    "service": "llama-inference",
+    "request_id": "edgex-5cf06a6bf3f0736f6d1cd31b87be09b23b50b17e97b22acd4a095578297e1980",
+    "http_status": 200,
+    "status": "success",
+    "execution": {
+      "node": "etri-dev0005-jetagx",
+      "location": "edge",
+      "offloaded": true,
+      "runtime_target": "rt-a6755c109718-8018d410711d",
+      "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+    },
+    "reason": null
+  }
+]

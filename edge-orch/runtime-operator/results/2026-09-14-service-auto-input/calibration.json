@@ -1,0 +1,1889 @@
+[
+  {
+    "node": "etri-dev0001-jetorn",
+    "variant": "resident-llama-nano",
+    "samples": 30,
+    "p95_ms": 469.56969799794024,
+    "conservative_rps": 2.12,
+    "observations": [
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371374888456931",
+        "warmup": true,
+        "client_ms": 475.8749249995162,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371374888456931",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.025,
+          "ttft_ms": 154.788,
+          "tokens_per_second": 32.306,
+          "inference_ms": 436.07,
+          "actual_e2e_ms": 436.094,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371375364364787",
+        "warmup": false,
+        "client_ms": 335.2368369996839,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371375364364787",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.013,
+          "ttft_ms": 39.95,
+          "tokens_per_second": 36.749,
+          "inference_ms": 314.647,
+          "actual_e2e_ms": 314.66,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371375699637525",
+        "warmup": false,
+        "client_ms": 469.56969799794024,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371375699637525",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 36.393,
+          "tokens_per_second": 38.658,
+          "inference_ms": 297.646,
+          "actual_e2e_ms": 297.657,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371376169234867",
+        "warmup": false,
+        "client_ms": 312.1952089968545,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371376169234867",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 38.696,
+          "tokens_per_second": 44.758,
+          "inference_ms": 263.653,
+          "actual_e2e_ms": 263.665,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371376481451026",
+        "warmup": false,
+        "client_ms": 267.36722699934035,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371376481451026",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 30.19,
+          "tokens_per_second": 48.084,
+          "inference_ms": 239.933,
+          "actual_e2e_ms": 239.944,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371376748837584",
+        "warmup": false,
+        "client_ms": 256.3803580014792,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371376748837584",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 32.492,
+          "tokens_per_second": 48.385,
+          "inference_ms": 239.073,
+          "actual_e2e_ms": 239.083,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371377005237866",
+        "warmup": false,
+        "client_ms": 258.45224799923017,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371377005237866",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 29.524,
+          "tokens_per_second": 48.295,
+          "inference_ms": 238.627,
+          "actual_e2e_ms": 238.636,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371377263708961",
+        "warmup": false,
+        "client_ms": 263.0236349978077,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371377263708961",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 29.897,
+          "tokens_per_second": 48.2,
+          "inference_ms": 239.493,
+          "actual_e2e_ms": 239.503,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371377526827717",
+        "warmup": false,
+        "client_ms": 266.1018949984282,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371377526827717",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 31.143,
+          "tokens_per_second": 48.111,
+          "inference_ms": 240.584,
+          "actual_e2e_ms": 240.594,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371377792951793",
+        "warmup": false,
+        "client_ms": 265.6396969978232,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371377792951793",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 37.682,
+          "tokens_per_second": 48.286,
+          "inference_ms": 242.508,
+          "actual_e2e_ms": 242.518,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371378058679504",
+        "warmup": false,
+        "client_ms": 264.60470700112637,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371378058679504",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 34.884,
+          "tokens_per_second": 48.214,
+          "inference_ms": 240.732,
+          "actual_e2e_ms": 240.742,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371378323369277",
+        "warmup": false,
+        "client_ms": 291.54965300040203,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371378323369277",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 30.362,
+          "tokens_per_second": 48.382,
+          "inference_ms": 238.965,
+          "actual_e2e_ms": 238.975,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371378614942287",
+        "warmup": false,
+        "client_ms": 469.2864010030462,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371378614942287",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.016,
+          "ttft_ms": 34.991,
+          "tokens_per_second": 47.574,
+          "inference_ms": 246.614,
+          "actual_e2e_ms": 246.63,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371379084249888",
+        "warmup": false,
+        "client_ms": 272.12332900307956,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371379084249888",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 31.061,
+          "tokens_per_second": 48.211,
+          "inference_ms": 240.442,
+          "actual_e2e_ms": 240.453,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371379356454468",
+        "warmup": false,
+        "client_ms": 270.3100879989506,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371379356454468",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 29.719,
+          "tokens_per_second": 48.344,
+          "inference_ms": 238.619,
+          "actual_e2e_ms": 238.628,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371379626953295",
+        "warmup": false,
+        "client_ms": 271.65314499870874,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371379626953295",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 32.454,
+          "tokens_per_second": 48.211,
+          "inference_ms": 239.423,
+          "actual_e2e_ms": 239.432,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371379898684882",
+        "warmup": false,
+        "client_ms": 277.60083700195537,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371379898684882",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.012,
+          "ttft_ms": 30.94,
+          "tokens_per_second": 48.063,
+          "inference_ms": 240.56,
+          "actual_e2e_ms": 240.572,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371380176365984",
+        "warmup": false,
+        "client_ms": 274.09925699976156,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371380176365984",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 29.775,
+          "tokens_per_second": 48.216,
+          "inference_ms": 239.349,
+          "actual_e2e_ms": 239.359,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371380450540194",
+        "warmup": false,
+        "client_ms": 277.38042200144264,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371380450540194",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 31.901,
+          "tokens_per_second": 48.186,
+          "inference_ms": 241.162,
+          "actual_e2e_ms": 241.171,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371380727996935",
+        "warmup": false,
+        "client_ms": 272.410129000491,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371380727996935",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 30.417,
+          "tokens_per_second": 48.018,
+          "inference_ms": 240.283,
+          "actual_e2e_ms": 240.294,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371381000484911",
+        "warmup": false,
+        "client_ms": 276.84460499949637,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371381000484911",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 29.967,
+          "tokens_per_second": 48.315,
+          "inference_ms": 238.874,
+          "actual_e2e_ms": 238.883,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371381277352868",
+        "warmup": false,
+        "client_ms": 505.92925599994487,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371381277352868",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.014,
+          "ttft_ms": 38.203,
+          "tokens_per_second": 47.339,
+          "inference_ms": 247.392,
+          "actual_e2e_ms": 247.406,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371381783307923",
+        "warmup": false,
+        "client_ms": 270.2949490012543,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371381783307923",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.012,
+          "ttft_ms": 31.169,
+          "tokens_per_second": 48.07,
+          "inference_ms": 241.165,
+          "actual_e2e_ms": 241.177,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371382053679374",
+        "warmup": false,
+        "client_ms": 272.20694000061485,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371382053679374",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 29.902,
+          "tokens_per_second": 48.293,
+          "inference_ms": 238.844,
+          "actual_e2e_ms": 238.853,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371382325988873",
+        "warmup": false,
+        "client_ms": 273.17808600128046,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371382325988873",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 30.576,
+          "tokens_per_second": 48.262,
+          "inference_ms": 239.747,
+          "actual_e2e_ms": 239.758,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371382599249261",
+        "warmup": false,
+        "client_ms": 269.16634699955466,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371382599249261",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 29.818,
+          "tokens_per_second": 48.333,
+          "inference_ms": 238.733,
+          "actual_e2e_ms": 238.742,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371382868501058",
+        "warmup": false,
+        "client_ms": 271.5702109999256,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371382868501058",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 30.392,
+          "tokens_per_second": 47.81,
+          "inference_ms": 241.491,
+          "actual_e2e_ms": 241.501,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371383140163943",
+        "warmup": false,
+        "client_ms": 275.38286200069706,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371383140163943",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 30.404,
+          "tokens_per_second": 47.897,
+          "inference_ms": 241.108,
+          "actual_e2e_ms": 241.118,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371383415629746",
+        "warmup": false,
+        "client_ms": 265.8982520006248,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371383415629746",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 29.312,
+          "tokens_per_second": 48.209,
+          "inference_ms": 238.242,
+          "actual_e2e_ms": 238.251,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371383681603800",
+        "warmup": false,
+        "client_ms": 342.4705159995938,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371383681603800",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 30.628,
+          "tokens_per_second": 48.064,
+          "inference_ms": 240.34,
+          "actual_e2e_ms": 240.35,
+          "eval_count": 10
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-nano-1789371384024096885",
+        "warmup": false,
+        "client_ms": 462.74909699786804,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-nano-1789371384024096885",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature measurement is 329 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.016,
+          "ttft_ms": 37.041,
+          "tokens_per_second": 47.036,
+          "inference_ms": 251.473,
+          "actual_e2e_ms": 251.49,
+          "eval_count": 10
+        }
+      }
+    ]
+  },
+  {
+    "node": "etri-dev0005-jetagx",
+    "variant": "resident-llama-agx",
+    "samples": 30,
+    "p95_ms": 326.33839300251566,
+    "conservative_rps": 3.06,
+    "observations": [
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371414864151033",
+        "warmup": true,
+        "client_ms": 484.00474799927906,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371414864151033",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.033,
+          "ttft_ms": 255.306,
+          "tokens_per_second": 49.522,
+          "inference_ms": 449.851,
+          "actual_e2e_ms": 449.884,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371415348180498",
+        "warmup": false,
+        "client_ms": 226.80127499916125,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371415348180498",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 40.939,
+          "tokens_per_second": 54.555,
+          "inference_ms": 197.6,
+          "actual_e2e_ms": 197.61,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371415575071940",
+        "warmup": false,
+        "client_ms": 207.13518199772807,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371415575071940",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 26.982,
+          "tokens_per_second": 59.767,
+          "inference_ms": 179.169,
+          "actual_e2e_ms": 179.18,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371415782236199",
+        "warmup": false,
+        "client_ms": 210.73040000192123,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371415782236199",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 24.11,
+          "tokens_per_second": 58.261,
+          "inference_ms": 180.403,
+          "actual_e2e_ms": 180.414,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371415993041571",
+        "warmup": false,
+        "client_ms": 276.0422709980048,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371415993041571",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 29.083,
+          "tokens_per_second": 56.832,
+          "inference_ms": 188.53,
+          "actual_e2e_ms": 188.539,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371416269159639",
+        "warmup": false,
+        "client_ms": 219.07483999893884,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371416269159639",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 24.984,
+          "tokens_per_second": 60.962,
+          "inference_ms": 174.273,
+          "actual_e2e_ms": 174.284,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371416488321394",
+        "warmup": false,
+        "client_ms": 225.97974499876727,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371416488321394",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.012,
+          "ttft_ms": 24.91,
+          "tokens_per_second": 58.795,
+          "inference_ms": 179.968,
+          "actual_e2e_ms": 179.98,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371416714401544",
+        "warmup": false,
+        "client_ms": 333.79171499836957,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371416714401544",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 26.343,
+          "tokens_per_second": 65.432,
+          "inference_ms": 165.264,
+          "actual_e2e_ms": 165.275,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371417048217488",
+        "warmup": false,
+        "client_ms": 326.33839300251566,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371417048217488",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.012,
+          "ttft_ms": 42.63,
+          "tokens_per_second": 64.179,
+          "inference_ms": 184.261,
+          "actual_e2e_ms": 184.273,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371417374652484",
+        "warmup": false,
+        "client_ms": 217.86965199862607,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371417374652484",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.014,
+          "ttft_ms": 26.431,
+          "tokens_per_second": 64.803,
+          "inference_ms": 166.383,
+          "actual_e2e_ms": 166.396,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371417592604074",
+        "warmup": false,
+        "client_ms": 182.3709290001716,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371417592604074",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 20.862,
+          "tokens_per_second": 71.345,
+          "inference_ms": 148.322,
+          "actual_e2e_ms": 148.331,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371417774999705",
+        "warmup": false,
+        "client_ms": 175.38658500052406,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371417774999705",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 21.283,
+          "tokens_per_second": 68.616,
+          "inference_ms": 153.873,
+          "actual_e2e_ms": 153.883,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371417950467522",
+        "warmup": false,
+        "client_ms": 194.5657000032952,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371417950467522",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.012,
+          "ttft_ms": 21.752,
+          "tokens_per_second": 64.344,
+          "inference_ms": 162.695,
+          "actual_e2e_ms": 162.707,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371418145072402",
+        "warmup": false,
+        "client_ms": 204.25898099711048,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371418145072402",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 20.289,
+          "tokens_per_second": 56.345,
+          "inference_ms": 181.449,
+          "actual_e2e_ms": 181.458,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371418349417014",
+        "warmup": false,
+        "client_ms": 195.13985500088893,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371418349417014",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 28.344,
+          "tokens_per_second": 78.451,
+          "inference_ms": 138.261,
+          "actual_e2e_ms": 138.271,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371418544640819",
+        "warmup": false,
+        "client_ms": 169.15210600200226,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371418544640819",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 22.652,
+          "tokens_per_second": 78.532,
+          "inference_ms": 138.623,
+          "actual_e2e_ms": 138.632,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371418713890656",
+        "warmup": false,
+        "client_ms": 194.06090099801077,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371418713890656",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 21.827,
+          "tokens_per_second": 64.205,
+          "inference_ms": 163.406,
+          "actual_e2e_ms": 163.417,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371418908056237",
+        "warmup": false,
+        "client_ms": 186.248155998328,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371418908056237",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 24.123,
+          "tokens_per_second": 70.043,
+          "inference_ms": 153.747,
+          "actual_e2e_ms": 153.757,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371419094357027",
+        "warmup": false,
+        "client_ms": 184.64836999919498,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371419094357027",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 21.027,
+          "tokens_per_second": 67.181,
+          "inference_ms": 156.353,
+          "actual_e2e_ms": 156.364,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371419279088868",
+        "warmup": false,
+        "client_ms": 185.8598869985144,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371419279088868",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 21.39,
+          "tokens_per_second": 66.739,
+          "inference_ms": 157.767,
+          "actual_e2e_ms": 157.776,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371419465059575",
+        "warmup": false,
+        "client_ms": 312.3611390001315,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371419465059575",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 23.454,
+          "tokens_per_second": 69.508,
+          "inference_ms": 154.727,
+          "actual_e2e_ms": 154.737,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371419777442753",
+        "warmup": false,
+        "client_ms": 301.2773149966961,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371419777442753",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 40.887,
+          "tokens_per_second": 63.977,
+          "inference_ms": 182.577,
+          "actual_e2e_ms": 182.587,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371420078801019",
+        "warmup": false,
+        "client_ms": 198.83018000109587,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371420078801019",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 22.354,
+          "tokens_per_second": 60.685,
+          "inference_ms": 172.025,
+          "actual_e2e_ms": 172.035,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371420277717057",
+        "warmup": false,
+        "client_ms": 187.82843699955265,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371420277717057",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.009,
+          "ttft_ms": 21.653,
+          "tokens_per_second": 66.171,
+          "inference_ms": 158.787,
+          "actual_e2e_ms": 158.796,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371420465642290",
+        "warmup": false,
+        "client_ms": 198.12795300094876,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371420465642290",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 21.314,
+          "tokens_per_second": 62.075,
+          "inference_ms": 167.982,
+          "actual_e2e_ms": 167.992,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371420663895425",
+        "warmup": false,
+        "client_ms": 199.00063800014323,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371420663895425",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 24.235,
+          "tokens_per_second": 61.851,
+          "inference_ms": 168.399,
+          "actual_e2e_ms": 168.41,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371420862985078",
+        "warmup": false,
+        "client_ms": 186.61255199913285,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371420862985078",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 20.525,
+          "tokens_per_second": 70.218,
+          "inference_ms": 150.068,
+          "actual_e2e_ms": 150.079,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371421049694606",
+        "warmup": false,
+        "client_ms": 162.28681299980963,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371421049694606",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 21.298,
+          "tokens_per_second": 78.526,
+          "inference_ms": 137.127,
+          "actual_e2e_ms": 137.137,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371421212064139",
+        "warmup": false,
+        "client_ms": 195.68163599979016,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371421212064139",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 25.104,
+          "tokens_per_second": 64.529,
+          "inference_ms": 165.831,
+          "actual_e2e_ms": 165.842,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371421407823279",
+        "warmup": false,
+        "client_ms": 201.511703999131,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371421407823279",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.011,
+          "ttft_ms": 21.567,
+          "tokens_per_second": 61.897,
+          "inference_ms": 168.203,
+          "actual_e2e_ms": 168.214,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-agx-1789371421609430205",
+        "warmup": false,
+        "client_ms": 199.6606979992066,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-agx-1789371421609430205",
+          "node_id": "etri-dev0005-jetagx",
+          "role": "agx",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.01,
+          "ttft_ms": 21.789,
+          "tokens_per_second": 62.789,
+          "inference_ms": 166.368,
+          "actual_e2e_ms": 166.378,
+          "eval_count": 9
+        }
+      }
+    ]
+  },
+  {
+    "node": "etri-ser0003-cg0ms0",
+    "variant": "resident-llama-spark",
+    "samples": 30,
+    "p95_ms": 137.11669699841877,
+    "conservative_rps": 7.29,
+    "observations": [
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371431969220688",
+        "warmup": true,
+        "client_ms": 139.84015800087946,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371431969220688",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 16.339,
+          "tokens_per_second": 95.987,
+          "inference_ms": 111.676,
+          "actual_e2e_ms": 111.68,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432109090453",
+        "warmup": false,
+        "client_ms": 94.08113500103354,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432109090453",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.005,
+          "ttft_ms": 12.58,
+          "tokens_per_second": 143.887,
+          "inference_ms": 76.294,
+          "actual_e2e_ms": 76.298,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432203250824",
+        "warmup": false,
+        "client_ms": 97.45433600255637,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432203250824",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.642,
+          "tokens_per_second": 139.815,
+          "inference_ms": 74.848,
+          "actual_e2e_ms": 74.852,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432300785230",
+        "warmup": false,
+        "client_ms": 100.86024200063548,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432300785230",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.005,
+          "ttft_ms": 8.884,
+          "tokens_per_second": 136.081,
+          "inference_ms": 75.748,
+          "actual_e2e_ms": 75.752,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432401728570",
+        "warmup": false,
+        "client_ms": 105.88414300218574,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432401728570",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.128,
+          "tokens_per_second": 123.001,
+          "inference_ms": 82.92,
+          "actual_e2e_ms": 82.924,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432507694119",
+        "warmup": false,
+        "client_ms": 99.5559469993168,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432507694119",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 8.512,
+          "tokens_per_second": 136.637,
+          "inference_ms": 75.305,
+          "actual_e2e_ms": 75.308,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432607334319",
+        "warmup": false,
+        "client_ms": 101.28961200098274,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432607334319",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 10.334,
+          "tokens_per_second": 149.452,
+          "inference_ms": 71.257,
+          "actual_e2e_ms": 71.26,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432708722449",
+        "warmup": false,
+        "client_ms": 92.82849299779627,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432708722449",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.213,
+          "tokens_per_second": 178.179,
+          "inference_ms": 60.467,
+          "actual_e2e_ms": 60.471,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432801633067",
+        "warmup": false,
+        "client_ms": 101.93585999877541,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432801633067",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 17.105,
+          "tokens_per_second": 181.039,
+          "inference_ms": 76.141,
+          "actual_e2e_ms": 76.145,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371432903645693",
+        "warmup": false,
+        "client_ms": 99.0613050016691,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371432903645693",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.002,
+          "ttft_ms": 9.117,
+          "tokens_per_second": 146.213,
+          "inference_ms": 71.459,
+          "actual_e2e_ms": 71.462,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371433002782207",
+        "warmup": false,
+        "client_ms": 98.67179399952875,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371433002782207",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 8.706,
+          "tokens_per_second": 179.702,
+          "inference_ms": 72.884,
+          "actual_e2e_ms": 72.888,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371433101519974",
+        "warmup": false,
+        "client_ms": 137.11669699841877,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371433101519974",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 9.969,
+          "tokens_per_second": 131.988,
+          "inference_ms": 78.973,
+          "actual_e2e_ms": 78.977,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371433238665411",
+        "warmup": false,
+        "client_ms": 429.5352460030699,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371433238665411",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.005,
+          "ttft_ms": 9.44,
+          "tokens_per_second": 178.653,
+          "inference_ms": 59.988,
+          "actual_e2e_ms": 59.993,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371433668230406",
+        "warmup": false,
+        "client_ms": 131.83045499681612,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371433668230406",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 9.452,
+          "tokens_per_second": 180.868,
+          "inference_ms": 105.227,
+          "actual_e2e_ms": 105.23,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371433800088467",
+        "warmup": false,
+        "client_ms": 109.72290499921655,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371433800088467",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 8.784,
+          "tokens_per_second": 181.357,
+          "inference_ms": 86.324,
+          "actual_e2e_ms": 86.328,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371433909926714",
+        "warmup": false,
+        "client_ms": 95.0215910015686,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371433909926714",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.44,
+          "tokens_per_second": 178.891,
+          "inference_ms": 63.352,
+          "actual_e2e_ms": 63.355,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434005048803",
+        "warmup": false,
+        "client_ms": 98.58961599820759,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434005048803",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.485,
+          "tokens_per_second": 139.164,
+          "inference_ms": 74.769,
+          "actual_e2e_ms": 74.773,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434103669590",
+        "warmup": false,
+        "client_ms": 97.34122399822809,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434103669590",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 8.452,
+          "tokens_per_second": 171.999,
+          "inference_ms": 82.188,
+          "actual_e2e_ms": 82.191,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434201095547",
+        "warmup": false,
+        "client_ms": 87.57973699903232,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434201095547",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.868,
+          "tokens_per_second": 180.339,
+          "inference_ms": 60.05,
+          "actual_e2e_ms": 60.054,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434288771879",
+        "warmup": false,
+        "client_ms": 113.56684299971676,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434288771879",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 8.605,
+          "tokens_per_second": 166.509,
+          "inference_ms": 82.598,
+          "actual_e2e_ms": 82.602,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434402433680",
+        "warmup": false,
+        "client_ms": 98.68411499701324,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434402433680",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 8.751,
+          "tokens_per_second": 182.09,
+          "inference_ms": 73.478,
+          "actual_e2e_ms": 73.48,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434501194026",
+        "warmup": false,
+        "client_ms": 101.57609599991702,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434501194026",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 9.499,
+          "tokens_per_second": 182.515,
+          "inference_ms": 75.189,
+          "actual_e2e_ms": 75.192,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434602916402",
+        "warmup": false,
+        "client_ms": 99.48165999958292,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434602916402",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 8.556,
+          "tokens_per_second": 141.418,
+          "inference_ms": 73.324,
+          "actual_e2e_ms": 73.328,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434702478114",
+        "warmup": false,
+        "client_ms": 105.52427600123337,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434702478114",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 9.6,
+          "tokens_per_second": 126.355,
+          "inference_ms": 81.467,
+          "actual_e2e_ms": 81.469,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434808077645",
+        "warmup": false,
+        "client_ms": 99.71202200176776,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434808077645",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 8.816,
+          "tokens_per_second": 141.766,
+          "inference_ms": 73.141,
+          "actual_e2e_ms": 73.144,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371434907878015",
+        "warmup": false,
+        "client_ms": 94.48425799928373,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371434907878015",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.255,
+          "tokens_per_second": 169.943,
+          "inference_ms": 63.009,
+          "actual_e2e_ms": 63.013,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371435002435484",
+        "warmup": false,
+        "client_ms": 94.8946270000306,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371435002435484",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.003,
+          "ttft_ms": 8.566,
+          "tokens_per_second": 141.543,
+          "inference_ms": 72.7,
+          "actual_e2e_ms": 72.703,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371435097352865",
+        "warmup": false,
+        "client_ms": 104.36900200147647,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371435097352865",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 8.399,
+          "tokens_per_second": 167.976,
+          "inference_ms": 87.87,
+          "actual_e2e_ms": 87.873,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371435201794085",
+        "warmup": false,
+        "client_ms": 101.90039799999795,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371435201794085",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.527,
+          "tokens_per_second": 178.735,
+          "inference_ms": 75.263,
+          "actual_e2e_ms": 75.267,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371435303769600",
+        "warmup": false,
+        "client_ms": 103.92908600260853,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371435303769600",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.002,
+          "ttft_ms": 8.995,
+          "tokens_per_second": 144.462,
+          "inference_ms": 71.788,
+          "actual_e2e_ms": 71.791,
+          "eval_count": 9
+        }
+      },
+      {
+        "request_id": "real-sensor-cal-resident-llama-spark-1789371435407774011",
+        "warmup": false,
+        "client_ms": 94.71669300182839,
+        "result": {
+          "request_id": "real-sensor-cal-resident-llama-spark-1789371435407774011",
+          "node_id": "etri-ser0003-cg0ms0",
+          "role": "server",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b",
+          "response": "The temperature is 329 degrees raw.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.004,
+          "ttft_ms": 9.355,
+          "tokens_per_second": 184.109,
+          "inference_ms": 67.73,
+          "actual_e2e_ms": 67.733,
+          "eval_count": 9
+        }
+      }
+    ]
+  }
+]

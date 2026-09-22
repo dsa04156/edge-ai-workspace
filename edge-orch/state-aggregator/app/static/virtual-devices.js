@@ -49,7 +49,7 @@
   function detail(row) {
     const spec = row.definition.spec;
     let html = `<dl>${pair("논리 ID", row.id)}${pair("기능", spec.capabilities.join(", "))}
-      ${pair("모델 계약", json(spec.model))}${pair("예정 노드 조건", json(row.plannedNodeSelector || spec.nodeSelector))}
+      ${pair("모델 계약", json(spec.model))}${pair("설정 노드 조건", json(row.plannedNodeSelector || spec.nodeSelector))}
       ${pair("실행 참조", json(spec.runtimeRef.workloadRef))}${pair("Namespace", spec.runtimeRef.namespace)}
       ${pair("원하는 실행 수", row.desiredReplicas)}${pair("실행 상태", label(row.executionState))}
       ${pair("연결 상태", label(row.connectionState))}
@@ -60,8 +60,8 @@
     for (const pod of row.instances) {
       const runtime = pod.runtime, usage = pod.usage || {};
       html += `<div class="vd-instance"><dl>
-        ${pair("Pod", pod.name)}${pair("Pod UID", pod.podUid)}${pair("실제 노드", pod.node)}
-        ${pair("Pod 상태", pod.phase)}${pair("Pod 준비", readiness(pod.podReady))}
+        ${pair("실행체(Pod)", pod.name)}${pair("Pod UID", pod.podUid)}${pair("실제 노드", pod.node)}
+        ${pair("Pod 상태", pod.phase)}${pair("실행체 준비", readiness(pod.podReady))}
         ${pair("모델 준비", readiness(pod.modelReady))}${pair("실행", label(pod.executionState))}
         ${pair("API 관측", pod.apiObservedAt)}${pair("처리 중", runtime?.inFlight)}
         ${pair("성공 / 실패", runtime ? runtime.succeeded + " / " + runtime.failed : null)}
@@ -80,7 +80,9 @@
     if (row.terminalPods?.length) html += `<details><summary>종료된 Pod 기록 (실행체 수 제외)</summary><pre>${esc(json(row.terminalPods))}</pre></details>`;
     return html;
   }
-  if (typeof module !== "undefined") module.exports = {displayState, filterRows, placements, detail, ageFresh};
+  const viewApi = {displayState, filterRows, placements, detail, ageFresh};
+  if (typeof module !== "undefined") module.exports = viewApi;
+  globalThis.VirtualDeviceView = viewApi;
   if (typeof document === "undefined") return;
   const $ = id => document.getElementById(id);
   if (!$("vdList")) return;

@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "runtimePods": 1,
+  "requestsSucceeded": 5,
+  "stoppedAfterTest": 1,
+  "executionPodsRemaining": 0,
+  "gpuComputeTested": false
+}

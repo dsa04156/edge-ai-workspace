@@ -1,0 +1,26 @@
+[
+  {
+    "name": "rt-298e86a3bed7-3102ec465146-66647d4f88-fk9vk",
+    "uid": "4596ac24-ca7f-4eb6-80be-dba21be1dd4b",
+    "node": "etri-ser0001-cg0msb",
+    "resources": {
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi",
+        "nvidia.com/gpu": "1"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi",
+        "nvidia.com/gpu": "1"
+      }
+    },
+    "measured": {
+      "cgroup": {
+        "/sys/fs/cgroup/cpu.max": "25000 100000",
+        "/sys/fs/cgroup/memory.max": "134217728"
+      },
+      "nvidiaDevicePresent": true
+    }
+  }
+]

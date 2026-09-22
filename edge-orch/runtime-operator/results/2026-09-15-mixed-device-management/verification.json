@@ -1,0 +1,288 @@
+{
+  "testedAt": "2026-09-15T09:19:48.329417+00:00",
+  "operationalClusterModified": false,
+  "management100": {
+    "result": "passed",
+    "engineProcesses": 1,
+    "journalWriters": 1,
+    "registeredPhysical": 1,
+    "registeredVirtual": 99,
+    "physicalBackend": "simulated EdgeX Metadata/Core Data; real DeviceManagementService; no first telemetry event",
+    "virtualBackend": "real FastAPI proxy + runtime owner + SQLite; simulated Kubernetes adapter",
+    "physicalIndividualReadback": 1,
+    "physicalAdminTransitionsVerified": 3,
+    "virtualIndividualReadAndControl": 99,
+    "virtualIdempotentRegistrationAndControl": 99,
+    "virtualHistoryVerified": 99,
+    "virtualRestartPersistenceVerified": 99,
+    "allocatedRuntimeServicesDuringRegistration": 0,
+    "createdPodsDuringRegistration": 0,
+    "summary": {
+      "registered": 100,
+      "knownRegistered": 100,
+      "stateQueryable": 100,
+      "inventoryComplete": true,
+      "running": 0,
+      "stopped": 100,
+      "unknown": 0,
+      "other": 0
+    },
+    "sourceFailureSummary": {
+      "registered": null,
+      "knownRegistered": 100,
+      "stateQueryable": 99,
+      "inventoryComplete": false,
+      "running": 0,
+      "stopped": 99,
+      "unknown": 1,
+      "other": 0
+    },
+    "elapsedSeconds": 5.502,
+    "perVirtualApiCycleP95Ms": 88.958,
+    "countingConditions": {
+      "includesStopped": true,
+      "physicalUnit": "one EdgeX registered endpoint",
+      "observationTwinsCounted": false,
+      "podsCounted": false,
+      "targetAchievedClaim": false
+    }
+  },
+  "parallelExecution": {
+    "result": "passed",
+    "sameHost": true,
+    "parallelRuntimeProcesses": 4,
+    "concurrentRequestBatch": 20,
+    "successfulRequests": 44,
+    "initialStatus": [
+      {
+        "virtualDeviceId": "parallel-vd-0",
+        "podUid": null,
+        "bootId": "92effd92-c395-4ead-a692-70231e596a33",
+        "startedAt": "2026-09-15T09:19:47.599495+00:00",
+        "observedAt": "2026-09-15T09:19:47.750945+00:00",
+        "model": {
+          "id": "iris-centroid",
+          "version": "1.0.0",
+          "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+        },
+        "modelReady": true,
+        "draining": false,
+        "inFlight": 0,
+        "succeeded": 10,
+        "failed": 0,
+        "rejected": 0,
+        "lastProcessedAt": "2026-09-15T09:19:47.705106+00:00",
+        "lastSuccess": {
+          "virtualDeviceId": "parallel-vd-0",
+          "podUid": null,
+          "bootId": "92effd92-c395-4ead-a692-70231e596a33",
+          "requestId": "parallel-8",
+          "clientId": "mixed-qualification",
+          "model": {
+            "id": "iris-centroid",
+            "version": "1.0.0",
+            "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+          },
+          "inputSha256": "3d1cb675b7b6d6362db16256c06f9cd6ff327897e6b854a5d00d8356317ca420",
+          "result": {
+            "label": "setosa",
+            "classIndex": 0,
+            "distances": {
+              "setosa": 0.17170104833692765,
+              "versicolor": 3.2622930968875243,
+              "virginica": 4.838233148578104
+            },
+            "units": "euclidean_cm"
+          },
+          "completedAt": "2026-09-15T09:19:47.705100+00:00",
+          "processingMs": 0.09309900633525103
+        },
+        "error": null,
+        "counterScope": "process_boot",
+        "usage": {
+          "scope": "main_process",
+          "cpuCores": 0.06464726177359903,
+          "cpuObservedAt": "2026-09-15T09:19:47.750810+00:00",
+          "memoryBytes": 45912064,
+          "observedAt": "2026-09-15T09:19:47.750956+00:00",
+          "error": null
+        }
+      },
+      {
+        "virtualDeviceId": "parallel-vd-1",
+        "podUid": null,
+        "bootId": "f2e55c40-09f6-4034-9ac5-c9bf26270f73",
+        "startedAt": "2026-09-15T09:19:47.595871+00:00",
+        "observedAt": "2026-09-15T09:19:47.751028+00:00",
+        "model": {
+          "id": "iris-centroid",
+          "version": "1.0.0",
+          "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+        },
+        "modelReady": true,
+        "draining": false,
+        "inFlight": 0,
+        "succeeded": 10,
+        "failed": 0,
+        "rejected": 0,
+        "lastProcessedAt": "2026-09-15T09:19:47.705217+00:00",
+        "lastSuccess": {
+          "virtualDeviceId": "parallel-vd-1",
+          "podUid": null,
+          "bootId": "f2e55c40-09f6-4034-9ac5-c9bf26270f73",
+          "requestId": "parallel-8",
+          "clientId": "mixed-qualification",
+          "model": {
+            "id": "iris-centroid",
+            "version": "1.0.0",
+            "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+          },
+          "inputSha256": "3d1cb675b7b6d6362db16256c06f9cd6ff327897e6b854a5d00d8356317ca420",
+          "result": {
+            "label": "setosa",
+            "classIndex": 0,
+            "distances": {
+              "setosa": 0.17170104833692765,
+              "versicolor": 3.2622930968875243,
+              "virginica": 4.838233148578104
+            },
+            "units": "euclidean_cm"
+          },
+          "completedAt": "2026-09-15T09:19:47.705209+00:00",
+          "processingMs": 0.16378499276470393
+        },
+        "error": null,
+        "counterScope": "process_boot",
+        "usage": {
+          "scope": "main_process",
+          "cpuCores": 0.06900803922426502,
+          "cpuObservedAt": "2026-09-15T09:19:47.750927+00:00",
+          "memoryBytes": 45846528,
+          "observedAt": "2026-09-15T09:19:47.751038+00:00",
+          "error": null
+        }
+      },
+      {
+        "virtualDeviceId": "parallel-vd-2",
+        "podUid": null,
+        "bootId": "0cc8cc36-8645-4a69-bdf3-69185e6901aa",
+        "startedAt": "2026-09-15T09:19:47.604936+00:00",
+        "observedAt": "2026-09-15T09:19:47.751124+00:00",
+        "model": {
+          "id": "iris-centroid",
+          "version": "1.0.0",
+          "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+        },
+        "modelReady": true,
+        "draining": false,
+        "inFlight": 0,
+        "succeeded": 10,
+        "failed": 0,
+        "rejected": 0,
+        "lastProcessedAt": "2026-09-15T09:19:47.705267+00:00",
+        "lastSuccess": {
+          "virtualDeviceId": "parallel-vd-2",
+          "podUid": null,
+          "bootId": "0cc8cc36-8645-4a69-bdf3-69185e6901aa",
+          "requestId": "parallel-8",
+          "clientId": "mixed-qualification",
+          "model": {
+            "id": "iris-centroid",
+            "version": "1.0.0",
+            "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+          },
+          "inputSha256": "3d1cb675b7b6d6362db16256c06f9cd6ff327897e6b854a5d00d8356317ca420",
+          "result": {
+            "label": "setosa",
+            "classIndex": 0,
+            "distances": {
+              "setosa": 0.17170104833692765,
+              "versicolor": 3.2622930968875243,
+              "virginica": 4.838233148578104
+            },
+            "units": "euclidean_cm"
+          },
+          "completedAt": "2026-09-15T09:19:47.705260+00:00",
+          "processingMs": 0.15165899822022766
+        },
+        "error": null,
+        "counterScope": "process_boot",
+        "usage": {
+          "scope": "main_process",
+          "cpuCores": 0.07377324443140812,
+          "cpuObservedAt": "2026-09-15T09:19:47.751024+00:00",
+          "memoryBytes": 45768704,
+          "observedAt": "2026-09-15T09:19:47.751135+00:00",
+          "error": null
+        }
+      },
+      {
+        "virtualDeviceId": "parallel-vd-3",
+        "podUid": null,
+        "bootId": "2b831fb1-9126-4820-ab8d-89a204c30a4d",
+        "startedAt": "2026-09-15T09:19:47.605163+00:00",
+        "observedAt": "2026-09-15T09:19:47.751212+00:00",
+        "model": {
+          "id": "iris-centroid",
+          "version": "1.0.0",
+          "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+        },
+        "modelReady": true,
+        "draining": false,
+        "inFlight": 0,
+        "succeeded": 10,
+        "failed": 0,
+        "rejected": 0,
+        "lastProcessedAt": "2026-09-15T09:19:47.705323+00:00",
+        "lastSuccess": {
+          "virtualDeviceId": "parallel-vd-3",
+          "podUid": null,
+          "bootId": "2b831fb1-9126-4820-ab8d-89a204c30a4d",
+          "requestId": "parallel-8",
+          "clientId": "mixed-qualification",
+          "model": {
+            "id": "iris-centroid",
+            "version": "1.0.0",
+            "sha256": "c1e3a28e9f4675354d821ef8566a5ccf9f62cafbc69aba4144f80cc6e0db2768"
+          },
+          "inputSha256": "3d1cb675b7b6d6362db16256c06f9cd6ff327897e6b854a5d00d8356317ca420",
+          "result": {
+            "label": "setosa",
+            "classIndex": 0,
+            "distances": {
+              "setosa": 0.17170104833692765,
+              "versicolor": 3.2622930968875243,
+              "virginica": 4.838233148578104
+            },
+            "units": "euclidean_cm"
+          },
+          "completedAt": "2026-09-15T09:19:47.705317+00:00",
+          "processingMs": 0.12624499504454434
+        },
+        "error": null,
+        "counterScope": "process_boot",
+        "usage": {
+          "scope": "main_process",
+          "cpuCores": 0.06058427752960805,
+          "cpuObservedAt": "2026-09-15T09:19:47.751106+00:00",
+          "memoryBytes": 45723648,
+          "observedAt": "2026-09-15T09:19:47.751222+00:00",
+          "error": null
+        }
+      }
+    ],
+    "survivorsAfterIndividualStop": 3,
+    "restartPreservedLogicalId": true,
+    "restartChangedBootId": true,
+    "runtime": "existing vd_runtime nearest-centroid Iris model; four real independent OS processes",
+    "kubernetesPodsVerified": false,
+    "resourceQuotasEnforced": false,
+    "gpuTested": false,
+    "limitation": "Docker socket unavailable; process parallelism is not Kubernetes Pod acceptance evidence"
+  },
+  "remainingAcceptance": [
+    "single-node deployed engine with persistent volume",
+    "real EdgeX device observation",
+    "parallel Kubernetes Pods with CPU/memory/GPU allocation and independent controls"
+  ]
+}

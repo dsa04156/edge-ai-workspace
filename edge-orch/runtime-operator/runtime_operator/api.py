@@ -15,8 +15,11 @@ from .controller import Controller
 from .journal import Journal
 from .kube import Kube
 from . import resident, adapters
+from . import common_ai
 from . import diagnostics
 from .demo import router as demo_router
+from .service_settings import router as settings_router
+from .logical_devices import router as logical_devices_router
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -50,6 +53,8 @@ def create_app(controller=None):
     app = FastAPI(title="Common Service Runtime", lifespan=lifespan)
     app.state.controller = controller
     app.include_router(demo_router(app))
+    app.include_router(settings_router(app))
+    app.include_router(logical_devices_router(app))
     diagnostics.install(app)
 
     @app.get("/health")
@@ -83,6 +88,7 @@ def create_app(controller=None):
 
     @app.post("/services/{name}/invoke")
     async def invoke(name: str, request: Request):
+        received = time.monotonic()
         c = app.state.controller
         request_id = request.headers.get("X-Request-ID", "")
         if not re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", request_id):
@@ -105,20 +111,34 @@ def create_app(controller=None):
         if expected_node and state["active"]["node"] != expected_node:
             return JSONResponse({"reason": "node_route_changed", "accepted": False}, status_code=409,
                                 headers={"X-Request-State": "cancelled"})
-        spec = state["active"]["spec"]
+        spec = dict(state["active"]["spec"])
+        def common_config():
+            resources = (c.snapshot or {}).get("services", [])
+            matches = [r["spec"].get("commonAI") for r in resources if r["metadata"]["uid"] == uid]
+            return matches[0] if len(matches) == 1 else None
+        spec["commonAI"] = common_config()
         data = bytearray()
         async for chunk in request.stream():
             data.extend(chunk)
             if len(data) > spec["maxBodyBytes"]:
                 return JSONResponse({"reason": "body_too_large"}, status_code=413)
+        common = None
         try:
             body = json.loads(data)
             if not isinstance(body, dict):
                 raise ValueError()
             canonical = json.dumps(body, sort_keys=True, allow_nan=False, separators=(",", ":"))
-            adapters.request_body({**state["active"], "spec": spec}, body, request_id)
+            if body.get("schema_version") == "edgeai.execution/v1":
+                common = common_ai.prepare(spec, body, request_id, name)
+                common_ai.check_target(state["active"], common[0])
+                if not common[0].offload.enabled:
+                    expected_node = common[0].placement.default_node
+            elif spec.get("commonAI") and spec["commonAI"].get("offload", {}).get("enabled"):
+                raise ValueError("qualified_common_input_required")
+            else:
+                adapters.request_body({**state["active"], "spec": spec}, body, request_id)
         except (ValueError, TypeError):
-            return JSONResponse({"reason": "JSON_object_required"}, status_code=400)
+            return JSONResponse({"reason": "common_request_or_target_invalid" if common else "JSON_object_or_contract_required"}, status_code=400)
         fingerprint = hashlib.sha256(canonical.encode()).hexdigest()
 
         def replay(existing):
@@ -136,9 +156,13 @@ def create_app(controller=None):
         key = (uid, request_id)
         if key in c.pending_ids:
             return JSONResponse({"reason": "request_id_pending"}, status_code=409)
-        c.latencies.arrival(uid, state["active"]["name"], c.clock())
+        # Only qualified common input joins the service's automatic policy window.
+        measure = common is None or common[0].offload.enabled
+        if measure:
+            c.latencies.arrival(uid, state["active"]["name"], c.clock())
         if c.pending.get(uid, 0) >= 128:
-            c.latencies.record(uid, state["active"]["name"], c.clock(), 0, False)
+            if measure:
+                c.latencies.record(uid, state["active"]["name"], c.clock(), 0, False)
             return JSONResponse({"reason": "queue_full", "accepted": False}, status_code=429)
         c.pending_ids[key] = fingerprint
         started = time.monotonic()
@@ -160,20 +184,31 @@ def create_app(controller=None):
                                         headers={"X-Request-State": "cancelled"})
                 if (c.stopping or not state.get("serving") or not active
                         or c.clock() - state.get("checkedAt", 0) > 15 or c.clock() - c.last_snapshot > 15):
-                    c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
+                    if measure:
+                        c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
                     return JSONResponse({"reason": "route_unavailable", "accepted": False}, status_code=503)
                 if active["spec"]["ioContract"] != spec["ioContract"]:
                     return JSONResponse({"reason": "io_contract_changed", "accepted": False}, status_code=409)
                 # One event loop: no await between selecting route, journaling and counting.
                 if c.running_count(active) < active["capacity"]:
-                    try:
-                        if active["spec"].get("modelRuntime") != spec.get("modelRuntime"):
-                            raise ValueError("model_contract_changed")
-                        adapters.request_body(active, body, request_id)
-                    except ValueError:
-                        return JSONResponse({"reason": "inference_contract_changed", "accepted": False}, status_code=409)
+                    if common:
+                        try:
+                            if common_config() != spec.get("commonAI"):
+                                raise ValueError("common_config_changed")
+                            common_ai.check_target(active, common[0])
+                        except ValueError:
+                            return JSONResponse({"reason": "common_target_changed", "accepted": False}, status_code=409)
+                    else:
+                        try:
+                            if active["spec"].get("modelRuntime") != spec.get("modelRuntime"):
+                                raise ValueError("model_contract_changed")
+                            adapters.request_body(active, body, request_id)
+                        except ValueError:
+                            return JSONResponse({"reason": "inference_contract_changed", "accepted": False}, status_code=409)
                     target = active
-                    c.journal.dispatch(uid, request_id, fingerprint, target["name"])
+                    initial = common_ai.envelope(common[1], common[0], target,
+                        reason="worker_outcome_unknown") if common else None
+                    c.journal.dispatch(uid, request_id, fingerprint, target["name"], initial)
                     diagnostics.mark(request, "dispatch", target)
                     c.inflight[target["name"]] = c.inflight.get(target["name"], 0) + 1
                     break
@@ -182,14 +217,18 @@ def create_app(controller=None):
             c.pending_ids.pop(key, None)
             c.pending[uid] -= 1
         if target is None:
-            c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
+            if measure:
+                c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
             return JSONResponse({"reason": "admission_timeout", "accepted": False}, status_code=503)
         status, result, outcome = 503, {"reason": "worker_outcome_unknown", "accepted": True}, "unknown"
+        dispatched_at = time.monotonic()
+        if common:
+            result = common_ai.envelope(common[1], common[0], target, reason="worker_outcome_unknown")
         try:
             # No redirect following, transport retries or cross-worker retry after dispatch.
             async with asyncio.timeout(max(0.1, deadline - time.monotonic())):
                 path = "/generate" if target.get("resident") else target["spec"]["requestPath"]
-                payload = adapters.request_body(target, body, request_id)
+                payload = common[2] if common else adapters.request_body(target, body, request_id)
                 async with c.transport.stream("POST", c.endpoint(target) + path,
                         json=payload, headers={"X-Request-ID": request_id},
                         timeout=max(0.1, deadline - time.monotonic())) as response:
@@ -200,7 +239,13 @@ def create_app(controller=None):
                             raise ValueError("response_too_large")
                     decoded = json.loads(response_bytes)
                     json.dumps(decoded, allow_nan=False)
-                    if target.get("resident") or target["spec"].get("modelRuntime"):
+                    if common:
+                        response.raise_for_status()
+                        common_ai.validate_result(target, common[0], request_id, decoded)
+                        decoded = common_ai.envelope(common[1], common[0], target, status="success", output=decoded,
+                            total_ms=round((time.monotonic() - received) * 1000, 3),
+                            queue_ms=round((dispatched_at - started) * 1000 + decoded["queue_wait_ms"], 3))
+                    elif target.get("resident") or target["spec"].get("modelRuntime"):
                         response.raise_for_status()
                         adapters.validate_result(target, request_id, decoded)
                     if target.get("resident"):
@@ -216,14 +261,18 @@ def create_app(controller=None):
             diagnostics.mark(request, "failure", ("worker_response_invalid", None))
         except asyncio.CancelledError:
             c.journal.finish(uid, request_id, outcome, status, result)
-            c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000, False)
+            if measure:
+                c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000, False)
             raise
         finally:
             diagnostics.mark(request, "worker_finished")
             c.inflight[target["name"]] -= 1
+        if common and outcome == "unknown":
+            result["performance"]["total_ms"] = round((time.monotonic() - received) * 1000, 3)
         c.journal.finish(uid, request_id, outcome, status, result)
-        c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000,
-                           outcome == "completed" and 200 <= status < 300)
+        if measure:
+            c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000,
+                               outcome == "completed" and 200 <= status < 300)
         return JSONResponse(result, status_code=status, headers={"X-Runtime-Target": target["name"], "X-Request-State": outcome})
 
     return app

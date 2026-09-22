@@ -1,0 +1,72 @@
+{
+  "metadataSeconds": 0.08213246101513505,
+  "devices": 13,
+  "readings": [
+    {
+      "device": "virtual-temperature-001",
+      "seconds": 0.031296644010581076,
+      "points": 1
+    },
+    {
+      "device": "virtual-light-001",
+      "seconds": 0.035686143004568294,
+      "points": 1
+    },
+    {
+      "device": "virtual-magnetic-001",
+      "seconds": 0.04073611099738628,
+      "points": 1
+    },
+    {
+      "device": "virtual-acceleration-x-001",
+      "seconds": 0.02448060197639279,
+      "points": 1
+    },
+    {
+      "device": "virtual-acceleration-y-001",
+      "seconds": 0.025218422000762075,
+      "points": 1
+    },
+    {
+      "device": "virtual-acceleration-z-001",
+      "seconds": 0.05224817499401979,
+      "points": 1
+    },
+    {
+      "device": "env-sensehat-temperature-01",
+      "seconds": 0.03795329699642025,
+      "points": 2
+    },
+    {
+      "device": "env-sensehat-humidity-01",
+      "seconds": 0.026821367006050423,
+      "points": 1
+    },
+    {
+      "device": "env-sensehat-pressure-01",
+      "seconds": 0.03625383699545637,
+      "points": 1
+    },
+    {
+      "device": "imu-sensehat-compass-01",
+      "seconds": 0.026677437010221183,
+      "points": 1
+    },
+    {
+      "device": "imu-sensehat-orientation-01",
+      "seconds": 0.022328491002554074,
+      "points": 3
+    },
+    {
+      "device": "arduino-75035303230351e0d171-57fc03a907",
+      "seconds": 0.013546180009143427,
+      "points": 6
+    },
+    {
+      "device": "imu-sensehat-gyroscope-01",
+      "seconds": 0.0420345019956585,
+      "points": 3
+    }
+  ],
+  "totalSeconds": 0.49743086300441064
+}

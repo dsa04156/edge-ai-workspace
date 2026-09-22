@@ -1,0 +1,120 @@
+[
+  {
+    "id": "qa-mixed100-001",
+    "name": "qa-mixed100-001",
+    "profileId": "qa-mixed100-gpu",
+    "connections": [
+      {
+        "kind": "EdgeXDevice",
+        "targetId": "env-sensehat-humidity-01",
+        "resource": null
+      }
+    ],
+    "uid": "22369f4f-c420-4f42-a0d1-d9081edf13aa",
+    "revision": 4,
+    "createdAt": 1789466669.3877432,
+    "binding": {
+      "name": "vd-22369f4fc4204f42a0d1d9081edf13aa",
+      "uid": "298e86a3-bed7-407f-891c-26dda871849d"
+    },
+    "desiredState": "running",
+    "lastActionAt": 1789467321.3399358,
+    "lastObservation": {
+      "state": "running",
+      "reason": null,
+      "locations": [
+        {
+          "role": "active",
+          "node": "etri-ser0001-cg0msb",
+          "revision": "rt-298e86a3bed7-3102ec465146"
+        }
+      ]
+    },
+    "state": "running",
+    "reason": null,
+    "locations": [
+      {
+        "role": "active",
+        "node": "etri-ser0001-cg0msb",
+        "revision": "rt-298e86a3bed7-3102ec465146"
+      }
+    ],
+    "kind": "virtual",
+    "stateQueryable": true,
+    "observedAt": 1789467333.5692613,
+    "profile": {
+      "id": "qa-mixed100-gpu",
+      "name": "혼합100 검증 GPU 할당",
+      "architecture": "amd64",
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi",
+        "nvidia.com/gpu": "1"
+      },
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi",
+        "nvidia.com/gpu": "1"
+      },
+      "executionSpec": {
+        "serviceKind": "test",
+        "execution": "http-json-v1",
+        "ioContract": "synthetic.mixed100.v1",
+        "port": 8080,
+        "readyPath": "/ready",
+        "requestPath": "/infer",
+        "timeoutSeconds": 30,
+        "suspended": true,
+        "demo": {
+          "label": "mixed100 synthetic HTTP qualification",
+          "payload": {
+            "delaySeconds": 0.15,
+            "input": {
+              "qualification": true
+            }
+          }
+        },
+        "policy": {
+          "mode": "preferred",
+          "preferredRole": "server",
+          "allowedRoles": [
+            "server"
+          ],
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+          },
+          "prepareTimeoutSeconds": 60,
+          "approvalRequired": false,
+          "stages": [],
+          "latency": null
+        },
+        "variants": [
+          {
+            "name": "cpu-amd64",
+            "image": "192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558",
+            "architecture": "amd64",
+            "backend": "cpu",
+            "requests": {
+              "cpu": "100m",
+              "memory": "64Mi",
+              "nvidia.com/gpu": "1"
+            },
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi",
+              "nvidia.com/gpu": "1"
+            },
+            "maxInFlight": 1,
+            "qualification": "dashboard-unqualified",
+            "verifiedNodes": [],
+            "qualifiedRps": null,
+            "qualifiedP95Milliseconds": null,
+            "qualifiedInputProfile": null
+          }
+        ]
+      },
+      "templateServiceUid": null
+    },
+    "connectionState": "configured_unverified"
+  }
+]

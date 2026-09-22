@@ -1,0 +1,127 @@
+{
+  "/health": {
+    "agent_healthy": true,
+    "inference_ready": true,
+    "node_state": "ACTIVE",
+    "management_runtime_running": true,
+    "inference_worker_running": true,
+    "runtime_running": true,
+    "model_cached": true,
+    "model_loaded": true,
+    "node_id": "etri-dev0001-jetorn",
+    "role": "nano",
+    "model": "llama3.2:1b-instruct-q8_0",
+    "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+    "runtime": "ollama"
+  },
+  "/metrics": {
+    "timestamp": 1789362420.7259104,
+    "node_id": "etri-dev0001-jetorn",
+    "role": "nano",
+    "model": "llama3.2:1b-instruct-q8_0",
+    "max_concurrency": 1,
+    "profile_inference_ms": 1000.0,
+    "management_runtime_running": true,
+    "inference_worker_running": true,
+    "runtime_running": true,
+    "model_cached": true,
+    "model_cache_bytes": 1321098329,
+    "model_vram_mib": 1348.45,
+    "inference_process_rss_mib": 0.0,
+    "management_process_rss_mib": 0.0,
+    "cpu_utilization_percent": 11.382,
+    "ram_utilization_percent": 50.591,
+    "temperature_celsius": 47.062,
+    "gpu_model": null,
+    "gpu_utilization_percent": null,
+    "gpu_memory_used_mib": null,
+    "gpu_memory_total_mib": null,
+    "gpu_memory_utilization_percent": null,
+    "gpu_temperature_celsius": null,
+    "gpu_metrics_reason": "dcgm_not_available_for_node",
+    "gpu_measurement_attributable": false,
+    "node_state": "ACTIVE",
+    "state_changed_timestamp": 1789359774.443026,
+    "activation_started_timestamp": 1789359751.0845685,
+    "ready_timestamp": 1789359774.4430156,
+    "last_request_timestamp": 1789362358.9322457,
+    "deactivation_timestamp": 1789352246.6532562,
+    "idle_seconds": 61.7936646938324,
+    "active_requests": 0,
+    "queue_length": 0,
+    "completed_requests": 1432,
+    "failed_requests": 0,
+    "last_ttft_ms": 146.192,
+    "last_tokens_per_second": 31.504,
+    "last_inference_ms": 465.859,
+    "ewma_ttft_ms": 60.562,
+    "ewma_tokens_per_second": 44.599,
+    "ewma_inference_ms": 263.641,
+    "last_activation": {
+      "activation_required": true,
+      "node_state_before": "CACHED",
+      "node_state": "ACTIVE",
+      "activation_started_timestamp": 1789359751.0845685,
+      "ready_timestamp": 1789359774.4430156,
+      "worker_start_ms": 1.007,
+      "model_remote_download_ms": 0.0,
+      "model_load_ms": 23347.672,
+      "cuda_initialization_ms": null,
+      "endpoint_ready_ms": 23358.594,
+      "activation_time_ms": 23358.598,
+      "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "transition": {
+        "timestamp": 1789359774.443026,
+        "node": "nano",
+        "physical_node": "etri-dev0001-jetorn",
+        "old_state": "CACHED",
+        "new_state": "ACTIVE",
+        "reason": "common_runtime_operator"
+      }
+    },
+    "last_deactivation": {
+      "deactivation_required": true,
+      "node_state_before": "ACTIVE",
+      "node_state": "CACHED",
+      "deactivation_started_timestamp": 1789352246.3669596,
+      "deactivation_timestamp": 1789352246.6532562,
+      "worker_start_ms": 1.162,
+      "model_unload_ms": 282.498,
+      "model_delete_ms": 0.0,
+      "worker_stop_ms": 282.498,
+      "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+      "deactivation_time_ms": 286.324,
+      "transition": {
+        "timestamp": 1789352246.6530995,
+        "node": "nano",
+        "physical_node": "etri-dev0001-jetorn",
+        "old_state": "ACTIVE",
+        "new_state": "CACHED",
+        "reason": "common_runtime_operator"
+      }
+    }
+  },
+  "/api/ps": {
+    "models": [
+      {
+        "name": "llama3.2:1b-instruct-q8_0",
+        "model": "llama3.2:1b-instruct-q8_0",
+        "size": 1413952307,
+        "digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "1.2B",
+          "quantization_level": "Q8_0"
+        },
+        "expires_at": "2318-12-25T04:53:15.782365112Z",
+        "size_vram": 1413952307,
+        "context_length": 2048
+      }
+    ]
+  }
+}

@@ -203,6 +203,7 @@ class Controller:
         state["modelRuntime"] = spec.modelRuntime.model_dump() if spec.modelRuntime else None
         state["verifiedExecutionNodes"] = sorted({n for v in spec.variants for n in v.verifiedNodes}) if spec.modelRuntime else []
         state["testConfigured"] = spec.demo is not None
+        state["commonAI"] = spec.commonAI.model_dump() if spec.commonAI else None
         state["requestMetrics"] = None
         policy_key = spec.policy.model_dump_json()
         if state.get("policyKey") != policy_key:
@@ -367,6 +368,13 @@ class Controller:
         state["returnCandidateKey"] = candidate_key
         pressure = utilization >= spec.policy.highWatermark and (not spec.is_ai or self.pending.get(uid, 0) > 0)
         low = utilization <= spec.policy.lowWatermark and (not spec.is_ai or return_candidate is not None)
+        common_stream = bool(spec.commonAI and spec.commonAI.offload.enabled)
+        # A periodic sensor stream may always have one brief inference at a
+        # sampling instant. Its measured arrival rate and recovered latency,
+        # with no queued work, establish low demand without requiring silence.
+        if common_stream:
+            low = bool(return_candidate and self.pending.get(uid, 0) == 0
+                       and load <= return_candidate.variant.maxInFlight)
         state["highSince"] = (state.get("highSince") or now) if pressure else None
         state["lowSince"] = (state.get("lowSince") or now) if low else None
         cooldown_remaining = max(0, spec.policy.cooldownSeconds - (now - state["switchedAt"]))
@@ -435,7 +443,7 @@ class Controller:
                 small = [c for c in eligible if return_ready
                          and (c.variant.name == previous_variant if order else
                               c.role == spec.policy.preferredRole and (c.role != active["role"] or c.variant.maxInFlight < active["capacity"]))
-                         and load <= c.variant.maxInFlight * spec.policy.highWatermark
+                         and load <= c.variant.maxInFlight * (1 if common_stream else spec.policy.highWatermark)
                          and return_rate_ok(c)
                          and (not latency_policy or qualified(c, latency_policy.returnP95Milliseconds))]
                 ranked = small if small else None
@@ -513,7 +521,7 @@ class Controller:
                                        or not idle_enabled or recent["samples"] > 0 or recent["arrivalRps"] > 0))
             if (spec.is_ai and candidate and target.get("triggerReason") == "sustained_low_load_return"
                     and (not healthy or (latency_policy and not recovered) or not return_rate_ok(candidate)
-                         or load > candidate.variant.maxInFlight * spec.policy.highWatermark)):
+                         or load > candidate.variant.maxInFlight * (1 if common_stream else spec.policy.highWatermark))):
                 return_interrupted = True
             if return_interrupted or candidate is None or now - target["created"] > spec.policy.prepareTimeoutSeconds:
                 if not return_interrupted:

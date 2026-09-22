@@ -55,9 +55,9 @@ test('physical virtual identity survives readings, runtime changes and function 
 });
 test('virtual view exposes distinct logical identity and exact original source navigation',()=>{
   const html=render({view:'virtual',selected:'sensehat-001'});
-  assert.match(html,/가상 디바이스 선택/);assert.match(html,/id="physical-vd-id">physical-vd:sensehat-001/);
+  assert.match(html,/장비 관측 정보 선택/);assert.match(html,/id="physical-vd-id">physical-vd:sensehat-001/);
   assert.match(html,/data-live-source="sensehat-001">원본 장비 보기/);
-  assert.match(render({selected:'arduino-001'}),/data-open-physical-vd="arduino-001"/);
+  assert.doesNotMatch(render({selected:'arduino-001'}),/data-open-physical-vd|가상 디바이스/);
   const groups=S.buildSources(devices,twins);
   assert.equal(S.searchSources(groups.sources,'physical-vd:sensehat-001')[0].id,'sensehat-001');
 });

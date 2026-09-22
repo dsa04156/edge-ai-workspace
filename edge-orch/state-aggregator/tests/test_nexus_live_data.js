@@ -10,7 +10,7 @@ test('execution interruption is distinct from input/model health and unknown obs
  assert.doesNotMatch(D.executionLabel({...s,execution_ownership:{enabled:true,lease_valid:true,effective_mode:'ACTIVE'}}),/중단/);
  assert.doesNotMatch(D.executionLabel({...s,execution_ownership:{enabled:true,lease_valid:true,effective_mode:'SHADOW'}}),/만료/);
 });
-const payloads={resources:[{node:'edge-1'}],recommendations:{items:[{serviceId:'svc-1'}]},devices:[{name:'temperature',physical_device_id:'source-1'}],twins:{twins:[{id:'twin:temperature',physical_device_id:'source-1',service_bindings:[{service_id:'svc-1'}]}],observation_errors:[]},services:{services:[{service_id:'svc-1'}]},results:{results:[{observed_at:'2026-09-07T10:00:00Z',anomaly:false}]}};
+const payloads={serviceVirtual:{schema_version:'edgeai.service-virtual-devices/v1',observed_at:1,total:0,running:0,devices:[]},resources:[{node:'edge-1'}],recommendations:{items:[{serviceId:'svc-1'}]},devices:[{name:'temperature',physical_device_id:'source-1'}],twins:{twins:[{id:'twin:temperature',physical_device_id:'source-1',service_bindings:[{service_id:'svc-1'}]}],observation_errors:[]},services:{services:[{service_id:'svc-1'}]},results:{results:[{observed_at:'2026-09-07T10:00:00Z',anomaly:false}]}};
 function key(url){return Object.keys(D.endpoints).find(k=>D.endpoints[k]===url);}
 const response=data=>({ok:true,json:async()=>data});
 test('independent endpoints preserve successful data when another endpoint fails',async()=>{
@@ -50,4 +50,17 @@ test('fast endpoint notifies before slow endpoint and refresh preserves last val
  assert.equal(store.entries.devices.refreshing,true);
  assert.equal(store.entries.services.refreshing,false);
  release();await pending;assert.equal(store.entries.devices.refreshing,false);
+});
+
+test('service-only refresh coalesces with full refresh and preserves identities on source outage',async()=>{
+ let release;let gate=new Promise(r=>release=r),mode='ok',calls=0;
+ const device={id:'runtime:uid',service_name:'llama',service_uid:'uid',locations:[],state:'stopped',serving:false};
+ const snapshot={schema_version:'edgeai.service-virtual-devices/v1',observed_at:100,total:1,running:0,devices:[device]};
+ const store=D.createStore(async url=>{if(url===D.endpoints.serviceVirtual){calls++;await gate;return response(mode==='ok'?snapshot:{...snapshot,total:null,running:null,devices:[],observation_error:'runtime_source_unavailable'});}return response(payloads[key(url)]);},()=>100000);
+ const one=store.refreshServiceDevices(),all=store.refresh();release();await Promise.all([one,all]);assert.equal(calls,1);
+ mode='failed';await store.refreshServiceDevices();assert.equal(calls,2);
+ assert.equal(store.entries.serviceVirtual.data.devices[0].service_name,'llama');
+ assert.equal(store.entries.serviceVirtual.data.devices[0].state,'unknown');
+ assert.equal(store.entries.serviceVirtual.data.total,null);
+ mode='ok';await store.refreshServiceDevices();assert.equal(store.entries.serviceVirtual.data.devices[0].state,'stopped');
 });

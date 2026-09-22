@@ -1,0 +1,275 @@
+"""Cluster-internal gateway; provisioning authorization is Kubernetes RBAC."""
+import asyncio
+from contextlib import asynccontextmanager
+import hashlib
+import json
+import os
+import re
+import time
+
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+import httpx
+
+from .controller import Controller
+from .journal import Journal
+from .kube import Kube
+from . import resident
+from . import diagnostics
+from . import common_ai
+from .demo import router as demo_router
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class AugmentationApproval(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    serviceUid: str = Field(pattern=r"^[A-Za-z0-9-]{1,80}$")
+    recommendationId: str = Field(pattern=r"^[a-f0-9]{32}$")
+
+
+def create_app(controller=None):
+    @asynccontextmanager
+    async def lifespan(app):
+        if app.state.controller is None:
+            app.state.controller = Controller(Kube(os.environ.get("RUNTIME_NAMESPACE", "platform-runtime")),
+                Journal(os.environ.get("JOURNAL_PATH", "/data/runtime.sqlite3")))
+        c = app.state.controller
+        task = asyncio.create_task(c.run())
+        try:
+            yield
+        finally:
+            c.stopping = True
+            await app.state.demo_runner.close()
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            for action in c.lifecycle_tasks.values():
+                action.cancel()
+            await asyncio.gather(*c.lifecycle_tasks.values(), return_exceptions=True)
+            await c.transport.aclose()
+            c.journal.close()
+
+    app = FastAPI(title="Common Service Runtime", lifespan=lifespan)
+    app.state.controller = controller
+    app.include_router(demo_router(app))
+    diagnostics.install(app)
+
+    @app.get("/health")
+    async def health():
+        c = app.state.controller
+        ok = c is not None and c.clock() - c.last_snapshot < 30 and not c.stopping
+        return JSONResponse({"ready": ok}, status_code=200 if ok else 503)
+
+    @app.get("/services")
+    async def services():
+        c = app.state.controller
+        return {"services": list(c.states.values()), "lastError": c.last_error,
+                "snapshotAgeSeconds": c.clock() - c.last_snapshot}
+
+    @app.post("/services/{name}/augmentation/approve", status_code=202)
+    async def approve(name: str, body: AugmentationApproval):
+        return await app.state.controller.approve(name, body.serviceUid, body.recommendationId)
+
+    @app.get("/services/{name}/requests/{request_id}")
+    async def request_status(name: str, request_id: str):
+        c = app.state.controller
+        # Include suspended/deleted UIDs for durable outcome inspection.
+        matches = [(s, c.journal.request(uid, request_id)) for uid, s in c.states.items() if s["name"] == name]
+        matches = [(s, r) for s, r in matches if r]
+        if len(matches) != 1:
+            return JSONResponse({"reason": "request_not_found_or_ambiguous"}, status_code=404 if not matches else 409)
+        state, record = matches[0]
+        return {"serviceUid": state["uid"], "requestId": request_id, "target": record["target"],
+                "state": record["state"], "status": record["status"],
+                "result": json.loads(record["body"]) if record["body"] else None}
+
+    @app.post("/services/{name}/invoke")
+    async def invoke(name: str, request: Request):
+        received = time.monotonic()
+        c = app.state.controller
+        request_id = request.headers.get("X-Request-ID", "")
+        if not re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", request_id):
+            return JSONResponse({"reason": "valid_X_Request_ID_required"}, status_code=400)
+        matching = [s for s in c.states.values() if s["name"] == name and s.get("phase") not in ("Deleted", "Missing")]
+        if len(matching) != 1:
+            return JSONResponse({"reason": "service_not_registered"}, status_code=404)
+        state = matching[0]
+        uid = state["uid"]
+        if request.headers.get("X-Runtime-Service-Uid", uid) != uid:
+            return JSONResponse({"reason": "service_identity_changed", "accepted": False}, status_code=409)
+        if not state.get("active"):
+            return JSONResponse({"reason": "no_ready_target", "accepted": False}, status_code=503)
+        expected_node = request.headers.get("X-Runtime-Expected-Node")
+        demo_id = request.headers.get("X-Runtime-Demo-Run")
+        if demo_id:
+            run = app.state.demo_runner.runs.get((uid, demo_id))
+            if not run or run["name"] != name:
+                return JSONResponse({"reason": "demo_run_not_active", "accepted": False}, status_code=409)
+        if expected_node and state["active"]["node"] != expected_node:
+            return JSONResponse({"reason": "node_route_changed", "accepted": False}, status_code=409,
+                                headers={"X-Request-State": "cancelled"})
+        spec = dict(state["active"]["spec"])
+        def common_config():
+            resources = (c.snapshot or {}).get("services", [])
+            matches = [r["spec"].get("commonAI") for r in resources if r["metadata"]["uid"] == uid]
+            return matches[0] if len(matches) == 1 else None
+        spec["commonAI"] = common_config()
+        data = bytearray()
+        async for chunk in request.stream():
+            data.extend(chunk)
+            if len(data) > spec["maxBodyBytes"]:
+                return JSONResponse({"reason": "body_too_large"}, status_code=413)
+        common = None
+        try:
+            body = json.loads(data)
+            if not isinstance(body, dict):
+                raise ValueError()
+            canonical = json.dumps(body, sort_keys=True, allow_nan=False, separators=(",", ":"))
+            if body.get("schema_version") == "edgeai.execution/v1":
+                common = common_ai.prepare(spec, body, request_id, name)
+                common_ai.check_target(state["active"], common[0])
+                if not common[0].offload.enabled:
+                    expected_node = common[0].placement.default_node
+            elif spec.get("commonAI") and spec["commonAI"].get("offload", {}).get("enabled"):
+                raise ValueError("qualified_common_input_required")
+            elif state["active"].get("resident"):
+                resident.request_body(spec, body, request_id)
+        except (ValueError, TypeError):
+            return JSONResponse({"reason": "common_request_or_target_invalid" if common else "JSON_object_or_contract_required"}, status_code=400)
+        fingerprint = hashlib.sha256(canonical.encode()).hexdigest()
+
+        def replay(existing):
+            diagnostics.mark(request, "replay", existing)
+            if existing["fingerprint"] != fingerprint:
+                return JSONResponse({"reason": "request_id_payload_conflict"}, status_code=409)
+            if existing["state"] == "dispatched":
+                return JSONResponse({"reason": "request_in_progress"}, status_code=409)
+            return JSONResponse(json.loads(existing["body"]), status_code=existing["status"],
+                                headers={"X-Request-State": existing["state"], "X-Runtime-Target": existing["target"]})
+
+        existing = c.journal.request(uid, request_id)
+        if existing:
+            return replay(existing)
+        key = (uid, request_id)
+        if key in c.pending_ids:
+            return JSONResponse({"reason": "request_id_pending"}, status_code=409)
+        # Only qualified common input joins the service's automatic policy window.
+        measure = common is None or common[0].offload.enabled
+        if measure:
+            c.latencies.arrival(uid, state["active"]["name"], c.clock())
+        if c.pending.get(uid, 0) >= 128:
+            if measure:
+                c.latencies.record(uid, state["active"]["name"], c.clock(), 0, False)
+            return JSONResponse({"reason": "queue_full", "accepted": False}, status_code=429)
+        c.pending_ids[key] = fingerprint
+        started = time.monotonic()
+        c.pending[uid] = c.pending.get(uid, 0) + 1
+        admitted_revision = state["active"]["name"]
+        diagnostics.mark(request, "queued")
+        deadline = time.monotonic() + spec["timeoutSeconds"]
+        target = None
+        try:
+            while time.monotonic() < deadline:
+                state = c.states[uid]
+                active = state.get("active")
+                run = app.state.demo_runner.runs.get((uid, demo_id)) if demo_id else None
+                if demo_id and (not run or run["stopRequested"]):
+                    return JSONResponse({"reason": "demo_stopped_before_dispatch", "accepted": False}, status_code=409,
+                                        headers={"X-Request-State": "cancelled"})
+                if expected_node and (not active or active["node"] != expected_node):
+                    return JSONResponse({"reason": "node_route_changed", "accepted": False}, status_code=409,
+                                        headers={"X-Request-State": "cancelled"})
+                if (c.stopping or not state.get("serving") or not active
+                        or c.clock() - state.get("checkedAt", 0) > 15 or c.clock() - c.last_snapshot > 15):
+                    if measure:
+                        c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
+                    return JSONResponse({"reason": "route_unavailable", "accepted": False}, status_code=503)
+                if active["spec"]["ioContract"] != spec["ioContract"]:
+                    return JSONResponse({"reason": "io_contract_changed", "accepted": False}, status_code=409)
+                # One event loop: no await between selecting route, journaling and counting.
+                if c.running_count(active) < active["capacity"]:
+                    if common:
+                        try:
+                            if common_config() != spec.get("commonAI"):
+                                raise ValueError("common_config_changed")
+                            common_ai.check_target(active, common[0])
+                        except ValueError:
+                            return JSONResponse({"reason": "common_target_changed", "accepted": False}, status_code=409)
+                    elif active.get("resident"):
+                        try:
+                            resident.request_body(active["spec"], body, request_id)
+                        except ValueError:
+                            return JSONResponse({"reason": "inference_contract_changed", "accepted": False}, status_code=409)
+                    target = active
+                    initial = common_ai.envelope(common[1], common[0], target,
+                        reason="worker_outcome_unknown") if common else None
+                    c.journal.dispatch(uid, request_id, fingerprint, target["name"], initial)
+                    diagnostics.mark(request, "dispatch", target)
+                    c.inflight[target["name"]] = c.inflight.get(target["name"], 0) + 1
+                    break
+                await asyncio.sleep(0.05)
+        finally:
+            c.pending_ids.pop(key, None)
+            c.pending[uid] -= 1
+        if target is None:
+            if measure:
+                c.latencies.record(uid, admitted_revision, c.clock(), (time.monotonic() - started) * 1000, False)
+            return JSONResponse({"reason": "admission_timeout", "accepted": False}, status_code=503)
+        status, result, outcome = 503, {"reason": "worker_outcome_unknown", "accepted": True}, "unknown"
+        dispatched_at = time.monotonic()
+        if common:
+            result = common_ai.envelope(common[1], common[0], target, reason="worker_outcome_unknown")
+        try:
+            # No redirect following, transport retries or cross-worker retry after dispatch.
+            async with asyncio.timeout(max(0.1, deadline - time.monotonic())):
+                path = "/generate" if target.get("resident") else target["spec"]["requestPath"]
+                payload = common[2] if common else resident.request_body(target["spec"], body, request_id) if target.get("resident") else body
+                async with c.transport.stream("POST", c.endpoint(target) + path,
+                        json=payload, headers={"X-Request-ID": request_id},
+                        timeout=max(0.1, deadline - time.monotonic())) as response:
+                    response_bytes = bytearray()
+                    async for chunk in response.aiter_bytes():
+                        response_bytes.extend(chunk)
+                        if len(response_bytes) > 4 * 1024 * 1024:
+                            raise ValueError("response_too_large")
+                    decoded = json.loads(response_bytes)
+                    json.dumps(decoded, allow_nan=False)
+                    if common:
+                        response.raise_for_status()
+                        common_ai.validate_result(target, common[0], request_id, decoded)
+                        decoded = common_ai.envelope(common[1], common[0], target, status="success", output=decoded,
+                            total_ms=round((time.monotonic() - received) * 1000, 3),
+                            queue_ms=round((dispatched_at - started) * 1000 + decoded["queue_wait_ms"], 3))
+                    elif target.get("resident"):
+                        response.raise_for_status()
+                        resident.validate_result(target, request_id, decoded)
+                    if target.get("resident"):
+                        diagnostics.mark(request, "metrics", decoded.get("worker_result") or decoded)
+                    result, status, outcome = decoded, response.status_code, "completed"
+        except httpx.HTTPStatusError as exc:
+            diagnostics.mark(request, "failure", ("worker_http_error", exc.response.status_code))
+        except (httpx.TimeoutException, TimeoutError):
+            diagnostics.mark(request, "failure", ("worker_timeout", None))
+        except httpx.HTTPError:
+            diagnostics.mark(request, "failure", ("worker_transport_error", None))
+        except (ValueError, TypeError):
+            diagnostics.mark(request, "failure", ("worker_response_invalid", None))
+        except asyncio.CancelledError:
+            c.journal.finish(uid, request_id, outcome, status, result)
+            if measure:
+                c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000, False)
+            raise
+        finally:
+            diagnostics.mark(request, "worker_finished")
+            c.inflight[target["name"]] -= 1
+        if common and outcome == "unknown":
+            result["performance"]["total_ms"] = round((time.monotonic() - received) * 1000, 3)
+        c.journal.finish(uid, request_id, outcome, status, result)
+        if measure:
+            c.latencies.record(uid, target["name"], c.clock(), (time.monotonic() - started) * 1000,
+                               outcome == "completed" and 200 <= status < 300)
+        return JSONResponse(result, status_code=status, headers={"X-Runtime-Target": target["name"], "X-Request-State": outcome})
+
+    return app
+
+
+app = create_app()

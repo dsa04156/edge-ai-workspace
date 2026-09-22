@@ -1,0 +1,47 @@
+{
+  "profile": "2f28250cc327a4aa8575588207946cfe52c854570d68b595cf0eafd39037d2d9",
+  "config": {
+    "adapter": "llama-worker-v1",
+    "input": {
+      "source": "edgex",
+      "type": "sensor",
+      "device_id": "virtual-temperature-001",
+      "profile_id": "etri-arduino-temperature",
+      "resource_name": "temperature_raw",
+      "unit": "raw",
+      "minimum": 0,
+      "maximum": 1023,
+      "max_prompt_bytes": 512,
+      "poll_seconds": 5
+    },
+    "max_tokens": 64,
+    "monitoring": {
+      "cpu": true,
+      "gpu": true,
+      "latency": true,
+      "memory": true,
+      "queue": true
+    },
+    "offload": {
+      "enabled": true
+    },
+    "placement": {
+      "candidate_nodes": [
+        "etri-dev0001-jetorn",
+        "etri-dev0005-jetagx",
+        "etri-ser0003-cg0ms0"
+      ],
+      "default_node": "etri-dev0001-jetorn"
+    },
+    "resources": {
+      "cpu": "250m",
+      "gpu": "nvidia.com/gpu.shared=1",
+      "memory": "256Mi"
+    },
+    "service": {
+      "id": "llama-inference",
+      "model": "llama3.2:1b-instruct-q8_0",
+      "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+    }
+  }
+}

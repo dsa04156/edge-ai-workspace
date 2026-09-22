@@ -1,0 +1,25 @@
+{
+  "schema_version": "edgeai.execution/v1",
+  "request_id": "calibration-template",
+  "service_id": "llama-inference",
+  "source": {
+    "type": "edgex",
+    "device_id": "virtual-temperature-001",
+    "event_id": "4c2746ff-b0e6-416f-81f7-87b1da754bb5",
+    "profile_id": "etri-arduino-temperature",
+    "origin_ns": "1789371323821904400"
+  },
+  "timestamp": "2026-09-14T00:00:00Z",
+  "input": {
+    "type": "sensor",
+    "data": {
+      "measurements": [
+        {
+          "name": "temperature_raw",
+          "value": 329,
+          "unit": "raw"
+        }
+      ]
+    }
+  }
+}

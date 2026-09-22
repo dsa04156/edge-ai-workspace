@@ -1,0 +1,20 @@
+[
+  {
+    "round": 1,
+    "status": 200,
+    "seconds": 0.7565726420143619,
+    "devices": 13
+  },
+  {
+    "round": 2,
+    "status": 200,
+    "seconds": 5.904000257985899,
+    "devices": 13
+  },
+  {
+    "round": 3,
+    "status": 200,
+    "seconds": 1.8732876350113656,
+    "devices": 13
+  }
+]

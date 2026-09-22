@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>서비스형 가상 디바이스 설계 — 9월 15일 이력</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../assets/docs-site.css">
+</head>
+<body>
+  <div class="site-shell">
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="docs-brand" href="index.html"><span class="brand-mark">E</span><span>Edge AI Docs</span></a>
+        <span class="section-label">개발 참고</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="doc-path">서비스형-가상-디바이스-설계.md</span>
+        <a class="edit-link" href="/__edit?file=서비스형-가상-디바이스-설계.md">편집</a>
+      </div>
+    </div>
+    <section class="search-panel" aria-label="문서 검색">
+  <div class="search-head">
+    <strong>문서 검색</strong>
+    <span>제목, 경로, 본문 내용을 빠르게 찾습니다.</span>
+  </div>
+  <div class="search-box" data-search-index="search-index.json">
+    <div class="search-filters" role="group" aria-label="검색 범위">
+      <button type="button" class="active" data-search-filter="all">전체</button>
+      <button type="button" data-search-filter="start">시작하기</button>
+      <button type="button" data-search-filter="guide">연결 가이드</button>
+      <button type="button" data-search-filter="ops">운영</button>
+      <button type="button" data-search-filter="policy">정책과 계약</button>
+      <button type="button" data-search-filter="reference">개발 참고</button>
+    </div>
+    <input id="doc-search-input" type="search" placeholder="예: device status, dashboard, KPI, runbook" autocomplete="off">
+    <div id="doc-search-results" class="search-results" aria-live="polite"></div>
+  </div>
+  <script src="../assets/docs-search.js" defer></script>
+</section>
+    <div class="layout">
+      <nav class="sidebar" aria-label="문서 목록">
+<h2>문서 목록</h2>
+<ul>
+<li class="group">시작하기</li>
+<li><a href="문서-안내.html">문서 안내</a></li>
+<li><a href="처음부터-배우는-Edge-AI-시스템.html">처음부터 배우는 Edge AI 시스템</a></li>
+<li><a href="플랫폼-개요.html">플랫폼 개요</a></li>
+<li><a href="펌프-모터-이상감지-서비스.html">펌프·모터 이상감지 서비스</a></li>
+<li><a href="현재-구현-상태.html">현재 구현 상태</a></li>
+<li class="group">연결 가이드</li>
+<li><a href="디바이스-서비스-연결.html">디바이스 연결 가이드</a></li>
+<li><a href="AI-서비스-등록-가이드.html">AI 서비스 등록 가이드</a></li>
+<li class="group">운영</li>
+<li><a href="ops/현재-데모-운영-절차.html">현재 데모 운영 절차</a></li>
+<li><a href="ops/대시보드-배포.html">대시보드 배포</a></li>
+<li><a href="ops/대시보드-검증.html">대시보드 검증 점검표</a></li>
+<li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
+<li class="group">정책과 계약</li>
+<li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계 — 후속 설계 기준</a></li>
+<li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
+<li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
+<li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
+<li><a href="400ms-복구-체험하기.html">400 ms 복구 체험하기</a></li>
+<li><a href="AI-서비스-자원-증강-부하-실험.html">AI 서비스 자원 증강 부하 실험</a></li>
+<li><a href="옥동-데이터-계약.html">옥동 AI 서비스 데이터 계약</a></li>
+<li><a href="공통-AI-서비스-실행-규격.html">공통 AI 서비스 실행 규격</a></li>
+<li><a href="옥동-생산성-kpi.html">옥동 생산성 KPI</a></li>
+<li class="group">개발 참고</li>
+<li><a href="공통-서비스-Kubernetes-오케스트레이션.html">공통 서비스 Kubernetes 오케스트레이션</a></li>
+<li><a href="서버-엣지-반복-오프로딩.html">서버·엣지 반복 오프로딩</a></li>
+<li><a href="통합-운영-대시보드-고도화.html">통합 Edge AI 운영 대시보드 고도화</a></li>
+<li><a href="Llama-오프로딩-부하-판단-기준.html">Llama 오프로딩 부하 판단 기준 — 실제 Orin Nano GPU 시험</a></li>
+<li><a href="Llama-장비별-GPU-성능측정.html">Llama 장비별 GPU 성능측정</a></li>
+<li><a href="2026-09-10-다중모델-3장비-실험결과.html">다중 모델 성능측정 기술 메모(TM) — Orin Nano·AGX Orin·DGX Spark</a></li>
+<li><a href="2026-09-08-Nano-AGX-서비스-연속성-실험결과.html">Nano–AGX 서비스 연속성 실험 결과</a></li>
+<li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
+<li><a href="저장소-구조.html">저장소 구조</a></li>
+<li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a class="active" aria-current="page" href="서비스형-가상-디바이스-설계.html">서비스형 가상 디바이스 설계 — 9월 15일 이력</a></li>
+<li><a href="물리-가상-디바이스-통합-화면.html">물리·가상 디바이스 통합 화면 — 9월 15일 이력</a></li>
+</ul>
+</nav>
+      <article class="doc">
+        <header class="doc-header">
+          <p class="eyebrow">개발 참고</p>
+          <h1>서비스형 가상 디바이스 설계 — 9월 15일 이력</h1>
+          <p class="subtitle">&gt; 2026-09-22 기준 통합: 후속 설계는 서버측 가상 디바이스 통합 설계를 따른다. &gt; 아래는 9월 15일 구현·시험 및…</p>
+          <div class="meta">
+            <span class="badge kind">개발 참고</span>
+            <span class="badge">원본: 서비스형-가상-디바이스-설계.md</span>
+            <span class="badge">수정: 2026-09-22 11:04</span>
+            <span class="badge">HTML 생성: 2026-09-22 11:37</span>
+          </div>
+        </header>
+        <div class="doc-body">
+          <h1 id="서비스형-가상-디바이스-설계와-요구사항-9월-15일-이력">서비스형 가상 디바이스 설계와 요구사항 — 9월 15일 이력</h1>
+<blockquote><p><strong>2026-09-22 기준 통합:</strong> 후속 설계는 <a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계</a>를 따른다. 아래는 9월 15일 구현·시험 및 9월 16일 철회 이력이다. SQLite 독립 등록부·API·화면·산정 규칙을 새 EdgeX 등록/서버 실행 슬롯 계약이나 현재 운영 기능으로 적용하지 않는다. 본문은 당시 기록으로 보존한다.</p></blockquote>
+<blockquote><p><strong>2026-09-16 운영 복원:</strong> 사용자 요청으로 9월15일 혼합100개/논리 가상 디바이스 확장 배포를 철회하고 대시보드·runtime-operator를 그 직전 이미지로 되돌렸다. 신규 관리 API·화면은 운영에서 비활성이다. 아래 확장 내용은 보존한 로컬 구현·시험 이력이며 현재 운영 기능이 아니다. 시험 RuntimeService5개는 제거했고 기존4개 서비스 설정은 보존했다. 정의88개와 이력은 백업·PVC에 보존한다.</p></blockquote>
+<h2 id="쉽게-설명하면">쉽게 설명하면</h2>
+<p>가상 디바이스는 <strong>CPU·GPU·메모리 사양과 고유 ID를 먼저 등록하는 논리 객체</strong>다. 등록 카드 100장을 만들었다고 컴퓨터에서 프로그램 100개를 동시에 켜는 것은 아니다. 실행 요청을 받으면 해당 객체의 서비스 계약으로 실행 자원을 배치하고, 정지해도 카드와 이력은 남는다. 같은 Llama 서비스 정의를 사용할 가상 디바이스도 서로 다른 ID로 여러 개 등록할 수 있다. 기존 Llama 서비스를 실행했다는 이유만으로 새 가상 객체를 자동 생성하지 않는다.</p>
+<p>이 문서는 2026-09-15 후속 사용자 요구를 반영한다. 앞선 RuntimeService UID당 가상 디바이스 한 개라는 집계는 대체한다. <strong>2026-09-15 후속 사용자 승인으로 엔진·대시보드를 운영 배포했다.</strong></p>
+<h2 id="객체와-권위">객체와 권위</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>객체</th>
+<th>식별·저장 권위</th>
+<th>집계</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>컴퓨팅 노드</td>
+<td>Kubernetes/KubeEdge Node</td>
+<td>노드마다 한 개</td>
+</tr>
+<tr>
+<td>센서 디바이스</td>
+<td>EdgeX Core Metadata Device</td>
+<td>등록 기능별 한 개; 물리 장비 대수와 구분</td>
+</tr>
+<tr>
+<td>관측 트윈·physical-vd 조회 표현</td>
+<td>위 물리 항목의 읽기 전용 projection</td>
+<td>추가 집계 없음</td>
+</tr>
+<tr>
+<td>논리 가상 디바이스</td>
+<td>runtime-operator SQLite의 ID·UUID</td>
+<td>실행 전·정지 상태도 한 개</td>
+</tr>
+<tr>
+<td>자원 프로파일</td>
+<td>같은 SQLite의 불변 profile ID</td>
+<td>자체로는 디바이스가 아님</td>
+</tr>
+<tr>
+<td>서비스 정의</td>
+<td>실행 계약·모델·이미지·입출력 설정</td>
+<td>자체로는 디바이스가 아님</td>
+</tr>
+<tr>
+<td>RuntimeService</td>
+<td>논리 객체 실행 시 연결하는 Kubernetes UID</td>
+<td>별도 디바이스로 더하지 않음</td>
+</tr>
+<tr>
+<td>실행체(Pod)</td>
+<td>기존 runtime controller가 생성·관측</td>
+<td>별도 디바이스로 더하지 않음</td>
+</tr>
+</tbody></table></div>
+<p>센서는 같은 Arduino/Sense HAT에 연결되어 있어도 EdgeX Device별 행을 유지한다. 이 수치를 실제 장비 섀시 대수로 표현하지 않는다. 노드·EdgeX 항목·독립 가상 객체를 합산하며 물리 장비의 조회용 가상 표현, 일반 워크로드, 서비스 템플릿과 Pod는 제외한다.</p>
+<h2 id="소스-확인과-재사용">소스 확인과 재사용</h2>
+<ul><li><code>state-aggregator/app/virtual_resource_registry.py</code>: 기존 JSON 가상 정의와 연결 계약.</li><li><code>virtual_resources.py</code>: 등록 정의·Pod identity·RuntimeStatusProbe 관측. 기존 독립 정의는 유지한다.</li><li><code>virtual_device_control.py</code>: <code>vd-demo-001</code>의 고정 실행·정지·추론과 영속 요청 원장.</li></ul>
+<p>해당 허용 목록을 범용 쓰기로 풀지 않는다.</p>
+<ul><li><code>runtime-operator/runtime_operator/journal.py</code>: 단일 writer 잠금·SQLite WAL/FULL과 영속 상태.</li><li><code>contract.py</code>, <code>service_settings.py</code>: 자원 quantity, 이미지 digest, 요청≤제한과 실행 계약 검증.</li><li><code>controller.py</code>, <code>kube.py</code>, <code>demo.py</code>: RuntimeService 배치·관측, 정확한 UID의 정지·요청 drain.</li><li>EdgeX <code>DeviceManagementService</code>와 <code>/management</code>의 등록·조회·개별 변경 경로를 보존한다.</li></ul>
+<p>새 <code>logical_devices.py</code>가 기존 원장에 프로파일·논리 객체·상태/제어 이력·요청 영수증을 저장한다. aggregator의 새 <code>managed_devices.py</code>는 원천별 조회를 합치고 소유자 API에 쓰기를 전달한다. aggregator에 Kubernetes 쓰기 권한을 추가하지 않는다.</p>
+<h2 id="등록과-자원-할당">등록과 자원 할당</h2>
+<ol><li>자원 프로파일: ID, 이름, architecture, CPU·메모리 요청/제한, GPU 정수 개수를 등록한다.</li></ol>
+<p>실행 계약 없이 자원 사양만 등록할 수 있다. 저장 시 실제 자원을 예약하지 않는다.</p>
+<ol><li>선택적으로 기존 서비스 UID의 계약을 스냅샷하거나 API에 executionSpec을 제출한다.</li></ol>
+<p>프로파일은 불변이며 사양 변경은 새 프로파일 ID로 등록한다.</p>
+<ol><li>가상 객체: 독립 ID·UUID, 표시 이름, profileId, 연결 목록을 저장한다.</li></ol>
+<p>동일 본문의 등록 재요청은 같은 UUID를 반환하고 같은 ID의 다른 정의는 409다. 이 단계에서는 RuntimeService와 Pod를 생성하지 않는다.</p>
+<ol><li>개별 실행 요청: 객체 revision·요청 UUID와 최신 실행 소유자 관측을 확인한다.</li></ol>
+<p>필요 시 <code>vd-&lt;논리 UUID&gt;</code> RuntimeService와 소유 annotation을 생성·연결하고 기존 제어기가 실행한다. profile의 CPU·메모리·GPU 요청/제한은 실행 variant에 전달된다.</p>
+<ol><li>개별 정지 요청: 정확한 연결 UID의 suspended 상태와 요청 drain을 처리한다.</li></ol>
+<p>접수 응답만으로 정지로 표시하지 않고, Suspended와 active/target/retiring 없음의 관측을 요구한다.</p>
+<ol><li>이름·연결 변경과 상태 변화를 이력에 남긴다. 정지·제어기 재시작 후 UUID·프로파일·연결·이력은 유지한다.</li></ol>
+<p>연결 종류는 EdgeXDevice/Node/VirtualDevice다. 가상 대상은 등록 존재 여부를 검사한다. 물리 연결은 <code>configured_unverified</code> 설정이며 실제 센서 전달·추론 성공을 뜻하지 않는다. 연결 입력이 EdgeX metadata 또는 actuator를 변경하지 않는다.</p>
+<h2 id="api">API</h2>
+<div class="table-wrap"><table>
+<thead><tr>
+<th>Aggregator API</th>
+<th>runtime-operator 소유 API</th>
+<th>계약</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>GET <code>/api/managed-devices</code></td>
+<td>GET <code>/logical-devices</code> 및 기존 물리·독립 가상 관측</td>
+<td>혼합 목록·5개 수치·원천 오류</td>
+</tr>
+<tr>
+<td>POST <code>/api/managed-devices/profiles</code></td>
+<td>POST <code>/logical-devices/profiles</code></td>
+<td>불변 자원 프로파일</td>
+</tr>
+<tr>
+<td>POST <code>/api/managed-devices/virtual</code></td>
+<td>POST <code>/logical-devices</code></td>
+<td><code>{id,name,profileId,connections}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/managed-devices/virtual/{id}</code></td>
+<td>GET <code>/logical-devices/{id}</code></td>
+<td>정의·상태·연결·실행 UID</td>
+</tr>
+<tr>
+<td>PATCH <code>/api/managed-devices/virtual/{id}</code></td>
+<td>PATCH <code>/logical-devices/{id}</code></td>
+<td><code>{expectedRevision,name,connections}</code></td>
+</tr>
+<tr>
+<td>GET <code>/api/managed-devices/virtual/{id}/history?after=0&amp;limit=100</code></td>
+<td>동일 이력 경로</td>
+<td>seq 커서, 최대 500건/페이지</td>
+</tr>
+<tr>
+<td>POST <code>/api/managed-devices/virtual/{id}/actions</code></td>
+<td>POST <code>/logical-devices/{id}/actions</code></td>
+<td><code>{action:start/stop,expectedRevision}</code>, UUID <code>Idempotency-Key</code></td>
+</tr>
+</tbody></table></div>
+<p>두 프로세스의 <code>LOGICAL_DEVICE_MANAGEMENT_ENABLED=true</code>가 쓰기 활성 조건이다. 기본은 false다. aggregator는 동일 Origin·JSON·<code>X-Runtime-Demo: 1</code>을 요구한다. 기존 내부 API 배포/접근 경계를 따른다. 논리 객체별 잠금과 revision 검사로 수정·제어를 직렬화하고 같은 요청 키 재전송은 영수증을 반환한다. 전송 후 timeout/cancellation은 unknown, 재시작 시 pending도 unknown이며 자동 재실행하지 않는다. 생성 결과를 모르는 객체의 정지 요청은 기존 연결 확인만 수행하며 새 RuntimeService를 생성하지 않는다. 조회용 이력은 유지되며 삭제·일괄 실행·자원 선예약 API는 제공하지 않는다.</p>
+<p>기존 <code>/api/service-virtual-devices</code>와 <code>/services/*/settings</code>, registration, definition 경로는 서비스 설정·정책 도구로 유지한다. 해당 목록의 서비스 수를 혼합 디바이스 수로 합산하지 않는다. 새 managed 목록을 읽지 못하면 과거 서비스 수로 대체하지 않고 확인 불가로 표시한다.</p>
+<h2 id="실행-계약과-운영-책임">실행 계약과 운영 책임</h2>
+<p>새 프로파일은 기존 ServiceSpec/Variant 검증을 사용한다. 임의 command·Pod spec·hostPath는 받지 않는다. 실행 사양은 suspended/preferred로 초기화하고 이전 verifiedNodes·성능 자격을 복사하지 않는다. 새 modelRuntime은 기존 절차로 실행 qualification을 등록하기 전까지 배치가 막힐 수 있다. 상주 Llama/inference/commonAI 계약은 독립 실행 프로파일 복제로 받지 않는다. 자원 프로파일을 등록했다고 Llama 이미지·모델 교체나 GPU 실행 검증을 완료한 것은 아니다.</p>
+<p>영속 권위는 기존 <code>JOURNAL_PATH</code>다. <code>k8s/operator.yaml</code>은 replicas=1, Recreate, <code>runtime-journal</code> PVC, <code>/data/runtime.sqlite3</code>와 노드 selector를 이미 사용한다. 실제 엔진은 <code>etri-ser0001-cg0msb</code>의1개 Pod이며 같은 PVC를 사용한 재시작 보존을 확인했다. 배포·원장 백업·복구·namespace Role과 실행 qualification 책임은 platform-runtime 운영자에게 있다. 대시보드는 기존 aggregator Argo CD 소유자가 관리한다. 이번 승인 배포에서 두 프로세스의 쓰기 flag를 활성화했다.</p>
+<h2 id="상태-100개-검증-기준">상태·100개 검증 기준</h2>
+<p>자세한 화면 기준은 <a href="물리-가상-디바이스-통합-화면.html">통합 화면</a>을 따른다.</p>
+<ul><li>등록 수: 원천을 모두 읽었을 때만 전체를 확정한다. 원천 오류 시 knownRegistered와 오류를 별도 제공한다.</li><li>상태 조회 가능: running/stopped/starting/stopping/blocked/unavailable의 현재 상태를 판정한 객체 수다.</li><li>실행 중: 가상은 최신 serving+health.ready, 노드는 Ready, 센서는 UP+fresh Reading을 요구한다.</li><li>정지: 미할당 논리 객체 또는 실행체 정리 완료. EdgeX LOCKED는 관리 잠금이지 전원 꺼짐이 아니다.</li><li>확인 불가: 원천 장애·15초 만료·연결 UID 변경·실행 관측 실패. Pod 부재만으로 정지로 단정하지 않는다.</li><li>registered = running + stopped + unknown + other이며 stateQueryable = registered − unknown이다.</li></ul>
+<p>전체 등록 수가 미확정이면 위 분해는 보존한 knownRegistered에만 적용한다.</p>
+<p>로컬 검증은 혼합 100개 관리와 병렬 실행을 분리했다. 모의 EdgeX 1개+영속 가상 99개의 개별 조회·제어·이력·재시작 보존, 별도 100개 논리 정의 시험, 4개 실행 바인딩 제어기 시험을 수행했다. 별도 실제 CPU 추론 프로세스 4개가 44건의 요청을 처리했고 하나만 정지·재시작해 다른 3개 유지와 같은 ID/다른 boot ID를 확인했다. 이 최초 로컬 시험에서는 Docker socket 접근 불가로 실제 Kubernetes Pod 시험은 수행하지 않았다.</p>
+<p><a href="../edge-orch/runtime-operator/results/2026-09-15-mixed-device-management/README.md">재현 절차와 실제 결과</a>에 산정 조건·원시 JSON·제한을 기록했다. 정지 객체를 포함했으며 등록 개수만으로 목표 달성을 선언하지 않는다. 후속 <a href="../edge-orch/runtime-operator/results/2026-09-15-mixed-device-management/live/README.md">운영 검증</a>에서는 실제 EdgeX 기능 endpoint12개+가상88개 관리와 재시작 보존, 실제4개 Pod의 CPU·메모리 제한, 개별 정지·재시작을 확인했다. 첫 병렬 시험은20건 중17건 성공/3건503, 재시험은24건 성공이다. 간헐503의 하위 원인, 장기 안정성, 강제 장애 격리와 공식 산정 단위 승인은 남아 있다. GPU 할당 결과·최종 상태·정리 결과는 운영 검증의 실제 증거를 따른다.</p>
+        </div>
+      </article>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#쉽게-설명하면">쉽게 설명하면</a></li>
+<li class="toc-h2"><a href="#객체와-권위">객체와 권위</a></li>
+<li class="toc-h2"><a href="#소스-확인과-재사용">소스 확인과 재사용</a></li>
+<li class="toc-h2"><a href="#등록과-자원-할당">등록과 자원 할당</a></li>
+<li class="toc-h2"><a href="#api">API</a></li>
+<li class="toc-h2"><a href="#실행-계약과-운영-책임">실행 계약과 운영 책임</a></li>
+<li class="toc-h2"><a href="#상태-100개-검증-기준">상태·100개 검증 기준</a></li></ol></aside>
+    </div>
+  </div>
+
+  <footer>Generated from docs/*.md</footer>
+</body>
+</html>

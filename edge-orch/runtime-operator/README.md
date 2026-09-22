@@ -6,6 +6,12 @@
 구성 요소, 서비스 등록, 자동 이동·복귀 기준, NEXUS 데모 사용법과 실측 한계는
 [공통 서비스 Kubernetes 오케스트레이션](../../docs/공통-서비스-Kubernetes-오케스트레이션.md)을 따른다.
 
+## 실제 센서 입력 자동 운영
+
+현재 실제 센서 입력의 등록·5초 polling·입력별 성능 자격·자동 전환·복귀는
+[EdgeX 센서 운영 overlay](examples/edgex-sensor/README.md)를 따른다. 기존 8-token
+Llama 시험 설정은 대체 가능한 시험 계약이며 두 설정을 동시에 적용하지 않는다.
+
 ## 설치 및 등록
 
 운영자가 Kubernetes 관리 context와 등록할 immutable image를 확인한 뒤 실행한다.
@@ -50,3 +56,14 @@ drain을 마치도록 기다린다. 결과가 불명인 요청은 임의로 재�
 `Variant.resident`는 Service/Pod/container/image를 묶고 `ServiceSpec.inference`가
 동일 모델·입력 자격을 고정한다. 같은 Pod 중복 claim은 차단한다. 원래 제어기로
 복원할 때는 먼저 공통 RuntimeService를 suspend하고 모델 해제를 확인해야 한다.
+
+
+## 혼합 디바이스 논리 등록부 (2026-09-16 운영 배포 철회·로컬 보존)
+
+`runtime_operator/logical_devices.py`는 기존 JOURNAL_PATH에 불변 자원 프로파일,
+독립 UUID·연결·상태·이력을 저장한다. `/logical-devices` 등록만으로 RuntimeService/Pod를
+만들지 않고 개별 start 시에 연결한다. 쓰기는 `LOGICAL_DEVICE_MANAGEMENT_ENABLED=true`가
+필요하며 기본 비활성이다. aggregator도 같은 flag와 same-origin 검사를 적용한다.
+서비스 정의 UID는 논리 디바이스 ID가 아니다. 프로파일 변경·서비스 자격·운영 책임과 전체 API는
+[설계](../../docs/서비스형-가상-디바이스-설계.md), 실제 시험 결과와 재현은
+[100개 관리 검증](results/2026-09-15-mixed-device-management/README.md)을 따른다.

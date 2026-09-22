@@ -1,0 +1,548 @@
+{
+  "apiVersion": "platform.jinuk.io/v1alpha1",
+  "kind": "RuntimeService",
+  "metadata": {
+    "annotations": {
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"platform.jinuk.io/v1alpha1\",\"kind\":\"RuntimeService\",\"metadata\":{\"annotations\":{},\"name\":\"llama-inference\",\"namespace\":\"platform-runtime\"},\"spec\":{\"demo\":{\"concurrency\":6,\"label\":\"\uc2e4\uc81c GPU Llama \u00b7 \uac80\uc99d\ub41c 8-token \uc785\ub825\",\"maxRequests\":512,\"payload\":{\"max_tokens\":8,\"prompt\":\"In one short sentence, explain why edge computing reduces latency.\"},\"pressureSeconds\":40,\"recoveryIntervalSeconds\":1,\"recoverySeconds\":120},\"execution\":\"http-json-v1\",\"inference\":{\"maxTokens\":8,\"modelDigest\":\"baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878\",\"prompt\":\"In one short sentence, explain why edge computing reduces latency.\"},\"ioContract\":\"llama.qualified-eight-token.v1\",\"policy\":{\"allowedRoles\":[\"edge\",\"server\"],\"approvalRequired\":true,\"cooldownSeconds\":5,\"latency\":{\"breachSeconds\":4,\"maxP95Milliseconds\":900,\"minSamples\":10,\"returnP95Milliseconds\":700,\"windowSeconds\":20},\"mode\":\"automatic\",\"preferredRole\":\"edge\",\"prepareTimeoutSeconds\":90,\"pressureSeconds\":4,\"returnSeconds\":8},\"port\":18110,\"timeoutSeconds\":30,\"variants\":[{\"architecture\":\"arm64\",\"backend\":\"cuda\",\"image\":\"localhost/qualification/ollama-jetson@sha256:b1e591bcd625f3ecb0abdad843ad369a637e6f99f7543dd0d7581c20aee40a28\",\"limits\":{\"cpu\":\"6\",\"memory\":\"8Gi\",\"nvidia.com/gpu.shared\":\"1\"},\"maxInFlight\":1,\"name\":\"resident-llama-agx\",\"qualification\":\"8-token Llama: RPS qualification plus results/2026-09-10-latency/edge-qualification.json\",\"qualifiedP95Milliseconds\":531.578,\"qualifiedRps\":4.8,\"requests\":{\"cpu\":\"250m\",\"memory\":\"256Mi\",\"nvidia.com/gpu.shared\":\"1\"},\"resident\":{\"container\":\"inference-runtime\",\"namespace\":\"llama-continuity-test\",\"previousControllers\":[{\"name\":\"ordered-offload-controller\",\"namespace\":\"llama-continuity-test\"},{\"name\":\"continuity-controller\",\"namespace\":\"llama-continuity-test\"}],\"protocol\":\"llama-worker-v1\",\"selector\":{\"app\":\"llama-agx\"},\"service\":\"llama-agx\"},\"runtimeClassName\":null},{\"architecture\":\"arm64\",\"backend\":\"cuda\",\"image\":\"docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2\",\"limits\":{\"cpu\":\"6\",\"memory\":\"8Gi\",\"nvidia.com/gpu\":\"1\"},\"maxInFlight\":1,\"name\":\"resident-llama-spark\",\"qualification\":\"8-token Llama: RPS qualification plus results/2026-09-10-latency/server-qualification.json\",\"qualifiedP95Milliseconds\":456.092,\"qualifiedRps\":6,\"requests\":{\"cpu\":\"250m\",\"memory\":\"256Mi\",\"nvidia.com/gpu\":\"1\"},\"resident\":{\"container\":\"inference-runtime\",\"namespace\":\"llama-continuity-test\",\"previousControllers\":[{\"name\":\"ordered-offload-controller\",\"namespace\":\"llama-continuity-test\"},{\"name\":\"continuity-controller\",\"namespace\":\"llama-continuity-test\"}],\"protocol\":\"llama-worker-v1\",\"selector\":{\"app\":\"llama-spark\"},\"service\":\"llama-spark\"},\"runtimeClassName\":\"nvidia-spark\"}]}}\n"
+    },
+    "creationTimestamp": "2026-09-10T06:08:46Z",
+    "finalizers": [
+      "platform.jinuk.io/drain"
+    ],
+    "generation": 26,
+    "name": "llama-inference",
+    "namespace": "platform-runtime",
+    "resourceVersion": "28691879",
+    "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac"
+  },
+  "spec": {
+    "commonAI": {
+      "adapter": "llama-worker-v1",
+      "input": {
+        "source": "edgex",
+        "type": "sensor"
+      },
+      "max_tokens": 64,
+      "monitoring": {
+        "cpu": true,
+        "gpu": true,
+        "latency": true,
+        "memory": true,
+        "queue": true
+      },
+      "offload": {
+        "enabled": false
+      },
+      "placement": {
+        "candidate_nodes": [
+          "etri-dev0001-jetorn",
+          "etri-ser0003-cg0ms0"
+        ],
+        "default_node": "etri-dev0001-jetorn"
+      },
+      "resources": {
+        "cpu": "250m",
+        "gpu": "nvidia.com/gpu.shared=1",
+        "memory": "256Mi"
+      },
+      "service": {
+        "id": "llama-inference",
+        "model": "llama3.2:1b-instruct-q8_0",
+        "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+      }
+    },
+    "demo": {
+      "concurrency": 6,
+      "label": "Nano \u2192 Orin \u2192 Spark \u00b7 \ub2e8\uacc4\ubcc4 \uc2b9\uc778 Llama \ubd80\ud558 \uc2dc\ud5d8",
+      "maxRequests": 512,
+      "payload": {
+        "max_tokens": 8,
+        "prompt": "In one short sentence, explain why edge computing reduces latency."
+      },
+      "pressureSeconds": 40,
+      "recoveryIntervalSeconds": 1,
+      "recoverySeconds": 120
+    },
+    "execution": "http-json-v1",
+    "inference": {
+      "maxTokens": 8,
+      "modelDigest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "prompt": "In one short sentence, explain why edge computing reduces latency."
+    },
+    "ioContract": "llama.qualified-eight-token.v1",
+    "maxBodyBytes": 65536,
+    "policy": {
+      "allowedRoles": [
+        "edge",
+        "server"
+      ],
+      "approvalRequired": false,
+      "cooldownSeconds": 60,
+      "highWatermark": 0.8,
+      "latency": {
+        "breachSeconds": 10,
+        "maxP95Milliseconds": 900,
+        "minSamples": 10,
+        "returnP95Milliseconds": 750,
+        "windowSeconds": 20
+      },
+      "lowWatermark": 0.2,
+      "mode": "automatic",
+      "preferredRole": "edge",
+      "prepareTimeoutSeconds": 90,
+      "pressureSeconds": 10,
+      "returnSeconds": 60,
+      "stages": [
+        {
+          "label": "Nano",
+          "variant": "resident-llama-nano"
+        },
+        {
+          "label": "Orin",
+          "variant": "resident-llama-agx"
+        },
+        {
+          "label": "Spark",
+          "variant": "resident-llama-spark"
+        }
+      ]
+    },
+    "port": 18110,
+    "readyPath": "/ready",
+    "requestPath": "/infer",
+    "serviceKind": "ai",
+    "suspended": false,
+    "timeoutSeconds": 30,
+    "variants": [
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "limits": {
+          "cpu": "6",
+          "memory": "4Gi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-nano",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0001-jetorn"
+        },
+        "qualification": "results/2026-09-11-three-tier/: nano-gateway-qualification.json (2 rps), nano-return-qualification.json (serial p95)",
+        "qualifiedP95Milliseconds": 701.935,
+        "qualifiedRps": 2,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-nano"
+          },
+          "service": "llama-nano"
+        }
+      },
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "localhost/qualification/ollama-jetson@sha256:b1e591bcd625f3ecb0abdad843ad369a637e6f99f7543dd0d7581c20aee40a28",
+        "limits": {
+          "cpu": "6",
+          "memory": "8Gi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-agx",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-dev0005-jetagx"
+        },
+        "qualification": "8-token Llama: RPS qualification plus results/2026-09-10-latency/edge-qualification.json",
+        "qualifiedP95Milliseconds": 531.578,
+        "qualifiedRps": 4.8,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu.shared": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-agx"
+          },
+          "service": "llama-agx"
+        }
+      },
+      {
+        "architecture": "arm64",
+        "backend": "cuda",
+        "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "limits": {
+          "cpu": "6",
+          "memory": "8Gi",
+          "nvidia.com/gpu": "1"
+        },
+        "maxInFlight": 1,
+        "name": "resident-llama-spark",
+        "nodeSelector": {
+          "kubernetes.io/hostname": "etri-ser0003-cg0ms0"
+        },
+        "qualification": "8-token Llama: RPS qualification plus results/2026-09-10-latency/server-qualification.json",
+        "qualifiedP95Milliseconds": 456.092,
+        "qualifiedRps": 6,
+        "requests": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "nvidia.com/gpu": "1"
+        },
+        "resident": {
+          "container": "inference-runtime",
+          "namespace": "llama-continuity-test",
+          "previousControllers": [
+            {
+              "name": "ordered-offload-controller",
+              "namespace": "llama-continuity-test"
+            },
+            {
+              "name": "continuity-controller",
+              "namespace": "llama-continuity-test"
+            }
+          ],
+          "protocol": "llama-worker-v1",
+          "selector": {
+            "app": "llama-spark"
+          },
+          "service": "llama-spark"
+        },
+        "runtimeClassName": "nvidia-spark"
+      }
+    ]
+  },
+  "status": {
+    "active": {
+      "name": "rt-a6755c109718-165b7a9a4b8b",
+      "node": "etri-dev0001-jetorn",
+      "variant": "resident-llama-nano"
+    },
+    "eligibleCandidates": [
+      {
+        "node": "etri-dev0001-jetorn",
+        "role": "edge",
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-dev0005-jetagx",
+        "role": "edge",
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-ser0003-cg0ms0",
+        "role": "server",
+        "variant": "resident-llama-spark"
+      }
+    ],
+    "excludedCandidates": [
+      {
+        "node": "etri-dev0001-jetorn",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-dev0001-jetorn",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-dev0002-raspi5",
+        "reasons": [
+          "node_not_ready",
+          "node_pressure_or_unknown",
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch",
+          "untolerated_taint"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-dev0002-raspi5",
+        "reasons": [
+          "node_not_ready",
+          "node_pressure_or_unknown",
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch",
+          "untolerated_taint"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-dev0002-raspi5",
+        "reasons": [
+          "node_not_ready",
+          "node_pressure_or_unknown",
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch",
+          "untolerated_taint"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-dev0003-raspi5",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-dev0003-raspi5",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-dev0003-raspi5",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-dev0004-tedger",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-dev0004-tedger",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-dev0004-tedger",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-dev0005-jetagx",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-dev0005-jetagx",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-dev0006-raspi5",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-dev0006-raspi5",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-dev0006-raspi5",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-ser0001-cg0msb",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-ser0001-cg0msb",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-ser0001-cg0msb",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-ser0002-cgnmsb",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-ser0002-cgnmsb",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-ser0002-cgnmsb",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      },
+      {
+        "node": "etri-ser0003-cg0ms0",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-ser0003-cg0ms0",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-ser0004-cgnms0",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-nano"
+      },
+      {
+        "node": "etri-ser0004-cgnms0",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-agx"
+      },
+      {
+        "node": "etri-ser0004-cgnms0",
+        "reasons": [
+          "resident_on_different_node",
+          "selector_or_architecture_mismatch"
+        ],
+        "variant": "resident-llama-spark"
+      }
+    ],
+    "lastApproval": {
+      "approvedAt": 1789359004.3247554,
+      "createdAt": 1789358973.6144867,
+      "expiresAt": 1789359033.6144867,
+      "fingerprint": [
+        19,
+        "rt-a6755c109718-c70ba39507b1",
+        "rt-a6755c109718-5bce6dbe4cae",
+        "sustained_pressure"
+      ],
+      "finishedAt": 1789359011.186705,
+      "id": "4cfd901146c14465a5273ffa164950d1",
+      "node": "etri-ser0003-cg0ms0",
+      "qualifiedP95Milliseconds": 456.092,
+      "qualifiedRps": 6,
+      "reason": "sustained_pressure",
+      "role": "server",
+      "sourceNode": "etri-dev0005-jetagx",
+      "startedAt": 1789359005.6722069,
+      "status": "Applied",
+      "variant": "resident-llama-spark"
+    },
+    "latency": {
+      "arrivalRps": 0,
+      "at": 1789371277.7859697,
+      "completedRps": 0,
+      "failures": 0,
+      "maxP95Milliseconds": 900,
+      "processLocal": true,
+      "reason": "insufficient_samples",
+      "returnP95Milliseconds": 750,
+      "samples": 0,
+      "scope": "gateway_queue_and_worker_response",
+      "successfulSamples": 0,
+      "target": "rt-a6755c109718-165b7a9a4b8b",
+      "valid": false,
+      "windowSeconds": 20
+    },
+    "load": {
+      "at": 1789371277.7859688,
+      "capacity": 1,
+      "inFlight": 0,
+      "inFlightAndPending": 0,
+      "pending": 0,
+      "qualifiedRps": 2,
+      "utilization": 0
+    },
+    "observedGeneration": 26,
+    "phase": "Serving",
+    "reason": "healthy_current_placement",
+    "retiring": []
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "apiVersion": "v3",
+  "statusCode": 200,
+  "totalCount": 342228,
+  "events": [
+    {
+      "apiVersion": "v3",
+      "id": "a754e21f-bc36-4e82-9b20-6a6b748c8805",
+      "deviceName": "virtual-temperature-001",
+      "profileName": "etri-arduino-temperature",
+      "sourceName": "temperature",
+      "origin": 1789362358375263700,
+      "readings": [
+        {
+          "origin": 1789362358375121200,
+          "deviceName": "virtual-temperature-001",
+          "resourceName": "temperature_raw",
+          "profileName": "etri-arduino-temperature",
+          "valueType": "Int32",
+          "units": "raw",
+          "value": "344"
+        }
+      ],
+      "tags": {
+        "nodeName": "etri-dev0001-jetorn",
+        "physicalDeviceId": "arduino-001"
+      }
+    }
+  ]
+}

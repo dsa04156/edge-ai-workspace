@@ -1,0 +1,82 @@
+[
+  {
+    "logicalId": "qa-mixed100-001",
+    "round": 0,
+    "requestId": "mixed100-c353583be7ad49948894c2637fd89733",
+    "status": 200,
+    "body": {
+      "requestId": "mixed100-c353583be7ad49948894c2637fd89733",
+      "node": "etri-ser0001-cg0msb",
+      "ioContract": "synthetic.mixed100.v1",
+      "output": {
+        "logicalId": "qa-mixed100-001",
+        "round": 0
+      },
+      "synthetic": true
+    }
+  },
+  {
+    "logicalId": "qa-mixed100-001",
+    "round": 1,
+    "requestId": "mixed100-ffff6a279a86407f837411a09555806b",
+    "status": 200,
+    "body": {
+      "requestId": "mixed100-ffff6a279a86407f837411a09555806b",
+      "node": "etri-ser0001-cg0msb",
+      "ioContract": "synthetic.mixed100.v1",
+      "output": {
+        "logicalId": "qa-mixed100-001",
+        "round": 1
+      },
+      "synthetic": true
+    }
+  },
+  {
+    "logicalId": "qa-mixed100-001",
+    "round": 2,
+    "requestId": "mixed100-9512b1a7c32741dd993a6d30444e8e5f",
+    "status": 200,
+    "body": {
+      "requestId": "mixed100-9512b1a7c32741dd993a6d30444e8e5f",
+      "node": "etri-ser0001-cg0msb",
+      "ioContract": "synthetic.mixed100.v1",
+      "output": {
+        "logicalId": "qa-mixed100-001",
+        "round": 2
+      },
+      "synthetic": true
+    }
+  },
+  {
+    "logicalId": "qa-mixed100-001",
+    "round": 3,
+    "requestId": "mixed100-88acfcfda6fa49ba8a64b765a8912123",
+    "status": 200,
+    "body": {
+      "requestId": "mixed100-88acfcfda6fa49ba8a64b765a8912123",
+      "node": "etri-ser0001-cg0msb",
+      "ioContract": "synthetic.mixed100.v1",
+      "output": {
+        "logicalId": "qa-mixed100-001",
+        "round": 3
+      },
+      "synthetic": true
+    }
+  },
+  {
+    "logicalId": "qa-mixed100-001",
+    "round": 4,
+    "requestId": "mixed100-429cabdb09764b8990e65cc95c38d177",
+    "status": 200,
+    "body": {
+      "requestId": "mixed100-429cabdb09764b8990e65cc95c38d177",
+      "node": "etri-ser0001-cg0msb",
+      "ioContract": "synthetic.mixed100.v1",
+      "output": {
+        "logicalId": "qa-mixed100-001",
+        "round": 4
+      },
+      "synthetic": true
+    }
+  }
+]

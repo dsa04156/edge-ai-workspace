@@ -1,0 +1,1324 @@
+{
+  "physical": [
+    {
+      "id": "edgex:env-sensehat-humidity-01",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "verified"
+    },
+    {
+      "id": "edgex:env-sensehat-pressure-01",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "verified"
+    },
+    {
+      "id": "edgex:env-sensehat-temperature-01",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "waiting_for_event"
+    },
+    {
+      "id": "edgex:imu-sensehat-compass-01",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "waiting_for_event"
+    },
+    {
+      "id": "edgex:imu-sensehat-gyroscope-01",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "waiting_for_event"
+    },
+    {
+      "id": "edgex:imu-sensehat-orientation-01",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "waiting_for_event"
+    },
+    {
+      "id": "edgex:virtual-acceleration-x-001",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "waiting_for_event"
+    },
+    {
+      "id": "edgex:virtual-acceleration-y-001",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "verified"
+    },
+    {
+      "id": "edgex:virtual-acceleration-z-001",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "verified"
+    },
+    {
+      "id": "edgex:virtual-light-001",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "verified"
+    },
+    {
+      "id": "edgex:virtual-magnetic-001",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "verified"
+    },
+    {
+      "id": "edgex:virtual-temperature-001",
+      "changedAndRestored": true,
+      "adminAndProtocolsPreserved": true,
+      "operationStatus": "verified"
+    }
+  ],
+  "virtual": [
+    {
+      "id": "qa-mixed100-001",
+      "uid": "22369f4f-c420-4f42-a0d1-d9081edf13aa",
+      "revision": 3,
+      "profileId": "qa-mixed100-gpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-002",
+      "uid": "3c5b3996-13a0-4d55-b918-c58ce335cd37",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-003",
+      "uid": "213a8ae2-e095-4f05-a8a6-1518debb2305",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-004",
+      "uid": "5322fd32-d75c-4dbf-aad1-221641243747",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-005",
+      "uid": "da392e5c-3a21-4e8c-a55b-69cefca11904",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-gyroscope-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-006",
+      "uid": "80b9c1fd-a3b5-45d3-86e0-fb1f5fa0f8cb",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-orientation-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-007",
+      "uid": "651ba940-c0bf-46cf-93b7-be669567e101",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-x-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-008",
+      "uid": "865b24b9-dd3d-4c06-b0c9-1ec83be827b4",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-y-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-009",
+      "uid": "6291e468-360a-4efe-b949-135d529dd608",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-z-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-010",
+      "uid": "243913af-741c-4a9b-b430-74aec78fc9e7",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-light-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-011",
+      "uid": "a7eff57d-2894-4d10-84f8-cc1773536d5e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-magnetic-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-012",
+      "uid": "3f68a278-9a53-4754-9acb-2022eb26a513",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-temperature-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-013",
+      "uid": "fc9428bd-728b-404b-bc4c-a8db8de1592d",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-014",
+      "uid": "7f643876-2dfa-4819-807e-103c55b4b927",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-015",
+      "uid": "92131f62-9795-4a7c-b9ff-467272428e06",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-016",
+      "uid": "a9256024-ca49-4896-90c1-f62e041b8da0",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-017",
+      "uid": "50f290c1-46dc-461c-a317-dd2b09e49e48",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-gyroscope-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-018",
+      "uid": "8b998a41-877d-4206-82f9-e51cdd14c95e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-orientation-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-019",
+      "uid": "110e48f5-80a6-47f7-99f2-844bcdf03909",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-x-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-020",
+      "uid": "a3d641cc-0663-46d6-a0fe-313ea9a3948b",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-y-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-021",
+      "uid": "f4e7b51b-578d-4b24-9745-60fbf8f12190",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-z-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-022",
+      "uid": "9c9322e8-d4fe-462f-9cc9-c4e6b3dc554e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-light-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-023",
+      "uid": "d8b25565-b1e3-4e7e-b1f7-3117316bb426",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-magnetic-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-024",
+      "uid": "e700a84a-0717-4b53-a896-166186c78601",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-temperature-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-025",
+      "uid": "75b41016-2716-4457-a06c-615d76806ba6",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-026",
+      "uid": "81dc4141-85d9-4bfa-a0cc-602b3d1c66f6",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-027",
+      "uid": "16d884cb-e5e7-48a3-a97c-9d386eaec303",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-028",
+      "uid": "a585869f-b6b4-4437-b2d3-8c64d1194c28",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-029",
+      "uid": "4d22b2cc-fd70-4bae-ac5f-c6439988c652",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-gyroscope-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-030",
+      "uid": "f41e5611-0c33-45ca-8d61-bc26171cd213",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-orientation-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-031",
+      "uid": "f85fc056-ae91-4826-a0c5-ae0cabea648d",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-x-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-032",
+      "uid": "15641b3e-53b8-4150-9054-347b8fb40a3d",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-y-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-033",
+      "uid": "74508d48-c616-45c9-b589-26a8de1cd946",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-z-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-034",
+      "uid": "f1970c9d-06c4-47f1-b942-6f04764c88b8",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-light-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-035",
+      "uid": "29130659-c6dc-47de-81c3-f69fdadbf35d",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-magnetic-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-036",
+      "uid": "ccccf444-5582-4df1-8417-847cd003de94",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-temperature-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-037",
+      "uid": "44046e8e-63c6-42ac-b8e2-a6f5bc8659b4",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-038",
+      "uid": "2f4b3187-7503-47ec-8727-ab336bad21c9",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-039",
+      "uid": "dd1a6dbb-91f0-4674-b927-b2a80a8797e5",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-040",
+      "uid": "ebb3a32b-568f-4833-a2c4-8c4c908380f1",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-041",
+      "uid": "85798201-e720-477f-b868-9f864ec2224f",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-gyroscope-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-042",
+      "uid": "2e961d3f-d276-4156-82c2-7da41af2339c",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-orientation-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-043",
+      "uid": "11a82ac4-422b-45ce-91e1-c9ba81d7a72a",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-x-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-044",
+      "uid": "873d9123-4e7f-4aa6-b55c-c15cd1b013ee",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-y-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-045",
+      "uid": "f48087f8-e880-4ed1-84a9-7e62a0761c61",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-z-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-046",
+      "uid": "c4a1a708-a189-4bbb-ba8d-c68ef6743a21",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-light-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-047",
+      "uid": "fed1496d-4fba-4af8-9b6a-8a6ebacc017b",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-magnetic-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-048",
+      "uid": "a5febf8b-ec59-407a-92dd-d44cd17d9f9b",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-temperature-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-049",
+      "uid": "f56a93d7-9f3f-437b-808f-50bfbfc3a1dd",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-050",
+      "uid": "1ce8a5a8-3865-4655-b768-5effaa04e928",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-051",
+      "uid": "3706e8cd-d526-497c-b7e4-f54109abbfd6",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-052",
+      "uid": "628fef03-5c1d-4e1b-ad9b-c5be1ec8a02e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-053",
+      "uid": "36316985-90fa-4365-aebe-e7cdc52a47e7",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-gyroscope-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-054",
+      "uid": "61c73207-4cd1-4172-8f80-d37224dcf5a1",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-orientation-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-055",
+      "uid": "2ef00af2-1f13-4bf7-836a-3da41c2ac688",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-x-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-056",
+      "uid": "a793d825-2407-452f-8ba9-70b370b259b0",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-y-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-057",
+      "uid": "cbf400b3-1c97-4924-bf7c-59773285cdb8",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-z-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-058",
+      "uid": "de3111fb-ff6e-47f2-a840-1d8daca641d1",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-light-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-059",
+      "uid": "d7c893b2-95d6-4ca7-ad64-4cef9df32c9a",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-magnetic-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-060",
+      "uid": "dc35acd8-3b08-4482-99ca-3e4c6513e025",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-temperature-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-061",
+      "uid": "635a3346-2ab9-4301-aa88-c3f671c5abe3",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-062",
+      "uid": "93b8ab33-679b-4c39-b705-009b9d58ea7e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-063",
+      "uid": "c91d5df2-808f-49de-b35d-a2dd2fc8b69c",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-064",
+      "uid": "2beed96e-0473-4151-b94f-41021b29d735",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-065",
+      "uid": "2c959d05-9c39-456c-829c-63e37421b4cd",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-gyroscope-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-066",
+      "uid": "9f6447c6-402a-42cb-9c76-d2d4c66683ba",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-orientation-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-067",
+      "uid": "0f7787f9-d650-4ae0-a70c-6ea6806c280f",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-x-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-068",
+      "uid": "c71391cd-138b-44c0-b461-9e5ddaf86fe0",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-y-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-069",
+      "uid": "b0a3d741-20e1-456d-9966-75a47c6c9b42",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-z-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-070",
+      "uid": "44fca43a-de37-465a-b22d-b401cd23f980",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-light-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-071",
+      "uid": "4d44e98a-8bf1-4927-9986-4c54147e0886",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-magnetic-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-072",
+      "uid": "330f3ee1-7817-49ad-9b5d-a5375352d6ef",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-temperature-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-073",
+      "uid": "438f291e-4d5d-4507-b732-c86b13927fd2",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-074",
+      "uid": "48d86e07-3823-4cd1-abbd-d02d92caaec7",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-075",
+      "uid": "ccb65f36-ba53-4ee4-9ca3-512b18244d4e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-076",
+      "uid": "b5278e1f-867f-430f-9843-4e5f6f9b8b5e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-077",
+      "uid": "34ea30f1-629d-42af-8e9b-a7445538e92c",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-gyroscope-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-078",
+      "uid": "e8e03ef2-c324-4fce-a659-8dbd6433e208",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-orientation-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-079",
+      "uid": "0b31e157-510e-49f3-bf2c-b00b2dd32b11",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-x-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-080",
+      "uid": "e9c882b1-ba9e-49a6-92e9-bb6288eb9ece",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-y-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-081",
+      "uid": "9d10682a-b07a-4ad9-afbd-9663c4235907",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-acceleration-z-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-082",
+      "uid": "5d9085ea-9aa0-4d8b-a222-3108ddac1b5e",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-light-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-083",
+      "uid": "4f535859-c19d-4838-8322-d71661af6df1",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-magnetic-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-084",
+      "uid": "20da2dfa-9fe9-432c-b2e5-9a738d03602c",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "virtual-temperature-001",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-085",
+      "uid": "bd1411d3-27ef-495d-ab78-f4a6c02abf97",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-humidity-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-086",
+      "uid": "ba60003e-e7e3-4eb9-9929-33f04dd2b6b9",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-pressure-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-087",
+      "uid": "ec6d5fcf-34f9-4b60-9878-f9ef2414e7c5",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "env-sensehat-temperature-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    },
+    {
+      "id": "qa-mixed100-088",
+      "uid": "a9d1c378-f361-4195-8e00-41bfb5befc43",
+      "revision": 3,
+      "profileId": "qa-mixed100-cpu",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "imu-sensehat-compass-01",
+          "resource": null
+        }
+      ],
+      "events": 4
+    }
+  ],
+  "count": 100,
+  "podAllocationsAtRegistration": 0,
+  "includesStopped": true,
+  "excludesObservationTwins": true,
+  "totalInventory": {
+    "registered": 112,
+    "knownRegistered": 112,
+    "stateQueryable": 112,
+    "inventoryComplete": true,
+    "running": 21,
+    "stopped": 89,
+    "unknown": 0,
+    "other": 2
+  }
+}

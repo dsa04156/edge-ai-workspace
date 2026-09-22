@@ -1,0 +1,154 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "annotations": {
+      "deployment.kubernetes.io/revision": "18",
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"runtime-operator\",\"namespace\":\"platform-runtime\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"runtime-operator\"}},\"strategy\":{\"type\":\"Recreate\"},\"template\":{\"metadata\":{\"labels\":{\"app\":\"runtime-operator\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"RUNTIME_NAMESPACE\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.namespace\"}}},{\"name\":\"JOURNAL_PATH\",\"value\":\"/data/runtime.sqlite3\"}],\"image\":\"192.168.0.56:5000/runtime-operator@sha256:ba019d5a3a504f6ad7124929df7738657b217b46cbb4902ed13a993bdd099a82\",\"name\":\"operator\",\"ports\":[{\"containerPort\":8080}],\"readinessProbe\":{\"httpGet\":{\"path\":\"/health\",\"port\":8080},\"periodSeconds\":3},\"resources\":{\"limits\":{\"cpu\":\"1\",\"memory\":\"512Mi\"},\"requests\":{\"cpu\":\"100m\",\"memory\":\"128Mi\"}},\"securityContext\":{\"allowPrivilegeEscalation\":false,\"capabilities\":{\"drop\":[\"ALL\"]},\"readOnlyRootFilesystem\":true},\"volumeMounts\":[{\"mountPath\":\"/data\",\"name\":\"journal\"}]}],\"nodeSelector\":{\"kubernetes.io/arch\":\"amd64\",\"node-role.kubernetes.io/control-plane\":\"\"},\"securityContext\":{\"fsGroup\":65532,\"runAsGroup\":65532,\"runAsNonRoot\":true,\"runAsUser\":65532},\"serviceAccountName\":\"runtime-operator\",\"terminationGracePeriodSeconds\":330,\"volumes\":[{\"name\":\"journal\",\"persistentVolumeClaim\":{\"claimName\":\"runtime-journal\"}}]}}}}\n"
+    },
+    "creationTimestamp": "2026-09-10T05:33:01Z",
+    "generation": 18,
+    "name": "runtime-operator",
+    "namespace": "platform-runtime",
+    "resourceVersion": "28643368",
+    "uid": "7e68920b-73d5-41c1-bc2a-bf03bdfd4f71"
+  },
+  "spec": {
+    "progressDeadlineSeconds": 600,
+    "replicas": 1,
+    "revisionHistoryLimit": 10,
+    "selector": {
+      "matchLabels": {
+        "app": "runtime-operator"
+      }
+    },
+    "strategy": {
+      "type": "Recreate"
+    },
+    "template": {
+      "metadata": {
+        "creationTimestamp": null,
+        "labels": {
+          "app": "runtime-operator"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "RUNTIME_NAMESPACE",
+                "valueFrom": {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.namespace"
+                  }
+                }
+              },
+              {
+                "name": "JOURNAL_PATH",
+                "value": "/data/runtime.sqlite3"
+              }
+            ],
+            "image": "192.168.0.56:5000/runtime-operator@sha256:e7af71fa425422d5d7576c9dc0e1903d0cd6f50225fc181438474ae55c481670",
+            "imagePullPolicy": "IfNotPresent",
+            "name": "operator",
+            "ports": [
+              {
+                "containerPort": 8080,
+                "protocol": "TCP"
+              }
+            ],
+            "readinessProbe": {
+              "failureThreshold": 3,
+              "httpGet": {
+                "path": "/health",
+                "port": 8080,
+                "scheme": "HTTP"
+              },
+              "periodSeconds": 3,
+              "successThreshold": 1,
+              "timeoutSeconds": 1
+            },
+            "resources": {
+              "limits": {
+                "cpu": "1",
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "100m",
+                "memory": "128Mi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "readOnlyRootFilesystem": true
+            },
+            "terminationMessagePath": "/dev/termination-log",
+            "terminationMessagePolicy": "File",
+            "volumeMounts": [
+              {
+                "mountPath": "/data",
+                "name": "journal"
+              }
+            ]
+          }
+        ],
+        "dnsPolicy": "ClusterFirst",
+        "nodeSelector": {
+          "kubernetes.io/arch": "amd64",
+          "node-role.kubernetes.io/control-plane": ""
+        },
+        "restartPolicy": "Always",
+        "schedulerName": "default-scheduler",
+        "securityContext": {
+          "fsGroup": 65532,
+          "runAsGroup": 65532,
+          "runAsNonRoot": true,
+          "runAsUser": 65532
+        },
+        "serviceAccount": "runtime-operator",
+        "serviceAccountName": "runtime-operator",
+        "terminationGracePeriodSeconds": 330,
+        "volumes": [
+          {
+            "name": "journal",
+            "persistentVolumeClaim": {
+              "claimName": "runtime-journal"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "status": {
+    "availableReplicas": 1,
+    "conditions": [
+      {
+        "lastTransitionTime": "2026-09-14T04:21:05Z",
+        "lastUpdateTime": "2026-09-14T04:21:05Z",
+        "message": "Deployment has minimum availability.",
+        "reason": "MinimumReplicasAvailable",
+        "status": "True",
+        "type": "Available"
+      },
+      {
+        "lastTransitionTime": "2026-09-10T05:33:01Z",
+        "lastUpdateTime": "2026-09-14T04:21:05Z",
+        "message": "ReplicaSet \"runtime-operator-647dc98d\" has successfully progressed.",
+        "reason": "NewReplicaSetAvailable",
+        "status": "True",
+        "type": "Progressing"
+      }
+    ],
+    "observedGeneration": 18,
+    "readyReplicas": 1,
+    "replicas": 1,
+    "updatedReplicas": 1
+  }
+}

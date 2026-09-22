@@ -1,4 +1,6 @@
 # Merge patch; do not apply as a standalone resource.
+# Historical recovery reference: Kueue was removed on 2026-09-17 at the user's request.
+# No live target remains; see ../results/cluster-cleanup-20260917/README.md.
 # Keeps the admission controller off intermittently disconnected edge nodes.
 # kubectl --context=kubernetes-admin@kubernetes -n kueue-system patch deployment \
 #   kueue-controller-manager --type=merge --patch-file=kubeedge-tools/config/kueue-controller-placement-patch.yaml

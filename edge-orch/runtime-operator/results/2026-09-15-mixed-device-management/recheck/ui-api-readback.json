@@ -1,0 +1,217 @@
+{
+  "summary": {
+    "registered": 3,
+    "knownRegistered": 3,
+    "stateQueryable": 3,
+    "inventoryComplete": true,
+    "running": 0,
+    "stopped": 3,
+    "unknown": 0,
+    "other": 0
+  },
+  "devices": [
+    {
+      "id": "virtual:ui-check-001",
+      "name": "ui-check-001",
+      "profileId": "ui-cpu",
+      "connections": [],
+      "uid": "fe1848eb-33e6-4aef-a5ac-7dfc6e3258bc",
+      "revision": 1,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": null,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "ui-cpu",
+        "name": "UI 검증 CPU",
+        "architecture": "amd64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "256Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "not_configured",
+      "sourceId": "ui-check-001",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:ui-check-002",
+      "name": "개별 변경 확인",
+      "profileId": "ui-cpu",
+      "connections": [
+        {
+          "kind": "VirtualDevice",
+          "targetId": "ui-check-001",
+          "resource": null
+        }
+      ],
+      "uid": "eaab0607-6dd0-4c6d-9f93-790acce297e0",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "ui-cpu",
+        "name": "UI 검증 CPU",
+        "architecture": "amd64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "256Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "ui-check-002",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:ui-check-003",
+      "name": "ui-check-003",
+      "profileId": "ui-cpu",
+      "connections": [],
+      "uid": "d38bafa1-0a40-43c0-a461-a5d21471bcfe",
+      "revision": 1,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": null,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "ui-cpu",
+        "name": "UI 검증 CPU",
+        "architecture": "amd64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "256Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "not_configured",
+      "sourceId": "ui-check-003",
+      "type": "logical"
+    }
+  ],
+  "selectedHistory": {
+    "events": [
+      {
+        "seq": 3,
+        "at": 100.0,
+        "event": "registered",
+        "detail": {
+          "id": "ui-check-002",
+          "name": "ui-check-002",
+          "profileId": "ui-cpu",
+          "connections": [],
+          "uid": "eaab0607-6dd0-4c6d-9f93-790acce297e0",
+          "revision": 1,
+          "createdAt": 100.0,
+          "binding": null,
+          "desiredState": "stopped",
+          "lastActionAt": null,
+          "lastObservation": null
+        }
+      },
+      {
+        "seq": 4,
+        "at": 100.0,
+        "event": "observation_changed",
+        "detail": {
+          "state": "stopped",
+          "reason": null,
+          "locations": []
+        }
+      },
+      {
+        "seq": 7,
+        "at": 100.0,
+        "event": "configuration_changed",
+        "detail": {
+          "id": "ui-check-002",
+          "name": "개별 변경 확인",
+          "profileId": "ui-cpu",
+          "connections": [
+            {
+              "kind": "VirtualDevice",
+              "targetId": "ui-check-001",
+              "resource": null
+            }
+          ],
+          "uid": "eaab0607-6dd0-4c6d-9f93-790acce297e0",
+          "revision": 2,
+          "createdAt": 100.0,
+          "binding": null,
+          "desiredState": "stopped",
+          "lastActionAt": null,
+          "lastObservation": {
+            "state": "stopped",
+            "reason": null,
+            "locations": []
+          }
+        }
+      },
+      {
+        "seq": 8,
+        "at": 100.0,
+        "event": "control_accepted",
+        "detail": {
+          "id": "a8518311-66f9-4618-b57f-5b19712d2479",
+          "deviceId": "ui-check-002",
+          "action": "stop",
+          "status": "pending",
+          "at": 100.0
+        }
+      }
+    ]
+  },
+  "otherObjectsUnchanged": true,
+  "runtimeBindingsAllocated": 0
+}

@@ -1,0 +1,45 @@
+{
+  "apiVersion": "v3",
+  "statusCode": 200,
+  "profile": {
+    "created": 1784624988973,
+    "modified": 1784624988973,
+    "id": "cf68ef42-672b-438b-927f-16fe95f9b090",
+    "name": "etri-arduino-temperature",
+    "manufacturer": "Arduino",
+    "description": "Read-only virtual temperature device sourced from the Jetson Arduino serial connection",
+    "model": "Uno virtual temperature source",
+    "labels": [
+      "arduino",
+      "serial",
+      "jetson",
+      "virtual-device"
+    ],
+    "linkedDeviceCount": 1,
+    "deviceResources": [
+      {
+        "description": "Raw temperature sensor value",
+        "name": "temperature_raw",
+        "isHidden": false,
+        "properties": {
+          "valueType": "Int32",
+          "readWrite": "R",
+          "units": "raw"
+        }
+      }
+    ],
+    "deviceCommands": [
+      {
+        "name": "temperature",
+        "isHidden": false,
+        "readWrite": "R",
+        "resourceOperations": [
+          {
+            "deviceResource": "temperature_raw"
+          }
+        ]
+      }
+    ],
+    "apiVersion": "v2"
+  }
+}

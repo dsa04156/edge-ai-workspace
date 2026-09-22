@@ -298,19 +298,24 @@ def project(payload: dict, now: float) -> RuntimeState:
     return result
 
 
+async def read_runtime_state(settings, *, transport=None, clock=time.time) -> RuntimeState:
+    """Shared read path for runtime operations and service-device inventory."""
+    try:
+        async with httpx.AsyncClient(transport=transport, timeout=3, follow_redirects=False,
+                                     trust_env=False) as client:
+            upstream = await client.get(settings.common_runtime_url.rstrip("/") + "/services")
+            upstream.raise_for_status()
+            return project(upstream.json(), clock())
+    except (httpx.HTTPError, ValueError, TypeError, KeyError):
+        return RuntimeState(observed_at=clock(), observation_error="runtime_source_unavailable")
+
+
 def create_common_runtime_router(settings, *, transport=None, clock=time.time):
     router = APIRouter()
 
     @router.get("/state/runtime-services", response_model=RuntimeState)
     async def read_runtime(response: Response):
         response.headers["Cache-Control"] = "no-store"
-        try:
-            async with httpx.AsyncClient(transport=transport, timeout=3, follow_redirects=False,
-                                         trust_env=False) as client:
-                upstream = await client.get(settings.common_runtime_url.rstrip("/") + "/services")
-                upstream.raise_for_status()
-                return project(upstream.json(), clock())
-        except (httpx.HTTPError, ValueError, TypeError, KeyError):
-            return RuntimeState(observed_at=clock(), observation_error="runtime_source_unavailable")
+        return await read_runtime_state(settings, transport=transport, clock=clock)
 
     return router

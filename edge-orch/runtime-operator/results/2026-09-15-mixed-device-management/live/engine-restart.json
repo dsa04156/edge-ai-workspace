@@ -1,0 +1,52 @@
+{
+  "beforeUid": "c6d22ae8-d09c-49b8-8c3a-666f9903f93b",
+  "afterUid": "b7c6fc07-bb9b-4ba1-ab98-3a48edf3f854",
+  "node": "etri-ser0001-cg0msb",
+  "engineReplicas": 1,
+  "volumes": [
+    {
+      "name": "journal",
+      "persistentVolumeClaim": {
+        "claimName": "runtime-journal"
+      }
+    },
+    {
+      "name": "kube-api-access-hgqwz",
+      "projected": {
+        "defaultMode": 420,
+        "sources": [
+          {
+            "serviceAccountToken": {
+              "expirationSeconds": 3607,
+              "path": "token"
+            }
+          },
+          {
+            "configMap": {
+              "items": [
+                {
+                  "key": "ca.crt",
+                  "path": "ca.crt"
+                }
+              ],
+              "name": "kube-root-ca.crt"
+            }
+          },
+          {
+            "downwardAPI": {
+              "items": [
+                {
+                  "fieldRef": {
+                    "apiVersion": "v1",
+                    "fieldPath": "metadata.namespace"
+                  },
+                  "path": "namespace"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

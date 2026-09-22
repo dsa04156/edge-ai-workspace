@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edgex-ai-input
+  namespace: platform-runtime
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: edgex-ai-input
+  template:
+    metadata:
+      labels:
+        app: edgex-ai-input
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        node-role.kubernetes.io/control-plane: ""
+      terminationGracePeriodSeconds: 40
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+      containers:
+        - name: consumer
+          image: 192.168.0.56:5000/state-aggregator@sha256:fd54098b75e996c9c572b19ec1acbcebaf7a6a4d72c33a16724eb7f9e76e0233
+          command: [python, -m, app.ai_input]
+          workingDir: /app
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: EDGEX_CORE_METADATA_URL
+              value: http://edgex-core-metadata.edgex-system.svc.cluster.local:59881
+            - name: EDGEX_CORE_DATA_URL
+              value: http://edgex-core-data.edgex-system.svc.cluster.local:59880
+            - name: COMMON_RUNTIME_URL
+              value: http://runtime-gateway.platform-runtime.svc.cluster.local:8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]

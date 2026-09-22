@@ -1,0 +1,166 @@
+{
+  "at": "2026-09-15T10:17:11.485998+00:00",
+  "components": [
+    {
+      "name": "runtime-operator",
+      "node": "etri-ser0001-cg0msb",
+      "podUid": "b7c6fc07-bb9b-4ba1-ab98-3a48edf3f854",
+      "image": "192.168.0.56:5000/runtime-operator@sha256:eae070c4dadd2167449cba4ffc7f93feac3e439f0cea00da0646b248b5b74756",
+      "imageID": "192.168.0.56:5000/runtime-operator@sha256:eae070c4dadd2167449cba4ffc7f93feac3e439f0cea00da0646b248b5b74756",
+      "replicas": 1,
+      "ready": 1,
+      "verifiedSourceFiles": 4,
+      "sources": [
+        {
+          "source": "edge-orch/runtime-operator/runtime_operator/api.py",
+          "imagePath": "/opt/runtime/runtime_operator/api.py",
+          "sha256": "7283583f8a64dee137353a81808878be7314f578148c51cb745d41de70ab712e",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/runtime-operator/runtime_operator/kube.py",
+          "imagePath": "/opt/runtime/runtime_operator/kube.py",
+          "sha256": "18c55396b0d62df696c170ad155dfb31f771d9ba2b7bd692e17982513fab6df5",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/runtime-operator/runtime_operator/logical_devices.py",
+          "imagePath": "/opt/runtime/runtime_operator/logical_devices.py",
+          "sha256": "a2b36f90bcffb2988b3a819490639c02d62e1314e6c4d17458e0d1dc667428ba",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/runtime-operator/runtime_operator/service_settings.py",
+          "imagePath": "/opt/runtime/runtime_operator/service_settings.py",
+          "sha256": "34a2e09bacf729f949466762480d3ceb314721ee38b960798464d44c2654ec65",
+          "existing": false
+        }
+      ]
+    },
+    {
+      "name": "state-aggregator",
+      "node": "etri-ser0001-cg0msb",
+      "podUid": "c9ca8fd6-65e7-4fc7-ab7a-e668e334ba6a",
+      "image": "192.168.0.56:5000/state-aggregator@sha256:93dbe63bd8e957470ac2b75f5b761713c3ed98473cdd171c883756db7f65fa26",
+      "imageID": "192.168.0.56:5000/state-aggregator@sha256:93dbe63bd8e957470ac2b75f5b761713c3ed98473cdd171c883756db7f65fa26",
+      "replicas": 1,
+      "ready": 1,
+      "verifiedSourceFiles": 18,
+      "sources": [
+        {
+          "source": "edge-orch/state-aggregator/app/ai_input.py",
+          "imagePath": "/app/app/ai_input.py",
+          "sha256": "472339b3eb458cabdfee2058df14b2d12f7b2a1a6ab5583da498ccbb6d8ba324",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/common_runtime.py",
+          "imagePath": "/app/app/common_runtime.py",
+          "sha256": "b7cbe65867fbf07fe2eb216ca6d018bdd10486fdfd43f3e7f8ca6b8552b11c57",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/config.py",
+          "imagePath": "/app/app/config.py",
+          "sha256": "b6d3a713cce5c64f4db1b631c24d1cd3f1136e3ec3682f2b93f0945ee1778f01",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/main.py",
+          "imagePath": "/app/app/main.py",
+          "sha256": "fde8ca38655f2f1e6eabf1b7cf4079da9c839c5be4ba673978f848518e33b4ff",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/managed_devices.py",
+          "imagePath": "/app/app/managed_devices.py",
+          "sha256": "88ecb9e4acf4d5d29b1e3bbdcd006a6061f6541a77d38cdaf1957857f5a84061",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/service_settings.py",
+          "imagePath": "/app/app/service_settings.py",
+          "sha256": "c3cfc607438d6e5fc2f45db45b7421fca2d2cb664affdc330fef0ae0e6aa57a0",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/service_virtual_devices.py",
+          "imagePath": "/app/app/service_virtual_devices.py",
+          "sha256": "c678c0b914e80d552848603e05b7e2dd6e79c9b11d76a0fccb2e9e52b7d5c4ad",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/device-map.css",
+          "imagePath": "/app/app/static/nexus/device-map.css",
+          "sha256": "4aa6103802f4c2d437768893f6cf85a1654dd30c8c27b925bb5cb4e41d0ef3fe",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/device-map.js",
+          "imagePath": "/app/app/static/nexus/device-map.js",
+          "sha256": "0af3aafe6389517401bac04daf90edc32d0657f6043841bb22eae38e4c33678c",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/index.html",
+          "imagePath": "/app/app/static/nexus/index.html",
+          "sha256": "c0f0f203bfd8d00a55723551e5cdf3e2d23fe070ead7f43cb5d7ab145fa8c5f9",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/live-data.js",
+          "imagePath": "/app/app/static/nexus/live-data.js",
+          "sha256": "7c83bdeea1a15d36ff925015d3294af9aa1f58543527c0a25880cf2dc0ebbbf2",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/live-ui.js",
+          "imagePath": "/app/app/static/nexus/live-ui.js",
+          "sha256": "20213f11a8f50b80ff4e9bacd084573bd61cbd02854620b53df0d7e23923f304",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/managed-devices.js",
+          "imagePath": "/app/app/static/nexus/managed-devices.js",
+          "sha256": "34e554768a9dcf3d866a4a740646c0bc641dc3a7182cf1483234634f03a5e8d5",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/platform.js",
+          "imagePath": "/app/app/static/nexus/platform.js",
+          "sha256": "fba682968d2ecf84a7fe381c94f22cd66c69b055c94878a763391128b7aa3392",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/service-definition.js",
+          "imagePath": "/app/app/static/nexus/service-definition.js",
+          "sha256": "7b304ea87ccb0c16791922af16da2025a284fdd83744311f69652675bd19186d",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/service-settings.js",
+          "imagePath": "/app/app/static/nexus/service-settings.js",
+          "sha256": "ce00ef57533b71e6e8a0cccc6be932fdfa70c5ea27e0c892f4c25381801a42ba",
+          "existing": false
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/nexus/source-view.js",
+          "imagePath": "/app/app/static/nexus/source-view.js",
+          "sha256": "cf947bb5358f9005dbbaf1cd401cdf44980352d11f6fdf5b131d7ef624284493",
+          "existing": true
+        },
+        {
+          "source": "edge-orch/state-aggregator/app/static/virtual-devices.js",
+          "imagePath": "/app/app/static/virtual-devices.js",
+          "sha256": "7f86cb478acced0edf401065f79327171086bcc64d15fef632547205bac5d8c2",
+          "existing": true
+        }
+      ]
+    }
+  ],
+  "aggregatorArgo": {
+    "sync": "Synced",
+    "health": "Healthy",
+    "revision": "agent/edgex-central-docs"
+  }
+}

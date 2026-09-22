@@ -1,0 +1,4712 @@
+{
+  "schemaVersion": "edgeai.managed-devices/v1",
+  "observedAt": 100.0,
+  "maxAgeSeconds": 15,
+  "engineScope": "single-runtime-journal-writer",
+  "summary": {
+    "registered": 100,
+    "knownRegistered": 100,
+    "stateQueryable": 100,
+    "inventoryComplete": true,
+    "running": 0,
+    "stopped": 100,
+    "unknown": 0,
+    "other": 0
+  },
+  "sourceErrors": {},
+  "devices": [
+    {
+      "id": "edgex:qualification-sensor",
+      "sourceId": "qualification-sensor",
+      "name": "qualification-sensor",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "stopped",
+      "profileId": "etri-arduino-temperature",
+      "node": null,
+      "reason": null,
+      "physicalSourceId": "arduino-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/qualification-sensor"
+      }
+    },
+    {
+      "id": "virtual:qualification-vd-000",
+      "name": "qualification-vd-000",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "ad89584f-6cc3-41c3-8276-b13b384177dc",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-000",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-001",
+      "name": "qualification-vd-001",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "74fd6dc5-ce87-406c-85a1-cbfcc70d619b",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-001",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-002",
+      "name": "qualification-vd-002",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "8010ea6e-768e-426f-a02e-a06835eef485",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-002",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-003",
+      "name": "qualification-vd-003",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "b326e3ac-1f7f-439a-a10f-a59306ae0699",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-003",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-004",
+      "name": "qualification-vd-004",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "582501c5-16c8-411b-9790-6c1ffddbc4b5",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-004",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-005",
+      "name": "qualification-vd-005",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "1f358f9d-664e-4788-a427-a71ba166134f",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-005",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-006",
+      "name": "qualification-vd-006",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "b9df7cfa-0911-4e36-a7ed-222cf686138f",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-006",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-007",
+      "name": "qualification-vd-007",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "4a976c9b-3d48-4d4e-8ca7-eac7396347f4",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-007",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-008",
+      "name": "qualification-vd-008",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "c3bd831f-f504-4c58-9a46-e271e42befcc",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-008",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-009",
+      "name": "qualification-vd-009",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "10268e0b-9fa1-4996-aaef-fd5659c34dad",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-009",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-010",
+      "name": "qualification-vd-010",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "9a39d3d3-f481-4832-9560-f881e32e934a",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-010",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-011",
+      "name": "qualification-vd-011",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "c870909a-71b2-4e70-8733-67b592013859",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-011",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-012",
+      "name": "qualification-vd-012",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "3b8f578c-2a4a-4a8e-b5bc-083fff318b31",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-012",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-013",
+      "name": "qualification-vd-013",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "99ade6c2-1b30-475a-a202-0451b1906434",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-013",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-014",
+      "name": "qualification-vd-014",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "4f607ea7-4f96-4484-9985-18abd171e039",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-014",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-015",
+      "name": "qualification-vd-015",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "28dddc25-f7b2-4e73-8aa8-e9310fab3d4e",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-015",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-016",
+      "name": "qualification-vd-016",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "1e0336bc-d138-460f-8616-8954d8f339f6",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-016",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-017",
+      "name": "qualification-vd-017",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "93119e4a-0900-4b0e-9255-fcebc0f86ed3",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-017",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-018",
+      "name": "qualification-vd-018",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "da55b47a-7366-4d24-b047-028af90158a2",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-018",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-019",
+      "name": "qualification-vd-019",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "932f1882-f785-428e-9a68-8b73bd518154",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-019",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-020",
+      "name": "qualification-vd-020",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "6ac14727-c742-4e60-a552-c86e1be6c186",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-020",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-021",
+      "name": "qualification-vd-021",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "e6a7a343-a279-4cc0-9b47-b2d71d3bead3",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-021",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-022",
+      "name": "qualification-vd-022",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "d506056b-0a37-41b7-b9ee-c2dc61a2a6d1",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-022",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-023",
+      "name": "qualification-vd-023",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "4a1cc059-ca5c-43b4-bccb-8f3bb6ae7094",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-023",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-024",
+      "name": "qualification-vd-024",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "78260386-0337-47fb-818a-5ccb8fed9d11",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-024",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-025",
+      "name": "qualification-vd-025",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "3a89ee15-8e8e-4806-be95-51b95549d0f1",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-025",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-026",
+      "name": "qualification-vd-026",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "f25d36c5-8bc3-4da0-82da-0a4167ba6ec6",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-026",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-027",
+      "name": "qualification-vd-027",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "3babc9c9-6e1c-40d4-a113-457be557277b",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-027",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-028",
+      "name": "qualification-vd-028",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "2a7f57c9-6e13-4e68-b879-0c9987beacdd",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-028",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-029",
+      "name": "qualification-vd-029",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "7e30cfc5-9ac0-4191-96ff-068fee4a1cb5",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-029",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-030",
+      "name": "qualification-vd-030",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "9a458d10-1bd9-45c2-8888-89d97700fd56",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-030",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-031",
+      "name": "qualification-vd-031",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "f72b4bf0-056d-459f-9d71-10b5ecd1e6ce",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-031",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-032",
+      "name": "qualification-vd-032",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "222ec5c2-7820-4ff6-bc7d-58d25f6080fe",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-032",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-033",
+      "name": "qualification-vd-033",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "7cd5f686-60b3-4332-8caa-d706f7c46ea7",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-033",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-034",
+      "name": "qualification-vd-034",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "d07c4bd9-8a69-4377-9bcc-7680828e27a9",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-034",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-035",
+      "name": "qualification-vd-035",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "d0b9a910-6726-4b03-9324-885950d1df02",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-035",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-036",
+      "name": "qualification-vd-036",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "82d7e0ab-2b86-4561-a896-c635085f1f21",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-036",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-037",
+      "name": "qualification-vd-037",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "40c0196c-74fe-4275-8916-79d676846103",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-037",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-038",
+      "name": "qualification-vd-038",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "9199cd6f-c8b4-408b-b31f-645ff99af362",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-038",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-039",
+      "name": "qualification-vd-039",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "9315e9d6-f5ea-4cb6-ac7e-21b28062730c",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-039",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-040",
+      "name": "qualification-vd-040",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "eb052b0f-9eae-4869-9135-fbfaffd85e08",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-040",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-041",
+      "name": "qualification-vd-041",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "23d7d4cf-7220-43e8-bb49-bb586d75b1f3",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-041",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-042",
+      "name": "qualification-vd-042",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "609c129f-1151-4ebd-9f21-0d347a980e75",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-042",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-043",
+      "name": "qualification-vd-043",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "3055d9b9-8bb3-4c72-b731-a099591844cf",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-043",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-044",
+      "name": "qualification-vd-044",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "f1225e34-6e36-4f93-b243-e75b86ab057a",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-044",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-045",
+      "name": "qualification-vd-045",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "8494d2fc-fe24-4783-99fc-59b9a9c16745",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-045",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-046",
+      "name": "qualification-vd-046",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "b8dbc5a6-c62c-4c1c-b1f7-cff34360b5b6",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-046",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-047",
+      "name": "qualification-vd-047",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "0e838505-1601-457e-a6ee-ad5b255c5b09",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-047",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-048",
+      "name": "qualification-vd-048",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "97d050b8-84ce-46ad-a461-37b4127aecb8",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-048",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-049",
+      "name": "qualification-vd-049",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "1a5af5e6-0192-497d-9fe1-f34e74256894",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-049",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-050",
+      "name": "qualification-vd-050",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "0358e9a5-7d9c-4299-b1f0-164611e3655c",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-050",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-051",
+      "name": "qualification-vd-051",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "2ec75b48-b953-468e-a4e6-86f71afc02b8",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-051",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-052",
+      "name": "qualification-vd-052",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "c7b65567-66ba-49e6-b48c-d91b393a4f92",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-052",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-053",
+      "name": "qualification-vd-053",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "91ea062c-997c-421a-92f2-ed5f17612e8f",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-053",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-054",
+      "name": "qualification-vd-054",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "c38cfabb-82a8-45bb-a488-a36d8e77966e",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-054",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-055",
+      "name": "qualification-vd-055",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "ba60a92e-e72b-4633-9cb7-2d20f0a0993b",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-055",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-056",
+      "name": "qualification-vd-056",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "b1fff0e2-7cbc-4cb8-b129-458b173e0a99",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-056",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-057",
+      "name": "qualification-vd-057",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "dc4cd0d9-8b7a-428b-a575-770f2ed85ac0",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-057",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-058",
+      "name": "qualification-vd-058",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "53c6a62c-58a0-4166-b547-2a5ed01adf71",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-058",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-059",
+      "name": "qualification-vd-059",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "e72f14c9-f63f-4650-9cd9-ee7cca7fd34f",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-059",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-060",
+      "name": "qualification-vd-060",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "dac71c2b-d692-4edd-87eb-1906dee3bd5c",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-060",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-061",
+      "name": "qualification-vd-061",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "135e7fb6-4a86-40c5-a8bd-884766392147",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-061",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-062",
+      "name": "qualification-vd-062",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "e56679ac-110d-4fd4-bc0a-b0273e1fdd98",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-062",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-063",
+      "name": "qualification-vd-063",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "28651015-0e06-4ab4-843b-dabaf8953d87",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-063",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-064",
+      "name": "qualification-vd-064",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "54ad00b8-3ecb-4112-a92e-d33ef1a5647d",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-064",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-065",
+      "name": "qualification-vd-065",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "730af185-bc1d-4ae5-bf81-8cc14ddeeb59",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-065",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-066",
+      "name": "qualification-vd-066",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "a7633b0f-217c-415b-a470-dd39a4397043",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-066",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-067",
+      "name": "qualification-vd-067",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "e0a3fb3f-0e7c-40ef-88fe-0a9aa54f6ea9",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-067",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-068",
+      "name": "qualification-vd-068",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "3e4bf41a-45f5-439a-8159-4c70a5ddae67",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-068",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-069",
+      "name": "qualification-vd-069",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "8f07993e-6223-4e75-88c3-eb177791034c",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-069",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-070",
+      "name": "qualification-vd-070",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "1762b0ee-a249-4691-bafc-df9c02c4d993",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-070",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-071",
+      "name": "qualification-vd-071",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "e818c0a6-b0aa-46cf-9164-c82fcf81b5ca",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-071",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-072",
+      "name": "qualification-vd-072",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "77d1eda3-2cde-4164-b189-351d695f2e52",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-072",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-073",
+      "name": "qualification-vd-073",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "0179166a-d41d-4ece-aefe-09880d563c95",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-073",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-074",
+      "name": "qualification-vd-074",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "e9cef282-db7b-4544-9abe-97fdcb938c7a",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-074",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-075",
+      "name": "qualification-vd-075",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "7c71590b-fb55-4bba-a272-6da6a9488a74",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-075",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-076",
+      "name": "qualification-vd-076",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "e8acc04d-68d7-48f5-a266-22acbd943bae",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-076",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-077",
+      "name": "qualification-vd-077",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "fa145fb2-9b30-48e9-a3d3-28d61ad7c4e7",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-077",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-078",
+      "name": "qualification-vd-078",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "87ed8545-19b2-4535-aaff-ef91521e8116",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-078",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-079",
+      "name": "qualification-vd-079",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "0c1e970f-d6fc-404b-8c38-b3eadf16a1e5",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-079",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-080",
+      "name": "qualification-vd-080",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "9c1375a5-a9e7-4d02-a1dc-5728d565a5bf",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-080",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-081",
+      "name": "qualification-vd-081",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "1160df5f-b93b-402d-9d61-955c2716fcf1",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-081",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-082",
+      "name": "qualification-vd-082",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "f9f73903-8a6c-485f-9b1d-049d6e6c4394",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-082",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-083",
+      "name": "qualification-vd-083",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "898ea924-c1d1-40d9-be1e-e4a40250da99",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-083",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-084",
+      "name": "qualification-vd-084",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "eb5021fe-d5c8-4697-8946-8e86b1fb7b9c",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-084",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-085",
+      "name": "qualification-vd-085",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "ced523f3-59bc-416c-a559-dd23c8dd1aa8",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-085",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-086",
+      "name": "qualification-vd-086",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "29dc8a47-273d-4f87-821c-f7575222a753",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-086",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-087",
+      "name": "qualification-vd-087",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "8b77c4dc-6aa0-438f-8917-df1edf496af6",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-087",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-088",
+      "name": "qualification-vd-088",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "d1cc68dd-87eb-4065-972c-6bf897298cc6",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-088",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-089",
+      "name": "qualification-vd-089",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "b77b4117-0199-4eac-ba00-4bfb28e28674",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-089",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-090",
+      "name": "qualification-vd-090",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "ad4a3e08-2f1e-4394-858f-d7d048e9e8af",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-090",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-091",
+      "name": "qualification-vd-091",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "55aa2d02-ab79-460d-9f99-d66a9ab2c6c5",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-091",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-092",
+      "name": "qualification-vd-092",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "0ec808d5-7fef-4317-9493-a50c77aa2aee",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-092",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-093",
+      "name": "qualification-vd-093",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "3e946542-da90-4157-a413-2e2912b5dbee",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-093",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-094",
+      "name": "qualification-vd-094",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "a0c96959-d5c9-49cf-bd13-d6c3012a325b",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-094",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-095",
+      "name": "qualification-vd-095",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "33ddbe5c-c8af-4f0f-b078-58a4acf3a63b",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-095",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-096",
+      "name": "qualification-vd-096",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "9155b842-1476-4b19-bf04-73440b7fd84d",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-096",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-097",
+      "name": "qualification-vd-097",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "8232610e-0e74-4c40-8bee-7fd3497d1e54",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-097",
+      "type": "logical"
+    },
+    {
+      "id": "virtual:qualification-vd-098",
+      "name": "qualification-vd-098",
+      "profileId": "cpu-small",
+      "connections": [
+        {
+          "kind": "EdgeXDevice",
+          "targetId": "qualification-sensor",
+          "resource": "temperature_raw"
+        }
+      ],
+      "uid": "58f54733-c6b4-4909-a5a6-8ee442d582ab",
+      "revision": 3,
+      "createdAt": 100.0,
+      "binding": null,
+      "desiredState": "stopped",
+      "lastActionAt": 100.0,
+      "lastObservation": {
+        "state": "stopped",
+        "reason": null,
+        "locations": []
+      },
+      "state": "stopped",
+      "reason": null,
+      "locations": [],
+      "kind": "virtual",
+      "stateQueryable": true,
+      "observedAt": 100.0,
+      "profile": {
+        "id": "cpu-small",
+        "name": "CPU small",
+        "architecture": "arm64",
+        "requests": {
+          "cpu": "100m",
+          "memory": "64Mi"
+        },
+        "limits": {
+          "cpu": "1",
+          "memory": "128Mi"
+        },
+        "executionSpec": null,
+        "templateServiceUid": null
+      },
+      "connectionState": "configured_unverified",
+      "sourceId": "qualification-vd-098",
+      "type": "logical"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "cpu-small",
+      "name": "CPU small",
+      "architecture": "arm64",
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      },
+      "limits": {
+        "cpu": "1",
+        "memory": "128Mi"
+      },
+      "executionSpec": null,
+      "templateServiceUid": null
+    }
+  ],
+  "countingPolicy": {
+    "unit": "registered-node-edgex-device-or-independent-virtual-device",
+    "includesStopped": true,
+    "includesObservationTwins": false,
+    "includesPods": false
+  },
+  "mutationEnabled": true
+}

@@ -43,6 +43,8 @@ def signature(spec):
         value["modelRuntime"] = spec.modelRuntime.model_dump()
     if spec.policy.stages:
         value["stages"] = [stage.model_dump() for stage in spec.policy.stages]
+    if spec.commonAI and spec.commonAI.offload.enabled:
+        value["commonAI"] = spec.commonAI.model_dump()
     return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
@@ -226,8 +228,11 @@ class DemoRunner:
                     started = time.monotonic()
                     good = False
                     try:
+                        payload = copy.deepcopy(config["payload"])
+                        if payload.get("schema_version") == "edgeai.execution/v1":
+                            payload["request_id"] = request_id
                         response = await client.post("/services/" + run["name"] + "/invoke",
-                            json=config["payload"], headers={"X-Request-ID": request_id, "X-Runtime-Service-Uid": run["uid"],
+                            json=payload, headers={"X-Request-ID": request_id, "X-Runtime-Service-Uid": run["uid"],
                                 "X-Runtime-Demo-Run": run["id"], **({"X-Runtime-Expected-Node": run["targetNode"]} if run.get("targetNode") and not run.get("followsService") else {})})
                         result = response.json()
                         outcome = response.headers.get("X-Request-State", "rejected")

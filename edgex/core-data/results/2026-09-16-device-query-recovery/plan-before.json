@@ -1,0 +1,86 @@
+[
+  {
+    "Plan": {
+      "Node Type": "Limit",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 102.2,
+      "Total Cost": 102.25,
+      "Plan Rows": 20,
+      "Plan Width": 115,
+      "Plans": [
+        {
+          "Node Type": "Sort",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 102.2,
+          "Total Cost": 102.35,
+          "Plan Rows": 60,
+          "Plan Width": 115,
+          "Sort Key": [
+            "event.origin DESC"
+          ],
+          "Plans": [
+            {
+              "Node Type": "Nested Loop",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Join Type": "Inner",
+              "Startup Cost": 0.7,
+              "Total Cost": 100.61,
+              "Plan Rows": 60,
+              "Plan Width": 115,
+              "Inner Unique": false,
+              "Plans": [
+                {
+                  "Node Type": "Index Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Scan Direction": "Forward",
+                  "Index Name": "idx_device_info_device_resource",
+                  "Relation Name": "device_info",
+                  "Alias": "device_info",
+                  "Startup Cost": 0.27,
+                  "Total Cost": 28.95,
+                  "Plan Rows": 3,
+                  "Plan Width": 95,
+                  "Index Cond": "((mark_deleted = false) AND (devicename = 'virtual-light-001'::text))"
+                },
+                {
+                  "Node Type": "Limit",
+                  "Parent Relationship": "Inner",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Startup Cost": 0.43,
+                  "Total Cost": 23.69,
+                  "Plan Rows": 20,
+                  "Plan Width": 24,
+                  "Plans": [
+                    {
+                      "Node Type": "Index Scan",
+                      "Parent Relationship": "Outer",
+                      "Parallel Aware": false,
+                      "Async Capable": false,
+                      "Scan Direction": "Backward",
+                      "Index Name": "idx_event_origin",
+                      "Relation Name": "event",
+                      "Alias": "event",
+                      "Startup Cost": 0.43,
+                      "Total Cost": 395111.38,
+                      "Plan Rows": 339795,
+                      "Plan Width": 24,
+                      "Filter": "(device_info_id = device_info.id)"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

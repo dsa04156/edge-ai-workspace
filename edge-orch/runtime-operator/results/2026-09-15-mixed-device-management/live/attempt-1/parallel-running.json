@@ -1,0 +1,458 @@
+[
+  {
+    "id": "qa-mixed100-002",
+    "name": "qa-mixed100-002",
+    "profileId": "qa-mixed100-cpu",
+    "connections": [
+      {
+        "kind": "EdgeXDevice",
+        "targetId": "env-sensehat-pressure-01",
+        "resource": null
+      }
+    ],
+    "uid": "3c5b3996-13a0-4d55-b918-c58ce335cd37",
+    "revision": 4,
+    "createdAt": 1789466672.4149497,
+    "binding": {
+      "name": "vd-3c5b399613a04d55b918c58ce335cd37",
+      "uid": "e0d89c75-483f-47bd-94f4-7eadb5598f7e"
+    },
+    "desiredState": "running",
+    "lastActionAt": 1789466793.2592204,
+    "lastObservation": {
+      "state": "running",
+      "reason": null,
+      "locations": [
+        {
+          "role": "active",
+          "node": "etri-ser0001-cg0msb",
+          "revision": "rt-e0d89c75483f-f12bf45d7558"
+        }
+      ]
+    },
+    "state": "running",
+    "reason": null,
+    "locations": [
+      {
+        "role": "active",
+        "node": "etri-ser0001-cg0msb",
+        "revision": "rt-e0d89c75483f-f12bf45d7558"
+      }
+    ],
+    "kind": "virtual",
+    "stateQueryable": true,
+    "observedAt": 1789466815.783082,
+    "profile": {
+      "id": "qa-mixed100-cpu",
+      "name": "혼합100 검증 CPU",
+      "architecture": "amd64",
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      },
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "executionSpec": {
+        "serviceKind": "test",
+        "execution": "http-json-v1",
+        "ioContract": "synthetic.mixed100.v1",
+        "port": 8080,
+        "readyPath": "/ready",
+        "requestPath": "/infer",
+        "timeoutSeconds": 30,
+        "suspended": true,
+        "demo": {
+          "label": "mixed100 synthetic HTTP qualification",
+          "payload": {
+            "delaySeconds": 0.15,
+            "input": {
+              "qualification": true
+            }
+          }
+        },
+        "policy": {
+          "mode": "preferred",
+          "preferredRole": "server",
+          "allowedRoles": [
+            "server"
+          ],
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+          },
+          "prepareTimeoutSeconds": 60,
+          "approvalRequired": false,
+          "stages": [],
+          "latency": null
+        },
+        "variants": [
+          {
+            "name": "cpu-amd64",
+            "image": "192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558",
+            "architecture": "amd64",
+            "backend": "cpu",
+            "requests": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            },
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "maxInFlight": 1,
+            "qualification": "dashboard-unqualified",
+            "verifiedNodes": [],
+            "qualifiedRps": null,
+            "qualifiedP95Milliseconds": null,
+            "qualifiedInputProfile": null
+          }
+        ]
+      },
+      "templateServiceUid": null
+    },
+    "connectionState": "configured_unverified"
+  },
+  {
+    "id": "qa-mixed100-003",
+    "name": "qa-mixed100-003",
+    "profileId": "qa-mixed100-cpu",
+    "connections": [
+      {
+        "kind": "EdgeXDevice",
+        "targetId": "env-sensehat-temperature-01",
+        "resource": null
+      }
+    ],
+    "uid": "213a8ae2-e095-4f05-a8a6-1518debb2305",
+    "revision": 4,
+    "createdAt": 1789466672.6739504,
+    "binding": {
+      "name": "vd-213a8ae2e0954f05a8a61518debb2305",
+      "uid": "7fd7e186-29bd-42f7-a1b0-d67c0a772cf9"
+    },
+    "desiredState": "running",
+    "lastActionAt": 1789466793.305659,
+    "lastObservation": {
+      "state": "running",
+      "reason": null,
+      "locations": [
+        {
+          "role": "active",
+          "node": "etri-ser0001-cg0msb",
+          "revision": "rt-7fd7e18629bd-f12bf45d7558"
+        }
+      ]
+    },
+    "state": "running",
+    "reason": null,
+    "locations": [
+      {
+        "role": "active",
+        "node": "etri-ser0001-cg0msb",
+        "revision": "rt-7fd7e18629bd-f12bf45d7558"
+      }
+    ],
+    "kind": "virtual",
+    "stateQueryable": true,
+    "observedAt": 1789466815.782029,
+    "profile": {
+      "id": "qa-mixed100-cpu",
+      "name": "혼합100 검증 CPU",
+      "architecture": "amd64",
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      },
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "executionSpec": {
+        "serviceKind": "test",
+        "execution": "http-json-v1",
+        "ioContract": "synthetic.mixed100.v1",
+        "port": 8080,
+        "readyPath": "/ready",
+        "requestPath": "/infer",
+        "timeoutSeconds": 30,
+        "suspended": true,
+        "demo": {
+          "label": "mixed100 synthetic HTTP qualification",
+          "payload": {
+            "delaySeconds": 0.15,
+            "input": {
+              "qualification": true
+            }
+          }
+        },
+        "policy": {
+          "mode": "preferred",
+          "preferredRole": "server",
+          "allowedRoles": [
+            "server"
+          ],
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+          },
+          "prepareTimeoutSeconds": 60,
+          "approvalRequired": false,
+          "stages": [],
+          "latency": null
+        },
+        "variants": [
+          {
+            "name": "cpu-amd64",
+            "image": "192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558",
+            "architecture": "amd64",
+            "backend": "cpu",
+            "requests": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            },
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "maxInFlight": 1,
+            "qualification": "dashboard-unqualified",
+            "verifiedNodes": [],
+            "qualifiedRps": null,
+            "qualifiedP95Milliseconds": null,
+            "qualifiedInputProfile": null
+          }
+        ]
+      },
+      "templateServiceUid": null
+    },
+    "connectionState": "configured_unverified"
+  },
+  {
+    "id": "qa-mixed100-004",
+    "name": "qa-mixed100-004",
+    "profileId": "qa-mixed100-cpu",
+    "connections": [
+      {
+        "kind": "EdgeXDevice",
+        "targetId": "imu-sensehat-compass-01",
+        "resource": null
+      }
+    ],
+    "uid": "5322fd32-d75c-4dbf-aad1-221641243747",
+    "revision": 4,
+    "createdAt": 1789466672.8084817,
+    "binding": {
+      "name": "vd-5322fd32d75c4dbfaad1221641243747",
+      "uid": "a9f33b3f-e4cc-4626-9c78-8cd77fcd1a83"
+    },
+    "desiredState": "running",
+    "lastActionAt": 1789466793.3540843,
+    "lastObservation": {
+      "state": "running",
+      "reason": null,
+      "locations": [
+        {
+          "role": "active",
+          "node": "etri-ser0001-cg0msb",
+          "revision": "rt-a9f33b3fe4cc-f12bf45d7558"
+        }
+      ]
+    },
+    "state": "running",
+    "reason": null,
+    "locations": [
+      {
+        "role": "active",
+        "node": "etri-ser0001-cg0msb",
+        "revision": "rt-a9f33b3fe4cc-f12bf45d7558"
+      }
+    ],
+    "kind": "virtual",
+    "stateQueryable": true,
+    "observedAt": 1789466815.782573,
+    "profile": {
+      "id": "qa-mixed100-cpu",
+      "name": "혼합100 검증 CPU",
+      "architecture": "amd64",
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      },
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "executionSpec": {
+        "serviceKind": "test",
+        "execution": "http-json-v1",
+        "ioContract": "synthetic.mixed100.v1",
+        "port": 8080,
+        "readyPath": "/ready",
+        "requestPath": "/infer",
+        "timeoutSeconds": 30,
+        "suspended": true,
+        "demo": {
+          "label": "mixed100 synthetic HTTP qualification",
+          "payload": {
+            "delaySeconds": 0.15,
+            "input": {
+              "qualification": true
+            }
+          }
+        },
+        "policy": {
+          "mode": "preferred",
+          "preferredRole": "server",
+          "allowedRoles": [
+            "server"
+          ],
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+          },
+          "prepareTimeoutSeconds": 60,
+          "approvalRequired": false,
+          "stages": [],
+          "latency": null
+        },
+        "variants": [
+          {
+            "name": "cpu-amd64",
+            "image": "192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558",
+            "architecture": "amd64",
+            "backend": "cpu",
+            "requests": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            },
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "maxInFlight": 1,
+            "qualification": "dashboard-unqualified",
+            "verifiedNodes": [],
+            "qualifiedRps": null,
+            "qualifiedP95Milliseconds": null,
+            "qualifiedInputProfile": null
+          }
+        ]
+      },
+      "templateServiceUid": null
+    },
+    "connectionState": "configured_unverified"
+  },
+  {
+    "id": "qa-mixed100-005",
+    "name": "qa-mixed100-005",
+    "profileId": "qa-mixed100-cpu",
+    "connections": [
+      {
+        "kind": "EdgeXDevice",
+        "targetId": "imu-sensehat-gyroscope-01",
+        "resource": null
+      }
+    ],
+    "uid": "da392e5c-3a21-4e8c-a55b-69cefca11904",
+    "revision": 4,
+    "createdAt": 1789466673.0130038,
+    "binding": {
+      "name": "vd-da392e5c3a214e8ca55b69cefca11904",
+      "uid": "06627cea-b787-4889-a944-b712b4d99ca9"
+    },
+    "desiredState": "running",
+    "lastActionAt": 1789466793.2289186,
+    "lastObservation": {
+      "state": "running",
+      "reason": null,
+      "locations": [
+        {
+          "role": "active",
+          "node": "etri-ser0001-cg0msb",
+          "revision": "rt-06627ceab787-f12bf45d7558"
+        }
+      ]
+    },
+    "state": "running",
+    "reason": null,
+    "locations": [
+      {
+        "role": "active",
+        "node": "etri-ser0001-cg0msb",
+        "revision": "rt-06627ceab787-f12bf45d7558"
+      }
+    ],
+    "kind": "virtual",
+    "stateQueryable": true,
+    "observedAt": 1789466816.233434,
+    "profile": {
+      "id": "qa-mixed100-cpu",
+      "name": "혼합100 검증 CPU",
+      "architecture": "amd64",
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      },
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "executionSpec": {
+        "serviceKind": "test",
+        "execution": "http-json-v1",
+        "ioContract": "synthetic.mixed100.v1",
+        "port": 8080,
+        "readyPath": "/ready",
+        "requestPath": "/infer",
+        "timeoutSeconds": 30,
+        "suspended": true,
+        "demo": {
+          "label": "mixed100 synthetic HTTP qualification",
+          "payload": {
+            "delaySeconds": 0.15,
+            "input": {
+              "qualification": true
+            }
+          }
+        },
+        "policy": {
+          "mode": "preferred",
+          "preferredRole": "server",
+          "allowedRoles": [
+            "server"
+          ],
+          "nodeSelector": {
+            "kubernetes.io/hostname": "etri-ser0001-cg0msb"
+          },
+          "prepareTimeoutSeconds": 60,
+          "approvalRequired": false,
+          "stages": [],
+          "latency": null
+        },
+        "variants": [
+          {
+            "name": "cpu-amd64",
+            "image": "192.168.0.56:5000/runtime-contract-demo@sha256:425836c63f64d6659892bc42d96700dc61edd55b3d8b8bfe37fcabcd52e4d558",
+            "architecture": "amd64",
+            "backend": "cpu",
+            "requests": {
+              "cpu": "100m",
+              "memory": "64Mi"
+            },
+            "limits": {
+              "cpu": "250m",
+              "memory": "128Mi"
+            },
+            "maxInFlight": 1,
+            "qualification": "dashboard-unqualified",
+            "verifiedNodes": [],
+            "qualifiedRps": null,
+            "qualifiedP95Milliseconds": null,
+            "qualifiedInputProfile": null
+          }
+        ]
+      },
+      "templateServiceUid": null
+    },
+    "connectionState": "configured_unverified"
+  }
+]

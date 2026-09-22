@@ -1,0 +1,17 @@
+{
+  "name": "virtual-temperature-001",
+  "description": "sad",
+  "profile_name": "etri-arduino-temperature",
+  "device_service_name": "device-serial-jetson",
+  "protocol_names": [
+    "serial"
+  ],
+  "admin_state": "UNLOCKED",
+  "operating_state": "UP",
+  "tags": {
+    "nodeName": "etri-dev0001-jetorn",
+    "physicalDeviceId": "arduino-001"
+  },
+  "properties": {},
+  "node_name": "etri-dev0001-jetorn"
+}

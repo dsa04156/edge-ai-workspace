@@ -1,0 +1,34 @@
+[
+  {
+    "id": "3e73a82d-e496-44c6-bfbf-751732de9f20",
+    "deviceId": "qa-mixed100-002",
+    "action": "stop",
+    "status": "accepted",
+    "at": 1789467260.849205,
+    "revision": 9
+  },
+  {
+    "id": "a3eb7320-3c0b-49c6-ba4b-a01d7a50983f",
+    "deviceId": "qa-mixed100-003",
+    "action": "stop",
+    "status": "accepted",
+    "at": 1789467261.4587936,
+    "revision": 7
+  },
+  {
+    "id": "9b3ec710-6e7e-461a-9125-4cf246287d21",
+    "deviceId": "qa-mixed100-004",
+    "action": "stop",
+    "status": "accepted",
+    "at": 1789467261.5269315,
+    "revision": 7
+  },
+  {
+    "id": "ba7c2afd-5695-4e00-9591-e65471a95b87",
+    "deviceId": "qa-mixed100-005",
+    "action": "stop",
+    "status": "accepted",
+    "at": 1789467261.5844917,
+    "revision": 7
+  }
+]

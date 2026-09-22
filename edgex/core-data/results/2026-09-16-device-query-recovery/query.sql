@@ -1,0 +1,1 @@
+EXPLAIN (FORMAT JSON) SELECT event.id,devicename,profilename,sourcename,origin,tags FROM core_data.device_info JOIN LATERAL (SELECT id,origin FROM core_data.event WHERE event.device_info_id=device_info.id ORDER BY origin DESC LIMIT 20) event ON true WHERE mark_deleted=false AND devicename='virtual-light-001' ORDER BY origin DESC LIMIT 20;

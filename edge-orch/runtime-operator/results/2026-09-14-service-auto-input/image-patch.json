@@ -1,0 +1,1 @@
+[{"op": "test", "path": "/spec/template/spec/containers/0/image", "value": "192.168.0.56:5000/runtime-operator@sha256:50e886174ae89689d1318a271e11d740baededba94c87ba9859433752d492787"}, {"op": "replace", "path": "/spec/template/spec/containers/0/image", "value": "192.168.0.56:5000/runtime-operator@sha256:9d8fc6ddf8311f28379b37aca4fba98c0f3684726784e351f42389f6b5bdad58"}]

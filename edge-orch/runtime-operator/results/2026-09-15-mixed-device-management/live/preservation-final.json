@@ -1,0 +1,41 @@
+{
+  "existingRuntimeServices": [
+    {
+      "name": "digits-classifier",
+      "uid": "b94afe37-0fdb-489c-972e-619b3f0e805d",
+      "specUnchanged": true,
+      "phase": "Suspended"
+    },
+    {
+      "name": "llama-inference",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "specUnchanged": true,
+      "phase": "Suspended"
+    },
+    {
+      "name": "quality-api-demo",
+      "uid": "105b0004-5698-4a21-9a91-e1a0a00afb39",
+      "specUnchanged": true,
+      "phase": "Serving"
+    },
+    {
+      "name": "telemetry-transform-demo",
+      "uid": "64e77cbd-c38c-4cd1-be0a-4643fd2d517a",
+      "specUnchanged": true,
+      "phase": "Serving"
+    }
+  ],
+  "virtualStopped": 88,
+  "testPodsRemaining": 0,
+  "logicalRuntimeDefinitionsRetained": 5,
+  "summary": {
+    "registered": 112,
+    "knownRegistered": 112,
+    "stateQueryable": 112,
+    "inventoryComplete": true,
+    "running": 21,
+    "stopped": 89,
+    "unknown": 0,
+    "other": 2
+  }
+}

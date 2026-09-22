@@ -29,7 +29,7 @@ class Journal:
             body TEXT NOT NULL, created REAL NOT NULL, PRIMARY KEY(uid,id));
         """)
         with self.db:
-            self.db.execute("UPDATE requests SET state='unknown',status=503,body=? WHERE state='dispatched'",
+            self.db.execute("UPDATE requests SET state='unknown',status=503,body=COALESCE(body,?) WHERE state='dispatched'",
                             (json.dumps({"reason": "controller_restarted_outcome_unknown"}),))
             for uid, run_id, body in self.db.execute("SELECT uid,id,body FROM demo_runs WHERE phase IN ('Running','Stopping')").fetchall():
                 run = json.loads(body)
@@ -77,10 +77,10 @@ class Journal:
             return None
         return dict(zip(("fingerprint", "target", "state", "status", "body"), row))
 
-    def dispatch(self, uid, request_id, fingerprint, target):
+    def dispatch(self, uid, request_id, fingerprint, target, initial=None):
         with self.db:
-            self.db.execute("INSERT INTO requests VALUES (?,?,?,?,?,NULL,NULL,?)",
-                            (uid, request_id, fingerprint, target, "dispatched", time.time()))
+            self.db.execute("INSERT INTO requests VALUES (?,?,?,?,?,NULL,?,?)",
+                            (uid, request_id, fingerprint, target, "dispatched", json.dumps(initial) if initial else None, time.time()))
 
     def finish(self, uid, request_id, state, status, body):
         with self.db:

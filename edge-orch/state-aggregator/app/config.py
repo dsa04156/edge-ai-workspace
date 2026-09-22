@@ -28,6 +28,8 @@ class Settings(BaseModel):
     common_runtime_demo_enabled: bool = Field(default_factory=lambda: _env_bool("COMMON_RUNTIME_DEMO_ENABLED"))
     common_runtime_url: str = Field(default_factory=lambda: os.getenv(
         "COMMON_RUNTIME_URL", "http://runtime-gateway.platform-runtime.svc.cluster.local:8080"))
+    common_runtime_namespace: str = Field(default_factory=lambda: os.getenv(
+        "COMMON_RUNTIME_NAMESPACE", "platform-runtime"))
     model_offload_enabled: bool = Field(default_factory=lambda: _env_bool("MODEL_OFFLOAD_ENABLED"))
     model_offload_contract_path: Path = Field(default_factory=lambda: Path(os.getenv(
         "MODEL_OFFLOAD_CONTRACT_PATH", str(APP_CONFIG_DIR / "model_offload_llama.json"))))
@@ -47,6 +49,9 @@ class Settings(BaseModel):
     )
     virtual_device_control_enabled: bool = Field(
         default_factory=lambda: os.getenv("VIRTUAL_DEVICE_CONTROL_ENABLED", "false").lower() == "true"
+    )
+    logical_device_management_enabled: bool = Field(
+        default_factory=lambda: os.getenv("LOGICAL_DEVICE_MANAGEMENT_ENABLED", "false").lower() == "true"
     )
     data_dir: Path = Field(
         default_factory=lambda: Path(

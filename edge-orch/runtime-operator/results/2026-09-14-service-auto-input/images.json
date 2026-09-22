@@ -1,0 +1,20 @@
+{
+  "runtime-operator": {
+    "baseImage": "192.168.0.56:5000/runtime-operator@sha256:2a3ccd646fb78036429a2abb67ffd579be25c8c1afb695b357406b5829b2e08e",
+    "image": "192.168.0.56:5000/runtime-operator@sha256:9d8fc6ddf8311f28379b37aca4fba98c0f3684726784e351f42389f6b5bdad58",
+    "files": {
+      "api.py": "6a77e780ef68e544271150e8e29fc1cfe2881eaa0ff87876fd8c7493ff256ac5",
+      "contract.py": "172458faf6d3deef8caa52a13d5ac9e6bddb1d2c046077b8115fcc1b02995e63",
+      "common_ai.py": "6665560b0c73d867b622fd5cc918e37cf6672a62d0b801b1b0a6ce3d4ed427d9",
+      "controller.py": "6a5330b1f0ef2b888da07c4e58c8aaaae9c8749b9dffaf80bd38a2c952e6beaa",
+      "demo.py": "d31f7eb1ddc5088381a49f7cab23b06f9cc1f54d200d5fa24a7ad00b1d117122"
+    }
+  },
+  "state-aggregator": {
+    "baseImage": "192.168.0.56:5000/state-aggregator@sha256:83446b4b1da3359f7081ef37354e85017e618514d7eeae4327f2cc42b0ddc930",
+    "image": "192.168.0.56:5000/state-aggregator@sha256:fd54098b75e996c9c572b19ec1acbcebaf7a6a4d72c33a16724eb7f9e76e0233",
+    "files": {
+      "ai_input.py": "472339b3eb458cabdfee2058df14b2d12f7b2a1a6ab5583da498ccbb6d8ba324"
+    }
+  }
+}

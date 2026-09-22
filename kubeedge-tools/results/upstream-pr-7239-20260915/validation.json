@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-15",
+  "commit": "e844485e28f2baa6cb197d6a8c1afee5933ff4d9",
+  "base": "16cd8548eedb81af293b94f27844144c080eaa89",
+  "checks": [
+    {
+      "command": "go test ./cloud/pkg/cloudstream -run ^TestMetricsCompletionFromSession/success$ -count=1 -timeout=15s",
+      "state": "expected failure with original CloudCore code",
+      "evidence": "regression-red.log"
+    },
+    {
+      "command": "go test ./pkg/stream ./cloud/pkg/cloudstream -count=1 -timeout=60s",
+      "exit_code": 0,
+      "evidence": "session tool output: both packages ok"
+    },
+    {
+      "command": "go test -race ./pkg/stream ./cloud/pkg/cloudstream -run 'TestMetrics|Test.*Metrics|TestSession' -count=1 -timeout=60s",
+      "exit_code": 0,
+      "evidence": "session tool output: both packages ok"
+    },
+    {
+      "command": "make lint",
+      "exit_code": 0,
+      "evidence": "lint.log"
+    },
+    {
+      "command": "make verify",
+      "exit_code": 0,
+      "evidence": "verify.log"
+    },
+    {
+      "command": "make test WHAT=\"cloud edge\"",
+      "exit_code": 0,
+      "passed_packages": 85,
+      "evidence": "component-tests.log"
+    }
+  ],
+  "not_run": "Host-level integration script runs sudo pkill edgecore; CI integration remains unverified.",
+  "deployment": "No cluster deployment performed."
+}

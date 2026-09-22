@@ -1,0 +1,39 @@
+{
+  "spec": {
+    "commonAI": {
+      "service": {
+        "id": "llama-inference",
+        "model": "llama3.2:1b-instruct-q8_0",
+        "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+      },
+      "placement": {
+        "default_node": "etri-dev0001-jetorn",
+        "candidate_nodes": [
+          "etri-dev0001-jetorn",
+          "etri-ser0003-cg0ms0"
+        ]
+      },
+      "resources": {
+        "cpu": "250m",
+        "memory": "256Mi",
+        "gpu": "nvidia.com/gpu.shared=1"
+      },
+      "input": {
+        "type": "sensor",
+        "source": "edgex"
+      },
+      "monitoring": {
+        "cpu": true,
+        "memory": true,
+        "gpu": true,
+        "queue": true,
+        "latency": true
+      },
+      "offload": {
+        "enabled": false
+      },
+      "adapter": "llama-worker-v1",
+      "max_tokens": 64
+    }
+  }
+}

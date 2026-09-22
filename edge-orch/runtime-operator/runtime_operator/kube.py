@@ -65,6 +65,53 @@ class Kube:
         return self.custom.replace_namespaced_custom_object(
             GROUP, VERSION, self.namespace, PLURAL, name, resource, _request_timeout=3)
 
+    def set_service_settings(self, name, uid, spec_revision, settings):
+        from .service_settings import revision, updated_spec
+        resource = self.custom.get_namespaced_custom_object(
+            GROUP, VERSION, self.namespace, PLURAL, name, _request_timeout=3)
+        if resource["metadata"]["uid"] != uid or resource["metadata"].get("deletionTimestamp"):
+            raise ValueError("service_identity_changed")
+        if revision(resource) != spec_revision:
+            raise ValueError("service_settings_changed")
+        spec = ServiceSpec.model_validate(resource["spec"])
+        if not spec.suspended or not (spec.demo or spec.is_ai):
+            raise ValueError("service_must_be_stopped")
+        resource["spec"] = updated_spec(resource, settings)
+        return self.custom.replace_namespaced_custom_object(
+            GROUP, VERSION, self.namespace, PLURAL, name, resource, _request_timeout=3)
+
+    def register_service(self, name, spec, virtual_device_uid=None):
+        from .service_settings import definition_spec
+        body = {"apiVersion": GROUP + "/" + VERSION, "kind": "RuntimeService",
+                "metadata": {"name": name, "namespace": self.namespace,
+                             "annotations": {GROUP + "/configuration-owner": "dashboard"}},
+                "spec": definition_spec(spec)}
+        if virtual_device_uid:
+            body["metadata"]["annotations"][GROUP + "/virtual-device-uid"] = virtual_device_uid
+        return self.custom.create_namespaced_custom_object(GROUP, VERSION, self.namespace, PLURAL, body, _request_timeout=3)
+
+    def register_logical_runtime(self, name, spec, virtual_device_uid):
+        try:
+            return self.register_service(name, spec, virtual_device_uid)
+        except ApiException as exc:
+            if exc.status != 409: raise
+            resource = self.custom.get_namespaced_custom_object(GROUP, VERSION, self.namespace, PLURAL, name, _request_timeout=3)
+            if resource["metadata"].get("annotations", {}).get(GROUP + "/virtual-device-uid") != virtual_device_uid or resource["metadata"].get("deletionTimestamp"):
+                raise ValueError("logical_runtime_ownership_conflict") from None
+            return resource
+
+    def set_service_definition(self, name, uid, spec_revision, spec):
+        from .service_settings import revision, definition_spec
+        resource = self.custom.get_namespaced_custom_object(GROUP, VERSION, self.namespace, PLURAL, name, _request_timeout=3)
+        if resource["metadata"]["uid"] != uid or resource["metadata"].get("deletionTimestamp"):
+            raise ValueError("service_identity_changed")
+        if revision(resource) != spec_revision:
+            raise ValueError("service_settings_changed")
+        if not ServiceSpec.model_validate(resource["spec"]).suspended:
+            raise ValueError("service_must_be_stopped")
+        resource["spec"] = definition_spec(spec, resource)
+        return self.custom.replace_namespaced_custom_object(GROUP, VERSION, self.namespace, PLURAL, name, resource, _request_timeout=3)
+
     def status(self, resource, status):
         self.custom.patch_namespaced_custom_object_status(GROUP, VERSION, self.namespace, PLURAL,
             resource["metadata"]["name"], {"metadata": {"resourceVersion": resource["metadata"]["resourceVersion"]},

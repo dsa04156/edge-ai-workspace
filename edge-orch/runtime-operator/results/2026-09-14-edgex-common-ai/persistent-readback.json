@@ -1,0 +1,89 @@
+{
+  "readback": {
+    "serviceUid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+    "requestId": "req-bb5aa2498d894c3a9238d4f395755a7d",
+    "target": "rt-a6755c109718-165b7a9a4b8b",
+    "state": "completed",
+    "status": 200,
+    "result": {
+      "schema_version": "edgeai.execution/v1",
+      "request_id": "req-bb5aa2498d894c3a9238d4f395755a7d",
+      "service_id": "llama-inference",
+      "source": {
+        "type": "edgex",
+        "device_id": "virtual-temperature-001",
+        "event_id": "a754e21f-bc36-4e82-9b20-6a6b748c8805",
+        "profile_id": "etri-arduino-temperature",
+        "origin_ns": "1789362358375121200"
+      },
+      "input_timestamp": "2026-09-14T05:05:58.375121+00:00",
+      "input": {
+        "type": "sensor",
+        "data": {
+          "measurements": [
+            {
+              "name": "temperature_raw",
+              "value": 344,
+              "unit": "raw"
+            }
+          ]
+        }
+      },
+      "model": {
+        "name": "llama3.2:1b-instruct-q8_0",
+        "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+      },
+      "result": {
+        "status": "success",
+        "output": {
+          "text": "The temperature reading is 344 degrees raw."
+        },
+        "reason": null
+      },
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-165b7a9a4b8b",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "performance": {
+        "queue_ms": 4.5,
+        "inference_ms": 465.859,
+        "total_ms": 496.566,
+        "scope": "gateway_receipt_to_result_before_journal_commit"
+      },
+      "timestamp": "2026-09-14T05:05:58.873172+00:00",
+      "worker_result": {
+        "request_id": "req-bb5aa2498d894c3a9238d4f395755a7d",
+        "node_id": "etri-dev0001-jetorn",
+        "role": "nano",
+        "node_state": "ACTIVE",
+        "model": "llama3.2:1b-instruct-q8_0",
+        "response": "The temperature reading is 344 degrees raw.",
+        "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "queue_wait_ms": 0.018,
+        "ttft_ms": 146.192,
+        "tokens_per_second": 31.504,
+        "inference_ms": 465.859,
+        "actual_e2e_ms": 465.877,
+        "eval_count": 10
+      }
+    }
+  },
+  "sqlite_readonly_equal": true,
+  "journal_path": "/data/runtime.sqlite3",
+  "code_hashes": {
+    "resident.py": "272a189353107521368e63f283d46fb2f082666513fdb01d30caa8e622643ffa",
+    "controller.py": "20019ff9658c49a391b3206f49f7c76ad6f0c08248fda3a08d371c9080d92d95",
+    "placement.py": "1055a1a0cf0ccded3a6c9077bb180979be141b5aa4f5c1a927f1cfc877102c66",
+    "__init__.py": "99353ca2f71cd50399e7fbd1f3e6aff37fd1d7fdf35a16b0d84cf18847f9aec2",
+    "api.py": "884ac33bc4ff852796f5d53771977497f309abd69c51b607aa94fd6083e75e24",
+    "latency.py": "11f2e2b3e7766b5ce714da27218de2923bf04a300000ad2c655bee3677a82fcb",
+    "demo.py": "78903a51abc6407805423b19f1b2da254bad17e0596609b382bec282895ae03a",
+    "journal.py": "4476054e28b3e558e52eb210cde418ff16224e92b68b8b4ff327b44b53e3d907",
+    "kube.py": "a0ebeb7616a4cc0d091539ea00dbd77b5b1bca7e3d6be2485518fac768d5752f",
+    "contract.py": "c50c718789dc2058e38727264f6099bb49505a8e9a04b78e2d92918079b642a7",
+    "common_ai.py": "0775df8c053d4b7fffcfe2168be4a659746eaa2faecf8825ca78642ac53edd08"
+  }
+}

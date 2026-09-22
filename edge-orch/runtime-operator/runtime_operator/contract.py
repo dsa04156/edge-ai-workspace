@@ -50,8 +50,9 @@ class Variant(Contract):
     qualification: str = Field(min_length=1, max_length=256)
     resident: ResidentRuntime | None = None
     qualifiedRps: float | None = Field(default=None, gt=0, le=100000)
-    verifiedNodes: list[str] = Field(default_factory=list, max_length=128)
     qualifiedP95Milliseconds: float | None = Field(default=None, gt=0, le=300000)
+    verifiedNodes: list[str] = Field(default_factory=list, max_length=128)
+    qualifiedInputProfile: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
 
     @model_validator(mode="after")
     def valid_resources(self):
@@ -172,6 +173,18 @@ class ServiceSpec(Contract):
             if not any(v.nodeSelector.get("kubernetes.io/hostname") == self.commonAI.placement.default_node
                        for v in self.variants):
                 raise ValueError("common AI default node must have a registered variant")
+            if self.commonAI.offload.enabled:
+                nodes = [v.nodeSelector.get("kubernetes.io/hostname") for v in self.variants]
+                if (set(nodes) != set(self.commonAI.placement.candidate_nodes) or len(nodes) != len(set(nodes))
+                        or self.policy.approvalRequired or self.policy.mode != "automatic"
+                        or not self.policy.latency):
+                    raise ValueError("automatic common AI requires exact candidates, latency policy and exclusive real input")
+                profile = self.commonAI.input_profile()
+                if any(not v.resident or v.qualifiedInputProfile != profile or v.qualifiedRps is None
+                       or v.qualifiedP95Milliseconds is None for v in self.variants):
+                    raise ValueError("every common AI candidate needs measurements for this input profile")
+                if self.policy.stages and self.variants[nodes.index(self.commonAI.placement.default_node)].name != self.policy.stages[0].variant:
+                    raise ValueError("first stage must be the common AI default node")
         if self.inference and self.serviceKind == "test":
             raise ValueError("an inference runtime cannot be classified as a synthetic test")
         if self.policy.approvalRequired and not self.is_ai:
@@ -197,7 +210,10 @@ class ServiceSpec(Contract):
         if self.demo:
             if self.timeoutSeconds > 30 or len(json.dumps(self.demo.payload, allow_nan=False).encode()) > min(self.maxBodyBytes, 65536):
                 raise ValueError("demo requires timeout <= 30s and a bounded JSON input")
-            if self.inference and self.demo.payload != {"prompt": self.inference.prompt, "max_tokens": self.inference.maxTokens}:
+            if self.commonAI and self.commonAI.offload.enabled:
+                from .common_ai import prepare
+                prepare(self.model_dump(), self.demo.payload, self.demo.payload.get("request_id"), self.commonAI.service.id)
+            elif self.inference and self.demo.payload != {"prompt": self.inference.prompt, "max_tokens": self.inference.maxTokens}:
                 raise ValueError("demo input must match the qualified inference contract")
         return self
 
@@ -207,6 +223,7 @@ def revision(spec: ServiceSpec, variant: Variant, node: str) -> str:
     variant_data = variant.model_dump()
     variant_data.pop("verifiedNodes")  # Adding an execution-verified node does not replace existing Pods.
     variant_data.pop("qualifiedP95Milliseconds")  # Measurement metadata does not replace a Pod.
+    variant_data.pop("qualifiedInputProfile")
     if variant.resident is None:
         variant_data.pop("resident")
     if variant.qualifiedRps is None:
@@ -217,4 +234,6 @@ def revision(spec: ServiceSpec, variant: Variant, node: str) -> str:
         content["modelRuntime"] = spec.modelRuntime.model_dump()
     if variant.resident:
         content["inference"] = spec.inference.model_dump()
+    if spec.commonAI and spec.commonAI.offload.enabled:
+        content["commonInputProfile"] = spec.commonAI.input_profile()
     return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:12]

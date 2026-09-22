@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "seconds": 9.388272884010803,
+  "stdout": "SET\nSET\nCREATE INDEX\n",
+  "stderr": ""
+}

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "edgex:env-sensehat-humidity-01",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "verified"
+  },
+  {
+    "id": "edgex:env-sensehat-pressure-01",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "verified"
+  },
+  {
+    "id": "edgex:env-sensehat-temperature-01",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "waiting_for_event"
+  },
+  {
+    "id": "edgex:imu-sensehat-compass-01",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "waiting_for_event"
+  },
+  {
+    "id": "edgex:imu-sensehat-gyroscope-01",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "waiting_for_event"
+  },
+  {
+    "id": "edgex:imu-sensehat-orientation-01",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "waiting_for_event"
+  },
+  {
+    "id": "edgex:virtual-acceleration-x-001",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "waiting_for_event"
+  },
+  {
+    "id": "edgex:virtual-acceleration-y-001",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "verified"
+  },
+  {
+    "id": "edgex:virtual-acceleration-z-001",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "verified"
+  },
+  {
+    "id": "edgex:virtual-light-001",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "verified"
+  },
+  {
+    "id": "edgex:virtual-magnetic-001",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "verified"
+  },
+  {
+    "id": "edgex:virtual-temperature-001",
+    "changedAndRestored": true,
+    "adminAndProtocolsPreserved": true,
+    "operationStatus": "verified"
+  }
+]

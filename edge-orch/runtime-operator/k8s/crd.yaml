@@ -183,6 +183,11 @@ spec:
                         type: string
                       maxItems: 128
                       type: array
+                    qualifiedInputProfile:
+                      default: null
+                      pattern: ^[a-f0-9]{64}$
+                      type: string
+                      nullable: true
                   required:
                   - name
                   - image
@@ -311,6 +316,85 @@ spec:
               suspended:
                 default: false
                 type: boolean
+              modelRuntime:
+                properties:
+                  protocol:
+                    default: inference-v2-json
+                    type: string
+                    enum:
+                    - inference-v2-json
+                  modelName:
+                    pattern: ^[a-z][a-z0-9_-]{0,63}$
+                    type: string
+                  modelVersion:
+                    pattern: ^[a-f0-9]{64}$
+                    type: string
+                  inputKind:
+                    default: tensor
+                    enum:
+                    - image
+                    - sensor-window
+                    - tensor
+                    type: string
+                  inputs:
+                    items:
+                      properties:
+                        name:
+                          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,63}$
+                          type: string
+                        datatype:
+                          enum:
+                          - FP32
+                          - FP64
+                          - INT32
+                          - INT64
+                          type: string
+                        shape:
+                          items:
+                            type: integer
+                          maxItems: 8
+                          minItems: 1
+                          type: array
+                      required: &id001
+                      - name
+                      - datatype
+                      - shape
+                      type: object
+                    maxItems: 16
+                    minItems: 1
+                    type: array
+                  outputs:
+                    items:
+                      properties:
+                        name:
+                          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,63}$
+                          type: string
+                        datatype:
+                          enum:
+                          - FP32
+                          - FP64
+                          - INT32
+                          - INT64
+                          type: string
+                        shape:
+                          items:
+                            type: integer
+                          maxItems: 8
+                          minItems: 1
+                          type: array
+                      required: *id001
+                      type: object
+                    maxItems: 16
+                    minItems: 1
+                    type: array
+                required:
+                - modelName
+                - modelVersion
+                - inputs
+                - outputs
+                type: object
+                default: null
+                nullable: true
               inference:
                 properties:
                   modelDigest:
@@ -430,6 +514,40 @@ spec:
                         type: string
                         enum:
                         - edgex
+                      device_id:
+                        default: null
+                        type: string
+                        nullable: true
+                      poll_seconds:
+                        default: 5
+                        maximum: 3600
+                        minimum: 1
+                        type: number
+                      profile_id:
+                        default: null
+                        type: string
+                        nullable: true
+                      resource_name:
+                        default: null
+                        type: string
+                        nullable: true
+                      unit:
+                        default: null
+                        type: string
+                        nullable: true
+                      minimum:
+                        default: null
+                        type: number
+                        nullable: true
+                      maximum:
+                        default: null
+                        type: number
+                        nullable: true
+                      max_prompt_bytes:
+                        default: 2048
+                        maximum: 16384
+                        minimum: 1
+                        type: integer
                     required:
                     - type
                     - source
@@ -457,8 +575,6 @@ spec:
                       enabled:
                         default: false
                         type: boolean
-                        enum:
-                        - false
                     type: object
                   adapter:
                     default: llama-worker-v1
@@ -470,90 +586,15 @@ spec:
                     maximum: 128
                     minimum: 1
                     type: integer
+                  worker_models:
+                    additionalProperties:
+                      type: string
+                    type: object
                 required:
                 - service
                 - placement
                 - resources
                 - input
-                type: object
-                default: null
-                nullable: true
-              modelRuntime:
-                properties:
-                  protocol:
-                    default: inference-v2-json
-                    type: string
-                    enum:
-                    - inference-v2-json
-                  modelName:
-                    pattern: ^[a-z][a-z0-9_-]{0,63}$
-                    type: string
-                  modelVersion:
-                    pattern: ^[a-f0-9]{64}$
-                    type: string
-                  inputKind:
-                    default: tensor
-                    enum:
-                    - image
-                    - sensor-window
-                    - tensor
-                    type: string
-                  inputs:
-                    items:
-                      properties:
-                        name:
-                          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,63}$
-                          type: string
-                        datatype:
-                          enum:
-                          - FP32
-                          - FP64
-                          - INT32
-                          - INT64
-                          type: string
-                        shape:
-                          items:
-                            type: integer
-                          maxItems: 8
-                          minItems: 1
-                          type: array
-                      required: &id001
-                      - name
-                      - datatype
-                      - shape
-                      type: object
-                    maxItems: 16
-                    minItems: 1
-                    type: array
-                  outputs:
-                    items:
-                      properties:
-                        name:
-                          pattern: ^[A-Za-z][A-Za-z0-9_-]{0,63}$
-                          type: string
-                        datatype:
-                          enum:
-                          - FP32
-                          - FP64
-                          - INT32
-                          - INT64
-                          type: string
-                        shape:
-                          items:
-                            type: integer
-                          maxItems: 8
-                          minItems: 1
-                          type: array
-                      required: *id001
-                      type: object
-                    maxItems: 16
-                    minItems: 1
-                    type: array
-                required:
-                - modelName
-                - modelVersion
-                - inputs
-                - outputs
                 type: object
                 default: null
                 nullable: true

@@ -1057,3 +1057,21 @@ resolved statuses always carry their resolution date
 **Reference file:** qualification/llama-boundaries/results/multimodel-three-devices-20260910-b/restoration-handoff.json
 
 <!-- task-observer checkpoint 2026-09-10 multimodel final deliverable: no additional observations; entries 62 and 63 verified present. -->
+
+<!-- task-observer checkpoint 2026-09-14 common AI E2E: no additional observations; existing deployment-baseline and runtime-evidence principles reused. -->
+
+### Observation 64: Keep bug-fix contributions within the smallest correct behavior change
+
+**Status:** OPEN
+**Date:** 2026-09-15
+**Session context:** Reducing an upstream metrics completion PR after user feedback about review burden.
+**Skill:** systematic-debugging
+**Type:** open-source
+**Phase/Area:** Patch scope and contribution readiness
+
+**Issue:** A false-error fix grew into a general completion protocol and session-error propagation. Tests explained much of the diff, but the production scope still exceeded the narrowly requested behavior. A later automatic commit also lost the required sign-off.
+
+**Suggested improvement:** Identify the minimum observable success condition first, preserve failure and legacy behavior, and separate optional diagnostic propagation. Report production/test diff counts separately; verify sign-offs again on the final PR head after automated edits.
+
+**Principle:** Minimize behavioral scope without suppressing real failures; validate contribution metadata on the exact submitted revision.
+**Reference file:** kubeedge-tools/results/upstream-pr-7239-20260915/README.md

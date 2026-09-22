@@ -1,9 +1,12 @@
 /* Existing read APIs only. No mutation, fallback inventory, or client health policy. */
 (function(root){
 'use strict';
-const endpoints={nodes:'/state/nodes',benchmarks:'/api/benchmarks',virtual:'/api/virtual-devices',operations:'/state/operations',devices:'/state/devices',twins:'/state/device-twins',services:'/state/services',results:'/state/service-demo/results?limit=12',resources:'/api/resources',recommendations:'/api/runtime-recommendations'};
+const endpoints={managed:'/api/managed-devices',nodes:'/state/nodes',benchmarks:'/api/benchmarks',virtual:'/api/virtual-devices',serviceVirtual:'/api/service-virtual-devices',profiles:'/state/service-resource-profiles',operations:'/state/operations',devices:'/state/devices',twins:'/state/device-twins',services:'/state/services',results:'/state/service-demo/results?limit=12',resources:'/api/resources',recommendations:'/api/runtime-recommendations'};
 const escape=value=>String(value??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function validate(key,data){
+ if(key==='managed'){if(data?.schemaVersion!=='edgeai.managed-devices/v1'||!Array.isArray(data.devices)||!data.summary||!Number.isFinite(data.observedAt))throw Error('혼합 디바이스 응답 형식 확인 필요');return data;}
+ if(key==='serviceVirtual'){if(data?.schema_version!=='edgeai.service-virtual-devices/v1'||!Array.isArray(data.devices)||!Number.isFinite(data.observed_at)||data.devices.some(d=>!d||typeof d.id!=='string'||typeof d.service_name!=='string'||!Array.isArray(d.locations)))throw new Error('서비스 가상 디바이스 응답 형식 확인 필요');return data;}
+ if(key==='profiles'){if(!Array.isArray(data?.service_resource_profiles)||data.service_resource_profiles.some(p=>!p||typeof p.namespace!=='string'||typeof p.service!=='string'||!Array.isArray(p.nodes)))throw new Error('컨테이너 배치 응답 형식 확인 필요');return data;}
  if(key==='benchmarks'){if(!Array.isArray(data?.items))throw new Error('시험 원장 응답 형식 확인 필요');return data;}
  if(key==='virtual'){if(!Array.isArray(data?.resources)||!data?.summary)throw new Error('가상 실행체 응답 형식 확인 필요');return data;}
  if(key==='operations'){if(data?.schema_version!=='edgeai.operations/v1'||!Array.isArray(data.services)||!Array.isArray(data.events)||!Array.isArray(data.issues)||!data.sources)throw new Error('통합 운영 응답 형식 확인 필요');return data;}
@@ -16,9 +19,21 @@ function validate(key,data){
 function errors(data){return [...(data?.nodeError?[data.nodeError]:[]),...(Array.isArray(data?.resources)?data.resources.filter(r=>r.observationError).map(r=>r.observationError):[]),...(Array.isArray(data?.observation_errors)?data.observation_errors:[]),...(data?.observation_error?[data.observation_error]:[]),...(data?.mode==='unavailable'?['관측 원천 사용 불가']:[])].filter(Boolean).map(String);}
 function createStore(fetchFn,now=Date.now,onSettled=()=>{}){
  const entries=Object.fromEntries(Object.keys(endpoints).map(k=>[k,{status:'idle',data:null,error:null,receivedAt:null,refreshing:false}]));let pending=null;
- function refresh(){if(pending)return pending;Object.values(entries).forEach(e=>{e.refreshing=true;if(e.status==='idle')e.status='loading';});
- pending=Promise.all(Object.entries(endpoints).map(async([key,url])=>{const e=entries[key],controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);try{const r=await fetchFn(url,{method:'GET',headers:{Accept:'application/json'},cache:'no-store',signal:controller.signal});if(!r.ok)throw new Error('HTTP '+r.status);const data=validate(key,await r.json());e.data=data;e.receivedAt=now();e.error=errors(data).join(' / ')||null;e.status=e.error?'error':'ready';e.lastFetchFailed=false;}catch(error){e.lastFetchFailed=true;e.status='error';e.error=error.name==='AbortError'?'관측 요청 시간 초과':String(error.message||error);}finally{clearTimeout(timer);e.refreshing=false;onSettled(key);}})).finally(()=>{pending=null;});return pending;}
- return {entries,refresh};
+ const inFlight=new Map();
+ function refreshOne(key){
+  if(inFlight.has(key))return inFlight.get(key);
+  const e=entries[key];e.refreshing=true;if(e.status==='idle')e.status='loading';
+  const task=(async()=>{const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),20000);
+   try{const r=await fetchFn(endpoints[key],{method:'GET',headers:{Accept:'application/json'},cache:'no-store',signal:controller.signal});if(!r.ok)throw new Error('HTTP '+r.status);const data=validate(key,await r.json());
+    if(key==='serviceVirtual'&&data.observation_error&&data.devices.length===0&&e.data?.devices.length){data.devices=e.data.devices.map(d=>({...d,state:'unknown',serving:null,locations:[],observation_error:data.observation_error}));}
+    e.data=data;e.receivedAt=now();e.receivedMonotonic=root.performance?.now();e.error=errors(data).join(' / ')||null;e.status=e.error?'error':'ready';e.lastFetchFailed=false;
+   }catch(error){e.lastFetchFailed=true;e.status='error';e.error=error.name==='AbortError'?'관측 요청 시간 초과':String(error.message||error);}
+   finally{clearTimeout(timer);e.refreshing=false;inFlight.delete(key);onSettled(key);}
+  })();inFlight.set(key,task);return task;
+ }
+ function refresh(){if(pending)return pending;pending=Promise.all(Object.keys(endpoints).map(refreshOne)).finally(()=>{pending=null;});return pending;}
+
+ return {entries,refresh,refreshManagedDevices:()=>refreshOne('managed'),refreshServiceDevices:()=>refreshOne('serviceVirtual')};
 }
 function items(entry,key){const data=entry?.data;return ['devices','resources','nodes'].includes(key)?(Array.isArray(data)?data:[]):key==='recommendations'?(Array.isArray(data?.items)?data.items:[]):(Array.isArray(data?.[key])?data[key]:[]);}
 function isCurrent(e,now=Date.now()){return Boolean(e&&e.status==='ready'&&e.receivedAt!==null&&now-e.receivedAt<90000&&!e.error);}

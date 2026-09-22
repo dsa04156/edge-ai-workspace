@@ -1,0 +1,40 @@
+{
+  "additions": 176,
+  "changedFiles": 5,
+  "deletions": 86,
+  "headRefOid": "e844485e28f2baa6cb197d6a8c1afee5933ff4d9",
+  "isDraft": false,
+  "labels": [
+    {
+      "id": "MDU6TGFiZWwxMjA3ODA4MTI0",
+      "name": "kind/bug",
+      "description": "Categorizes issue or PR as related to a bug.",
+      "color": "e11d21"
+    },
+    {
+      "id": "MDU6TGFiZWwxMzkzNDUzMDgw",
+      "name": "size/L",
+      "description": "Denotes a PR that changes 100-499 lines, ignoring generated files.",
+      "color": "ee9900"
+    }
+  ],
+  "statusCheckRollup": [
+    {
+      "__typename": "StatusContext",
+      "context": "tide",
+      "startedAt": "2026-09-15T09:02:00Z",
+      "state": "PENDING",
+      "targetUrl": "http://prow.kubeedge.io/tide"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-09-15T09:01:40Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://probot.github.io/apps/dco/",
+      "name": "DCO",
+      "startedAt": "2026-09-15T09:01:39Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    }
+  ]
+}

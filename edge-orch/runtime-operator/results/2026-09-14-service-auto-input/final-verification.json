@@ -1,0 +1,2781 @@
+{
+  "roundtrip_image": "192.168.0.56:5000/runtime-operator@sha256:9d8fc6ddf8311f28379b37aca4fba98c0f3684726784e351f42389f6b5bdad58",
+  "current_deployment": {
+    "edgex-ai-input": {
+      "pod": "edgex-ai-input-755f7c9ff6-9z8h4",
+      "imageID": "192.168.0.56:5000/state-aggregator@sha256:fd54098b75e996c9c572b19ec1acbcebaf7a6a4d72c33a16724eb7f9e76e0233",
+      "ready": true,
+      "restarts": 0
+    },
+    "runtime-operator": {
+      "pod": "runtime-operator-b8df65545-bj6kc",
+      "imageID": "192.168.0.56:5000/runtime-operator@sha256:c6d6403bd38d5eb4500ee30f0ca0c38ee11cfdcb24c54a9d3a5392724ec281ff",
+      "ready": true,
+      "restarts": 0
+    }
+  },
+  "automatic_module_hashes_match": true,
+  "gateway_after_roundtrip": "concurrent diagnostics instrumentation; diff captured in api-after-concurrent-deploy.py",
+  "checks": {
+    "operator_tests": 119,
+    "reader_consumer_tests": 12,
+    "docs_passed": 20,
+    "existing_doc_failure": "plan <=140 lines; HEAD already 249 lines"
+  },
+  "journal": {
+    "ready_before_every_dispatch": true,
+    "demo_requests": 391,
+    "live_input_requests": 64,
+    "all_455_completed_200": true
+  },
+  "post_roundtrip_consumer_outcomes": [
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-7276bff5ca90211fc89f1fb73f44c4a195018ab32b6a4bdbbd0a794c49b801cd",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-003b51850ab1846d48ea6b21fd4fd3248eb12b87057567c8b5417ad741377b06",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-d83502538757ba4ca33860366142e88421809d8ead117f5fd54fb8842958d60e",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-849d493a2c111b06e7f6f3335bfc9a9fa6857a546a12383adc6243298cf796a2",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-83ffa520694935e35db687f5dadb5be2dec0a6a575639eda1eec1c1e86d62602",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-229cb409d2f9412feca4bcbe01fbf8047b09a071f85952c082b037648a34fb83",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-5b07925826ff422f0993ceb2de6648d71d1370a669ebb8e81d5576d23735ce5d",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-a9dec5bf5ffcccf17442f7c5522e11aa40000f5f40c9f69141d65d83de168fa8",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-cd67f1615382057fb9450375ce28f49d2d9780fc40c00ce1f4a27bce0fe08ba0",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-5409094aa75504eda26cfc0e1616ad5c4fabf429cc0a5937e0c200625628456a",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-3ecaea7d2f051229865d8037d08c35d31098f5d30415414de09254f000236c24",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-dd84a698778b8df595ce493fe727c951c7083bb378606b50855efcd885dfa845",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-dc17f1f1f344d38b0358ab0df350e5cf219ca32a111b033feb0652f57367bfa7",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-2e9af7964a0fb8e1cedc11473a621e183b35364559ac61a463609bae5601ce28",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-631333e594f72cef886b21383e5cb172d731fc37ed281d2172f539ab8f88c8b1",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-d4ffd713c2fe3f91b4fb4820dfe2f66e88d6de93684e4704f54941ab98ef3538",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-7f5354d6c05903e8f8a97a836961410b2ab25124a724a5600c2997d3153118a8",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-5b2b8ae89b2c8f871673f29175dad2e23cd707387d4edc0911e5700b0c2a3ebc",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-4d08755538fd7a142230cc4bfb794c7a0338fe301c79b559bfe572d17ebeb075",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-4dedf427b196b6f5ae162a3466ce4365bf947e34e132875dd7148a3529934a0e",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-20ce450395afb15403fd6cd1268230292185a07126a69acaff88a869828d099f",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-07abc2ed90904884c06d56b807f2f957e12bb6bfad92e2fd59dff98a75ad27f6",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-cb54ee47ce1d44e3ce52bd21ec494afb82d996b7aa6ea6bb2b7a6a15d8f1b37c",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-63c9a5f5b0dca71387be43950c9df814b51421b516c3801f4b4f8967cb88646c",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-09b47c66254cee9a4c646554af95f7eb031ad81596e97b3e636d16cc48b4c86d",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-9aba92cf7d38bc923bc470bd2662f01dd8e16986da7d212d80cfbae03ef9063b",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-903282b4a33273ec40618887abe43308c9a723eca4cb213083581ee8c10004d9",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-742107b5f20395429298e251a8568759b2a3bc1643cd22fb150d4d1cadd21124",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-915fbaa8fbe9d6b865337d48d7c04cb4497116496ee16d87774f5ce9cf3ac14d",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-4b1a092bd254b5b110ca3872e6752dab427b085533c020e94cea0644e069edf2",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-a86e5be5fad41b8c649a09f5f0751ffdd4a383c8dae450e1bb782be37f4ae9a3",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-60ede0071d443be6ff320eedafa2841b3ea978f0bb520d78a9476e8284dfee48",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-bb48eb97a753392029a219d9cf08dff2feb09df121f545759271b6b08a39e7de",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-fd4b7c9db26183cd73c0c0e0939b842a915e5c27095a82e110d86014abd494b7",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f2be38e19d4cba32e643467360c24fadb762fb47076fc4608792aa409b0666bc",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-dab8a3107312320ac72d00bf391ed7ca5552828c697489ad862b77fcdec04972",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-af67aee4b123314f0b30139c2566eda00c436508fa7ffe7faea88765c2f38fbf",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-48672f555e227c9fe94f4f6715810b99e8afd5168efc53b2deb11678d318f9c4",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-96c97e58fbd2f6314f1f435e127a9cbdc2d2119a5e938205f885cada5a5cdbd8",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-a821ddd2f553b1739897e25f65555ae66dcca10e074ad1642220a95a412d3611",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-7c98c40ffc1a543fb16976de09289c7b27b3b1f852f1cccab25f2f394b5b685d",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-257b24f77342738607ae7f897094f00fe852df33f749a7d245374bf77722ea81",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-a11312c6d7ff97b746795f7bad761e49a2795810c2ae935567a5635a6d0b1636",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-231bc63f4c8b4bf1873e62e58089c57f7dffbafd5de508bece23e2d74166c941",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-ser0003-cg0ms0",
+        "location": "server",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-87da82ba1ea9",
+        "pod_uid": "086be06c-82b4-45f1-8c43-8375009800ca"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-44b306ee548b354beca74bb9e8b3aef08bab885e19d6ad19ffefddecc47e4e2a",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-5f8165be34a4ddb2a37179e8708e3b1f5b2afd865ccf03559b651f4805b26925",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f7c85f5d6902c3c6d4ef8709e2c44f1c2572fe0aa880bec0629048f82c8f8bcc",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-2243411d0e95ccb27f466e29281c8aac4fc3a7db75fd3a22d6399f2732f28a3f",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-6b44f42eb0749421a2e02f6bb00aa83faa598e42def6caf1930f3c95e2da0a48",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-8121889663cbbff224fdd2dfe462f9546ff4c31352d12927c812431a6de00e0d",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-b1c1ee2f324c619a9b4d49877a374eafe5b8694dbc635ac9a5fd5b6b2135fd25",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-41d46abaddaba5fc3a9bf6a44b8de7923a762d76b610cb363c964e38ea5c897a",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-2d0fa4cc1cc526d1e40dcf86784a05cd990b8b0fd24aa420b1d640b20a536ae0",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-5cf06a6bf3f0736f6d1cd31b87be09b23b50b17e97b22acd4a095578297e1980",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-000aa6d8705fffcb33e8e5352c046c15ed7d1dd5f27d6b6058ca2b8425673d65",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-7783a4bed5dbdb0f02741b36a9ab59a6f9973975b33c37d0e61d2e6342206770",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-036208a86002eb4b0e1d34445c63d1e704a518a82e2c0b9eff042fdf69a28089",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-13abe36facf1a786ed8776ab3de312b6ab4314eb47c585733b25baedbc0509a8",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-da8e155db68812d029705fe9eab8df9ae4584f3faba1c17e76eb6462cd73b8a3",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-0130b177382beb3d71bb205b23d29b59c6f3be6c04e431ae52eda892ee60cc57",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-9d7e11c8a9dd9270d9dac25f31168228864626a94d276f41c32e5ecac82a6754",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-5ceed973d8155c665dd7f2fccf95bd3235eceeaca5278ef154b2e79aa809c35e",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-8c7495f2a565d1c8c0badea27e0a24aa1ab9d4eafbca61a721ddc1924428c1d0",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-c1aec7cf67113b1016ea600fc8f03e521b0b85e20a3aff3221a025fb4123fb7a",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f54a1b45484a094f6522f6ebc7360e9494e123135f1c32abdfe931e6ea6ab4b2",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-b45ed4ddabda6638497793c15c0fd72eb66cb4e02b75b8db978b2865c6731db9",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-7222a8a33c4631e92da1393be4df19cecb12fd833e38c6cbbc436c0f2cabfbe1",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "status": "blocked",
+      "reason": "ConnectTimeout"
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-8fd9b93e637ef0fc394c7899054ff5a118e1246166b34b7bce5fc264ed49f0fd",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-c68abc7754a0d59192e9c881918e52c2d910fde07cbb580ded93893a9d196327",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-e0f62976609310a059b05238df46ea54324b69aacb133c8eaf8d637382cbd12c",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f7847641553274826fa855d9c50496622480414ff04b3cee20662e73b7988aa2",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-a0f81d6e6b5fde0744471b04eebe2bb84d4c07b98cd73995fb314f14f8d12e6a",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-b9fcdda2cec08f8aa73f88efaf5a965dfd07f5cda4f9b80744d2382031a0a322",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-2e39003a0834ec457a6ddc41bc50e209a8d21fe1ee87380351da6eb1bf0460f6",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-ed3ca1e622aa49ba9b417ea44564e0322e76b346f871b635d79b783edba12867",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-1c621203e6d53c114dc5a8e829f3388990b77518707b750b0c9d0c6617b02da1",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-4d95750c62381a0509196a12d808b7aae6392e9ef2f42eb772cb32c28c22d3aa",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-0ff80d166ea59af9aa9bd675d99b830b9540ecaf05166989cb00d6ff47782fcb",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-8441bbcb796fbfa10d3c5ce3086e9f430cae1827d303f2c4d960f70d6bfeee01",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-821d2db6419bbfcdc2268ac5b4cd54de8e83ff17a9e53462834e142e38af4fcc",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-45c1ee0296964cadc5520424cc281f87992258420959f468fb9673f07a751a86",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-6b77138efde665e5ea89bd7e9586b8cea5797535938e727c02e3b32279f61ca7",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-9c4541f3d2d4bc2852bc644887de2efe1584b93b649a5e8c3031e4146aeae11f",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-5fafe2f1b72621daacaf89a328f28833d6a36f444f439f61df81f9485f801194",
+      "http_status": 503,
+      "status": "rejected",
+      "execution": null,
+      "reason": "admission_timeout"
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f2788bbc4d3e67e5f643893fdc740cb5a2c1aef162d21502f3b5bd7fbd1ca0c7",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-3d3c15ec8be6a1a6ca328362d7b0aab52fc394438f6984d3cef447d91b46cc85",
+      "http_status": 503,
+      "status": "rejected",
+      "execution": null,
+      "reason": "admission_timeout"
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-29d7a3dbfd1095ebe456816d3bb05d545627b2e4e3930eb074a0d083e44a3d3e",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-b849981c5cf7d1355d528884dd54a1975d838c50f64c3b5b772f37dd17dcccd6",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-47033330479a7784e21edb8d11aedfea904f04ecd6331d518fa0acf08f1ae21c",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-ba694911f07de1df7e111bafd973f6ae4924fec153e2094b71c5d3e5f4d9a8eb",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-0639d15f4a3f3055b246968bb036da6e592e82e82a2377c79f2e47c3eb9e8ca5",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-d4d4fd1c8e6991473b027cd2f70762dd0ffa6884797702875aa1679db68c40a0",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-2512e3b58c450868c1d5a5f2c6e1cb90d6a8ea4c1bf3e894868576a66a023f30",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-d38b0683fa7374c070e6dda768037ca8d04cf81e96457b399e7fbd6407637ecd",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-4680f584ab0b3cf1876518d7a762b1c48fc012fab9454a885f73cb15cf602b77",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-e739f271064ab226143ad6c1fae5dc15b10357387827d90110edbf0adb359954",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-79c00e87b7107387586f802db17e3ee8dc8b589296594b1ed28d4fbf6a21c2a7",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-cbc2339f87e6c504868ef4bc7d2812c95e983b13728a364b72725748dbe953c2",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-1b834f5abb297d89579ba39171723bf16bfdc8e46f46db4bb06665bac3b67497",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-3edaaca7cb11500a62a64573314a29f50244a4eb6830d64b4e2f6a42c5dd3f5e",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-2e2b43d9fb78ab5b62602db92592be9ba3952395ad5b429bfb0027395a2a4c5c",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f8ecbcb821a3b7f351be79a6a215e6424062766fef2fbebac0c9aeed0cc97046",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-fb28413b801bf42542b5a81c3373c88a768a4b054cd2985953d42a6ecdbaa659",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-d5b9ba52ed83efab11d49d1cd6344fc55ae88e31b87694397d99f190d19e34f1",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-ed7a6c0641fa2094922a48b4a08c78e0c9c853dd8cb67fc0c9b25ad7c605262e",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f6ebb1eb57711a42e3821bd65feba8ec1793a03a13cb022b0752feda4b816aea",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-c49643f6f9e3676506b14148d7fe385a4c4fb7e270361253707af1b46f692d18",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-44cdef778f1799617631b8f5c958f802e8374f2722959d5f1bf05aa9de221fc1",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-2ada210036d87d68f754ec0ccc6cd840511391c7a2e00bd3759a8eceb90743d1",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0005-jetagx",
+        "location": "edge",
+        "offloaded": true,
+        "runtime_target": "rt-a6755c109718-8018d410711d",
+        "pod_uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-526e94bfd56b69cba0f787f759d1e5fcd78876fea5d1519e59a395e7c71da7f2",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-cece44b6bc0a726e8dc0f953b74da2cc29bfff6abb7cee1c68e27a30d4d3ae8e",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-f810a6073a7ef837e65577ad0f9a511fbc6dddc811653a7347ea972392ab2f51",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-885345644a980beba89a367118d1457c51d77bab23691e9a617f364093a7e1d7",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-fe1c56fa0175e086b99767c40c6e6622853e0b30397564a266f8b485287f35d8",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-d1d1260098bbcf10cee83723ff01e45bd5ce23f895ca8b9343b20a729a38a9ed",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-d872c5a24037afe4f2e1e83164f84ca34399b82083f491f6a1f12edf16b1cd12",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-77ffa97dc65458fcba110b745a32ddc6b76b6f4d84a5c5eb912785da7946a66d",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    },
+    {
+      "service": "llama-inference",
+      "request_id": "edgex-38954a663b9e104ce5ed29f86f19448fd8085f7c3bb17e5ce408cc63a3b2870b",
+      "http_status": 200,
+      "status": "success",
+      "execution": {
+        "node": "etri-dev0001-jetorn",
+        "location": "edge",
+        "offloaded": false,
+        "runtime_target": "rt-a6755c109718-e05f788cc279",
+        "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+      },
+      "reason": null
+    }
+  ],
+  "current": {
+    "state": {
+      "name": "llama-inference",
+      "uid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "active": {
+        "name": "rt-a6755c109718-e05f788cc279",
+        "node": "etri-dev0001-jetorn",
+        "role": "edge",
+        "variant": "resident-llama-nano",
+        "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "resident": {
+          "protocol": "llama-worker-v1",
+          "namespace": "llama-continuity-test",
+          "service": "llama-nano",
+          "selector": {
+            "app": "llama-nano"
+          },
+          "container": "inference-runtime",
+          "previousControllers": [
+            {
+              "namespace": "llama-continuity-test",
+              "name": "ordered-offload-controller"
+            },
+            {
+              "namespace": "llama-continuity-test",
+              "name": "continuity-controller"
+            }
+          ]
+        },
+        "qualifiedRps": 1.5,
+        "runtimePodUid": "6eb21aac-6feb-44d6-9afd-7379a446f373",
+        "capacity": 1,
+        "spec": {
+          "serviceKind": "ai",
+          "execution": "http-json-v1",
+          "ioContract": "llama.edgex-sensor-summary.v1",
+          "port": 18110,
+          "readyPath": "/ready",
+          "requestPath": "/infer",
+          "timeoutSeconds": 30.0,
+          "maxBodyBytes": 65536,
+          "variants": [
+            {
+              "name": "resident-llama-nano",
+              "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+              "architecture": "arm64",
+              "backend": "cuda",
+              "nodeSelector": {
+                "kubernetes.io/hostname": "etri-dev0001-jetorn"
+              },
+              "runtimeClassName": null,
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "limits": {
+                "cpu": "6",
+                "memory": "4Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "maxInFlight": 1,
+              "qualification": "results/2026-09-14-service-auto-input/rates.json: 64-token cap; raw 0/329/1023; 30s fixed-rate successful requests",
+              "resident": {
+                "protocol": "llama-worker-v1",
+                "namespace": "llama-continuity-test",
+                "service": "llama-nano",
+                "selector": {
+                  "app": "llama-nano"
+                },
+                "container": "inference-runtime",
+                "previousControllers": [
+                  {
+                    "namespace": "llama-continuity-test",
+                    "name": "ordered-offload-controller"
+                  },
+                  {
+                    "namespace": "llama-continuity-test",
+                    "name": "continuity-controller"
+                  }
+                ]
+              },
+              "qualifiedRps": 1.5,
+              "qualifiedP95Milliseconds": 1909.497,
+              "qualifiedInputProfile": "2f28250cc327a4aa8575588207946cfe52c854570d68b595cf0eafd39037d2d9"
+            },
+            {
+              "name": "resident-llama-agx",
+              "image": "localhost/qualification/ollama-jetson@sha256:b1e591bcd625f3ecb0abdad843ad369a637e6f99f7543dd0d7581c20aee40a28",
+              "architecture": "arm64",
+              "backend": "cuda",
+              "nodeSelector": {
+                "kubernetes.io/hostname": "etri-dev0005-jetagx"
+              },
+              "runtimeClassName": null,
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu.shared": "1"
+              },
+              "maxInFlight": 1,
+              "qualification": "results/2026-09-14-service-auto-input/rates.json: 64-token cap; raw 0/329/1023; 30s fixed-rate successful requests",
+              "resident": {
+                "protocol": "llama-worker-v1",
+                "namespace": "llama-continuity-test",
+                "service": "llama-agx",
+                "selector": {
+                  "app": "llama-agx"
+                },
+                "container": "inference-runtime",
+                "previousControllers": [
+                  {
+                    "namespace": "llama-continuity-test",
+                    "name": "ordered-offload-controller"
+                  },
+                  {
+                    "namespace": "llama-continuity-test",
+                    "name": "continuity-controller"
+                  }
+                ]
+              },
+              "qualifiedRps": 2.2,
+              "qualifiedP95Milliseconds": 547.71,
+              "qualifiedInputProfile": "2f28250cc327a4aa8575588207946cfe52c854570d68b595cf0eafd39037d2d9"
+            },
+            {
+              "name": "resident-llama-spark",
+              "image": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+              "architecture": "arm64",
+              "backend": "cuda",
+              "nodeSelector": {
+                "kubernetes.io/hostname": "etri-ser0003-cg0ms0"
+              },
+              "runtimeClassName": "nvidia-spark",
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi",
+                "nvidia.com/gpu": "1"
+              },
+              "limits": {
+                "cpu": "6",
+                "memory": "8Gi",
+                "nvidia.com/gpu": "1"
+              },
+              "maxInFlight": 1,
+              "qualification": "results/2026-09-14-service-auto-input/rates.json: 64-token cap; raw 0/329/1023; 30s fixed-rate successful requests",
+              "resident": {
+                "protocol": "llama-worker-v1",
+                "namespace": "llama-continuity-test",
+                "service": "llama-spark",
+                "selector": {
+                  "app": "llama-spark"
+                },
+                "container": "inference-runtime",
+                "previousControllers": [
+                  {
+                    "namespace": "llama-continuity-test",
+                    "name": "ordered-offload-controller"
+                  },
+                  {
+                    "namespace": "llama-continuity-test",
+                    "name": "continuity-controller"
+                  }
+                ]
+              },
+              "qualifiedRps": 5.0,
+              "qualifiedP95Milliseconds": 462.089,
+              "qualifiedInputProfile": "2f28250cc327a4aa8575588207946cfe52c854570d68b595cf0eafd39037d2d9"
+            }
+          ],
+          "policy": {
+            "stages": [
+              {
+                "variant": "resident-llama-nano",
+                "label": "Nano"
+              },
+              {
+                "variant": "resident-llama-agx",
+                "label": "Orin"
+              },
+              {
+                "variant": "resident-llama-spark",
+                "label": "Spark"
+              }
+            ],
+            "mode": "automatic",
+            "approvalRequired": false,
+            "preferredRole": "edge",
+            "allowedRoles": [
+              "edge",
+              "server"
+            ],
+            "nodeSelector": {},
+            "highWatermark": 0.8,
+            "lowWatermark": 0.2,
+            "pressureSeconds": 10.0,
+            "returnSeconds": 60.0,
+            "cooldownSeconds": 60.0,
+            "prepareTimeoutSeconds": 90.0,
+            "latency": {
+              "maxP95Milliseconds": 3600.0,
+              "returnP95Milliseconds": 2400.0,
+              "windowSeconds": 30.0,
+              "minSamples": 3,
+              "breachSeconds": 10.0
+            }
+          },
+          "suspended": false,
+          "inference": {
+            "modelDigest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+            "prompt": "In one short sentence, explain why edge computing reduces latency.",
+            "maxTokens": 8
+          },
+          "demo": {
+            "label": "등록 센서 입력 재생 부하 시험 · 실시간 수집과 구분",
+            "payload": {
+              "input": {
+                "data": {
+                  "measurements": [
+                    {
+                      "name": "temperature_raw",
+                      "unit": "raw",
+                      "value": 329
+                    }
+                  ]
+                },
+                "type": "sensor"
+              },
+              "request_id": "registered-sensor-replay",
+              "schema_version": "edgeai.execution/v1",
+              "service_id": "llama-inference",
+              "source": {
+                "device_id": "virtual-temperature-001",
+                "event_id": "4c2746ff-b0e6-416f-81f7-87b1da754bb5",
+                "origin_ns": "1789371323821904400",
+                "profile_id": "etri-arduino-temperature",
+                "type": "edgex"
+              },
+              "timestamp": "2026-09-14T00:00:00Z"
+            },
+            "maxRequests": 512,
+            "concurrency": 4,
+            "pressureSeconds": 40.0,
+            "recoverySeconds": 120.0,
+            "recoveryIntervalSeconds": 5.0
+          },
+          "commonAI": {
+            "service": {
+              "id": "llama-inference",
+              "model": "llama3.2:1b-instruct-q8_0",
+              "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+            },
+            "placement": {
+              "default_node": "etri-dev0001-jetorn",
+              "candidate_nodes": [
+                "etri-dev0001-jetorn",
+                "etri-dev0005-jetagx",
+                "etri-ser0003-cg0ms0"
+              ]
+            },
+            "resources": {
+              "cpu": "250m",
+              "memory": "256Mi",
+              "gpu": "nvidia.com/gpu.shared=1"
+            },
+            "input": {
+              "type": "sensor",
+              "source": "edgex",
+              "device_id": "virtual-temperature-001",
+              "poll_seconds": 5.0,
+              "profile_id": "etri-arduino-temperature",
+              "resource_name": "temperature_raw",
+              "unit": "raw",
+              "minimum": 0.0,
+              "maximum": 1023.0,
+              "max_prompt_bytes": 512
+            },
+            "monitoring": {
+              "cpu": true,
+              "memory": true,
+              "gpu": true,
+              "queue": true,
+              "latency": true
+            },
+            "offload": {
+              "enabled": true
+            },
+            "adapter": "llama-worker-v1",
+            "max_tokens": 64,
+            "worker_models": {
+              "etri-dev0001-jetorn": "llama3.2:1b-instruct-q8_0",
+              "etri-dev0005-jetagx": "llama3.2:1b",
+              "etri-ser0003-cg0ms0": "llama3.2:1b"
+            }
+          }
+        },
+        "created": 1789373119.8457897,
+        "triggerReason": "sustained_low_load_return",
+        "observation": {
+          "at": 1789373196.9765377,
+          "health": {
+            "ready": true,
+            "released": false,
+            "inFlight": 0,
+            "modelVramMiB": 1348.45,
+            "nodeState": "ACTIVE",
+            "ioContract": "llama.edgex-sensor-summary.v1"
+          }
+        },
+        "everRouted": true
+      },
+      "target": null,
+      "retiring": [],
+      "switchedAt": 1789373144.9908106,
+      "highSince": null,
+      "lowSince": null,
+      "observedGeneration": 39,
+      "serving": true,
+      "phase": "Serving",
+      "failedCandidates": {},
+      "excludedCandidates": [
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0002-raspi5",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "node_not_ready",
+            "node_pressure_or_unknown",
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch",
+            "untolerated_taint"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0003-raspi5",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0004-tedger",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0004-tedger",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0004-tedger",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0005-jetagx",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0005-jetagx",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0006-raspi5",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0006-raspi5",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-dev0006-raspi5",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0001-cg0msb",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0001-cg0msb",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0001-cg0msb",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0002-cgnmsb",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0002-cgnmsb",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0002-cgnmsb",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0003-cg0ms0",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0003-cg0ms0",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0004-cgnms0",
+          "variant": "resident-llama-nano",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0004-cgnms0",
+          "variant": "resident-llama-agx",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        },
+        {
+          "node": "etri-ser0004-cgnms0",
+          "variant": "resident-llama-spark",
+          "reasons": [
+            "resident_on_different_node",
+            "selector_or_architecture_mismatch"
+          ]
+        }
+      ],
+      "eligibleCandidates": [
+        {
+          "node": "etri-dev0001-jetorn",
+          "variant": "resident-llama-nano",
+          "role": "edge"
+        },
+        {
+          "node": "etri-dev0005-jetagx",
+          "variant": "resident-llama-agx",
+          "role": "edge"
+        },
+        {
+          "node": "etri-ser0003-cg0ms0",
+          "variant": "resident-llama-spark",
+          "role": "server"
+        }
+      ],
+      "checkedAt": 1789373196.9765394,
+      "load": {
+        "inFlightAndPending": 0,
+        "utilization": 0.0,
+        "pending": 0,
+        "inFlight": 0,
+        "capacity": 1,
+        "qualifiedRps": 1.5,
+        "at": 1789373196.9767485
+      },
+      "reason": "healthy_current_placement",
+      "recovering": false,
+      "lastTransition": {
+        "fromNode": "etri-dev0005-jetagx",
+        "toNode": "etri-dev0001-jetorn",
+        "at": 1789373145.02741,
+        "reason": "sustained_low_load_return"
+      },
+      "lastRelease": {
+        "node": "etri-dev0005-jetagx",
+        "at": 1789373147.8328037,
+        "modelVramMiB": 0.0,
+        "reservationRetained": true
+      },
+      "latencyHighSince": null,
+      "latencyLowSince": 1789373161.4749877,
+      "policyKey": "{\"stages\":[{\"variant\":\"resident-llama-nano\",\"label\":\"Nano\"},{\"variant\":\"resident-llama-agx\",\"label\":\"Orin\"},{\"variant\":\"resident-llama-spark\",\"label\":\"Spark\"}],\"mode\":\"automatic\",\"approvalRequired\":false,\"preferredRole\":\"edge\",\"allowedRoles\":[\"edge\",\"server\"],\"nodeSelector\":{},\"highWatermark\":0.8,\"lowWatermark\":0.2,\"pressureSeconds\":10.0,\"returnSeconds\":60.0,\"cooldownSeconds\":60.0,\"prepareTimeoutSeconds\":90.0,\"latency\":{\"maxP95Milliseconds\":3600.0,\"returnP95Milliseconds\":2400.0,\"windowSeconds\":30.0,\"minSamples\":3,\"breachSeconds\":10.0}}",
+      "proposal": null,
+      "approvalRequired": false,
+      "aiInference": true,
+      "lastApproval": {
+        "id": "4cfd901146c14465a5273ffa164950d1",
+        "fingerprint": [
+          19,
+          "rt-a6755c109718-c70ba39507b1",
+          "rt-a6755c109718-5bce6dbe4cae",
+          "sustained_pressure"
+        ],
+        "createdAt": 1789358973.6144867,
+        "expiresAt": 1789359033.6144867,
+        "sourceNode": "etri-dev0005-jetagx",
+        "node": "etri-ser0003-cg0ms0",
+        "role": "server",
+        "variant": "resident-llama-spark",
+        "reason": "sustained_pressure",
+        "qualifiedRps": 6.0,
+        "qualifiedP95Milliseconds": 456.092,
+        "status": "Applied",
+        "approvedAt": 1789359004.3247554,
+        "startedAt": 1789359005.6722069,
+        "finishedAt": 1789359011.186705
+      },
+      "augmentationStages": [
+        {
+          "step": 1,
+          "label": "Nano",
+          "variant": "resident-llama-nano",
+          "node": "etri-dev0001-jetorn",
+          "eligible": true,
+          "qualifiedRps": 1.5,
+          "qualifiedP95Milliseconds": 1909.497
+        },
+        {
+          "step": 2,
+          "label": "Orin",
+          "variant": "resident-llama-agx",
+          "node": "etri-dev0005-jetagx",
+          "eligible": true,
+          "qualifiedRps": 2.2,
+          "qualifiedP95Milliseconds": 547.71
+        },
+        {
+          "step": 3,
+          "label": "Spark",
+          "variant": "resident-llama-spark",
+          "node": "etri-ser0003-cg0ms0",
+          "eligible": true,
+          "qualifiedRps": 5.0,
+          "qualifiedP95Milliseconds": 462.089
+        }
+      ],
+      "idleSince": null,
+      "returnState": {
+        "phase": "Baseline",
+        "node": "etri-dev0001-jetorn",
+        "label": "Nano",
+        "reason": "baseline_active",
+        "remainingSeconds": null,
+        "windowSeconds": 30.0,
+        "dwellSeconds": 60.0,
+        "at": 1789373196.9767494
+      },
+      "serviceKind": "ai",
+      "placementMode": "automatic",
+      "testConfigured": true,
+      "requestMetrics": {
+        "at": 1789373196.9767494,
+        "target": "rt-a6755c109718-e05f788cc279",
+        "samples": 5,
+        "successfulSamples": 5,
+        "completedRps": 0.16666666666666666,
+        "arrivalRps": 0.16666666666666666,
+        "failureRatio": 0.0,
+        "failures": 0,
+        "p95Milliseconds": 412.77156099749845,
+        "windowSeconds": 30.0,
+        "scope": "gateway_queue_and_worker_response",
+        "processLocal": true
+      },
+      "policyObservation": {
+        "at": 1789373196.9767494,
+        "pressureSeconds": 10.0,
+        "pressureElapsedSeconds": 0,
+        "latencyBreachSeconds": 10.0,
+        "latencyElapsedSeconds": 0,
+        "maxP95Milliseconds": 3600.0,
+        "returnP95Milliseconds": 2400.0,
+        "returnSeconds": 60.0,
+        "cooldownSeconds": 60.0,
+        "cooldownRemainingSeconds": 8.014061212539673,
+        "arrivalRps": 0.16666666666666666,
+        "windowSeconds": 30.0,
+        "returnHeadroomRatio": 0.8
+      },
+      "returnCandidateKey": null,
+      "commonAI": {
+        "service": {
+          "id": "llama-inference",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+        },
+        "placement": {
+          "default_node": "etri-dev0001-jetorn",
+          "candidate_nodes": [
+            "etri-dev0001-jetorn",
+            "etri-dev0005-jetagx",
+            "etri-ser0003-cg0ms0"
+          ]
+        },
+        "resources": {
+          "cpu": "250m",
+          "memory": "256Mi",
+          "gpu": "nvidia.com/gpu.shared=1"
+        },
+        "input": {
+          "type": "sensor",
+          "source": "edgex",
+          "device_id": "virtual-temperature-001",
+          "poll_seconds": 5.0,
+          "profile_id": "etri-arduino-temperature",
+          "resource_name": "temperature_raw",
+          "unit": "raw",
+          "minimum": 0.0,
+          "maximum": 1023.0,
+          "max_prompt_bytes": 512
+        },
+        "monitoring": {
+          "cpu": true,
+          "memory": true,
+          "gpu": true,
+          "queue": true,
+          "latency": true
+        },
+        "offload": {
+          "enabled": true
+        },
+        "adapter": "llama-worker-v1",
+        "max_tokens": 64,
+        "worker_models": {
+          "etri-dev0001-jetorn": "llama3.2:1b-instruct-q8_0",
+          "etri-dev0005-jetagx": "llama3.2:1b",
+          "etri-ser0003-cg0ms0": "llama3.2:1b"
+        }
+      },
+      "latency": {
+        "at": 1789373196.9767494,
+        "target": "rt-a6755c109718-e05f788cc279",
+        "samples": 5,
+        "successfulSamples": 5,
+        "completedRps": 0.16666666666666666,
+        "arrivalRps": 0.16666666666666666,
+        "failureRatio": 0.0,
+        "failures": 0,
+        "p95Milliseconds": 412.77156099749845,
+        "windowSeconds": 30.0,
+        "scope": "gateway_queue_and_worker_response",
+        "processLocal": true,
+        "valid": true,
+        "reason": "measured",
+        "maxP95Milliseconds": 3600.0,
+        "returnP95Milliseconds": 2400.0
+      }
+    },
+    "readback": {
+      "serviceUid": "a6755c10-9718-435b-ba97-fd05a9ec1aac",
+      "requestId": "edgex-38954a663b9e104ce5ed29f86f19448fd8085f7c3bb17e5ce408cc63a3b2870b",
+      "target": "rt-a6755c109718-e05f788cc279",
+      "state": "completed",
+      "status": 200,
+      "result": {
+        "schema_version": "edgeai.execution/v1",
+        "request_id": "edgex-38954a663b9e104ce5ed29f86f19448fd8085f7c3bb17e5ce408cc63a3b2870b",
+        "service_id": "llama-inference",
+        "source": {
+          "type": "edgex",
+          "device_id": "virtual-temperature-001",
+          "event_id": "3fa73415-8b93-479c-b35b-87906fb05a75",
+          "profile_id": "etri-arduino-temperature",
+          "origin_ns": "1789373192164232400"
+        },
+        "input_timestamp": "2026-09-14T08:06:32.164232+00:00",
+        "input": {
+          "type": "sensor",
+          "data": {
+            "measurements": [
+              {
+                "name": "temperature_raw",
+                "value": 333,
+                "unit": "raw"
+              }
+            ]
+          }
+        },
+        "model": {
+          "name": "llama3.2:1b-instruct-q8_0",
+          "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+        },
+        "result": {
+          "status": "success",
+          "output": {
+            "text": "The temperature is 333 degrees Celsius."
+          },
+          "reason": null
+        },
+        "execution": {
+          "node": "etri-dev0001-jetorn",
+          "location": "edge",
+          "offloaded": false,
+          "runtime_target": "rt-a6755c109718-e05f788cc279",
+          "pod_uid": "6eb21aac-6feb-44d6-9afd-7379a446f373"
+        },
+        "performance": {
+          "queue_ms": 10.752,
+          "inference_ms": 341.665,
+          "total_ms": 373.212,
+          "scope": "gateway_receipt_to_result_before_journal_commit"
+        },
+        "timestamp": "2026-09-14T08:06:32.838250+00:00",
+        "worker_result": {
+          "request_id": "edgex-38954a663b9e104ce5ed29f86f19448fd8085f7c3bb17e5ce408cc63a3b2870b",
+          "node_id": "etri-dev0001-jetorn",
+          "role": "nano",
+          "node_state": "ACTIVE",
+          "model": "llama3.2:1b-instruct-q8_0",
+          "response": "The temperature is 333 degrees Celsius.",
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "queue_wait_ms": 0.025,
+          "ttft_ms": 100.659,
+          "tokens_per_second": 37.699,
+          "inference_ms": 341.665,
+          "actual_e2e_ms": 341.69,
+          "eval_count": 9
+        }
+      }
+    },
+    "workers": {
+      "nano": {
+        "timestamp": 1789373198.7134523,
+        "node_id": "etri-dev0001-jetorn",
+        "role": "nano",
+        "model": "llama3.2:1b-instruct-q8_0",
+        "max_concurrency": 1,
+        "profile_inference_ms": 1000.0,
+        "management_runtime_running": true,
+        "inference_worker_running": true,
+        "runtime_running": true,
+        "model_cached": true,
+        "model_cache_bytes": 1321098329,
+        "model_vram_mib": 1348.45,
+        "inference_process_rss_mib": 0.0,
+        "management_process_rss_mib": 0.0,
+        "cpu_utilization_percent": 14.691,
+        "ram_utilization_percent": 51.993,
+        "temperature_celsius": 49.062,
+        "gpu_model": null,
+        "gpu_utilization_percent": null,
+        "gpu_memory_used_mib": null,
+        "gpu_memory_total_mib": null,
+        "gpu_memory_utilization_percent": null,
+        "gpu_temperature_celsius": null,
+        "gpu_metrics_reason": "dcgm_not_available_for_node",
+        "gpu_measurement_attributable": false,
+        "node_state": "ACTIVE",
+        "state_changed_timestamp": 1789373143.3080924,
+        "activation_started_timestamp": 1789373119.9654386,
+        "ready_timestamp": 1789373143.3080816,
+        "last_request_timestamp": 1789373198.5016277,
+        "deactivation_timestamp": 1789372985.8437793,
+        "idle_seconds": 0.21182465553283691,
+        "active_requests": 0,
+        "queue_length": 0,
+        "completed_requests": 2380,
+        "failed_requests": 0,
+        "last_ttft_ms": 103.039,
+        "last_tokens_per_second": 36.121,
+        "last_inference_ms": 354.56,
+        "ewma_ttft_ms": 99.853,
+        "ewma_tokens_per_second": 37.374,
+        "ewma_inference_ms": 345.396,
+        "last_activation": {
+          "activation_required": true,
+          "node_state_before": "CACHED",
+          "node_state": "ACTIVE",
+          "activation_started_timestamp": 1789373119.9654386,
+          "ready_timestamp": 1789373143.3080816,
+          "worker_start_ms": 1.18,
+          "model_remote_download_ms": 0.0,
+          "model_load_ms": 23331.859,
+          "cuda_initialization_ms": null,
+          "endpoint_ready_ms": 23342.792,
+          "activation_time_ms": 23342.795,
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "transition": {
+            "timestamp": 1789373143.3080924,
+            "node": "nano",
+            "physical_node": "etri-dev0001-jetorn",
+            "old_state": "CACHED",
+            "new_state": "ACTIVE",
+            "reason": "common_runtime_operator"
+          }
+        },
+        "last_deactivation": {
+          "deactivation_required": true,
+          "node_state_before": "ACTIVE",
+          "node_state": "CACHED",
+          "deactivation_started_timestamp": 1789372985.553371,
+          "deactivation_timestamp": 1789372985.8437793,
+          "worker_start_ms": 1.036,
+          "model_unload_ms": 287.179,
+          "model_delete_ms": 0.0,
+          "worker_stop_ms": 287.179,
+          "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+          "deactivation_time_ms": 290.437,
+          "transition": {
+            "timestamp": 1789372985.843575,
+            "node": "nano",
+            "physical_node": "etri-dev0001-jetorn",
+            "old_state": "ACTIVE",
+            "new_state": "CACHED",
+            "reason": "common_runtime_operator"
+          }
+        }
+      },
+      "agx": {
+        "timestamp": 1789373198.7133443,
+        "node_id": "etri-dev0005-jetagx",
+        "role": "agx",
+        "model": "llama3.2:1b",
+        "max_concurrency": 1,
+        "profile_inference_ms": 1000.0,
+        "management_runtime_running": true,
+        "inference_worker_running": false,
+        "runtime_running": true,
+        "model_cached": true,
+        "model_cache_bytes": 1321098329,
+        "model_vram_mib": 0.0,
+        "inference_process_rss_mib": 0.0,
+        "management_process_rss_mib": 0.0,
+        "cpu_utilization_percent": 2.302,
+        "ram_utilization_percent": 4.094,
+        "temperature_celsius": 45.406,
+        "gpu_model": null,
+        "gpu_utilization_percent": null,
+        "gpu_memory_used_mib": null,
+        "gpu_memory_total_mib": null,
+        "gpu_memory_utilization_percent": null,
+        "gpu_temperature_celsius": null,
+        "gpu_metrics_reason": "dcgm_not_available_for_node",
+        "gpu_measurement_attributable": false,
+        "node_state": "CACHED",
+        "state_changed_timestamp": 1789373145.7173703,
+        "activation_started_timestamp": 1789372957.94623,
+        "ready_timestamp": null,
+        "last_request_timestamp": 1789373142.7258856,
+        "deactivation_timestamp": 1789373145.7174683,
+        "idle_seconds": 55.9874587059021,
+        "active_requests": 0,
+        "queue_length": 0,
+        "completed_requests": 1372,
+        "failed_requests": 0,
+        "last_ttft_ms": 262.552,
+        "last_tokens_per_second": 61.619,
+        "last_inference_ms": 433.992,
+        "ewma_ttft_ms": 256.788,
+        "ewma_tokens_per_second": 60.222,
+        "ewma_inference_ms": 416.29,
+        "last_activation": {
+          "activation_required": true,
+          "node_state_before": "CACHED",
+          "node_state": "ACTIVE",
+          "activation_started_timestamp": 1789372957.94623,
+          "ready_timestamp": 1789372980.3165581,
+          "worker_start_ms": 1.067,
+          "model_remote_download_ms": 0.0,
+          "model_load_ms": 22358.634,
+          "cuda_initialization_ms": null,
+          "endpoint_ready_ms": 22370.478,
+          "activation_time_ms": 22370.482,
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "transition": {
+            "timestamp": 1789372980.316568,
+            "node": "agx",
+            "physical_node": "etri-dev0005-jetagx",
+            "old_state": "CACHED",
+            "new_state": "ACTIVE",
+            "reason": "common_runtime_operator"
+          }
+        },
+        "last_deactivation": {
+          "deactivation_required": true,
+          "node_state_before": "ACTIVE",
+          "node_state": "CACHED",
+          "deactivation_started_timestamp": 1789373145.1048827,
+          "deactivation_timestamp": 1789373145.7174683,
+          "worker_start_ms": 1.775,
+          "model_unload_ms": 607.46,
+          "model_delete_ms": 0.0,
+          "worker_stop_ms": 607.46,
+          "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+          "deactivation_time_ms": 612.602,
+          "transition": {
+            "timestamp": 1789373145.7173703,
+            "node": "agx",
+            "physical_node": "etri-dev0005-jetagx",
+            "old_state": "ACTIVE",
+            "new_state": "CACHED",
+            "reason": "common_runtime_operator"
+          }
+        }
+      },
+      "spark": {
+        "timestamp": 1789373198.7277474,
+        "node_id": "etri-ser0003-cg0ms0",
+        "role": "server",
+        "model": "llama3.2:1b",
+        "max_concurrency": 1,
+        "profile_inference_ms": 1000.0,
+        "management_runtime_running": true,
+        "inference_worker_running": false,
+        "runtime_running": true,
+        "model_cached": true,
+        "model_cache_bytes": 1321098329,
+        "model_vram_mib": 0.0,
+        "inference_process_rss_mib": 0.0,
+        "management_process_rss_mib": 0.0,
+        "cpu_utilization_percent": 0.435,
+        "ram_utilization_percent": 2.395,
+        "temperature_celsius": 38.8,
+        "gpu_model": null,
+        "gpu_utilization_percent": null,
+        "gpu_memory_used_mib": null,
+        "gpu_memory_total_mib": null,
+        "gpu_memory_utilization_percent": null,
+        "gpu_temperature_celsius": null,
+        "gpu_metrics_reason": "dcgm_not_available_for_node",
+        "gpu_measurement_attributable": false,
+        "node_state": "CACHED",
+        "state_changed_timestamp": 1789372696.7217636,
+        "activation_started_timestamp": 1789372572.9365642,
+        "ready_timestamp": null,
+        "last_request_timestamp": 1789372693.0931358,
+        "deactivation_timestamp": 1789372696.7218034,
+        "idle_seconds": 505.6346116065979,
+        "active_requests": 0,
+        "queue_length": 0,
+        "completed_requests": 7596,
+        "failed_requests": 0,
+        "last_ttft_ms": 12.81,
+        "last_tokens_per_second": 103.073,
+        "last_inference_ms": 100.873,
+        "ewma_ttft_ms": 12.766,
+        "ewma_tokens_per_second": 137.672,
+        "ewma_inference_ms": 82.779,
+        "last_activation": {
+          "activation_required": true,
+          "node_state_before": "CACHED",
+          "node_state": "ACTIVE",
+          "activation_started_timestamp": 1789372572.9365642,
+          "ready_timestamp": 1789372575.6833024,
+          "worker_start_ms": 0.357,
+          "model_remote_download_ms": 0.0,
+          "model_load_ms": 2743.514,
+          "cuda_initialization_ms": null,
+          "endpoint_ready_ms": 2746.781,
+          "activation_time_ms": 2746.782,
+          "model_digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+          "transition": {
+            "timestamp": 1789372575.6833055,
+            "node": "server",
+            "physical_node": "etri-ser0003-cg0ms0",
+            "old_state": "CACHED",
+            "new_state": "ACTIVE",
+            "reason": "common_runtime_operator"
+          }
+        },
+        "last_deactivation": {
+          "deactivation_required": true,
+          "node_state_before": "ACTIVE",
+          "node_state": "CACHED",
+          "deactivation_started_timestamp": 1789372696.4614034,
+          "deactivation_timestamp": 1789372696.7218034,
+          "worker_start_ms": 0.455,
+          "model_unload_ms": 259.46,
+          "model_delete_ms": 0.0,
+          "worker_stop_ms": 259.46,
+          "worker_lifecycle_note": "Ollama management daemon remains resident; inference runner is unloaded",
+          "deactivation_time_ms": 260.406,
+          "transition": {
+            "timestamp": 1789372696.7217636,
+            "node": "server",
+            "physical_node": "etri-ser0003-cg0ms0",
+            "old_state": "ACTIVE",
+            "new_state": "CACHED",
+            "reason": "common_runtime_operator"
+          }
+        }
+      }
+    }
+  },
+  "post_roundtrip_observation": {
+    "admission_timeout": 2,
+    "source_observation_connect_timeout": 1,
+    "last_successful_readback": 200,
+    "root_cause": "not established; occurred after the bounded round-trip proof"
+  }
+}

@@ -1,0 +1,904 @@
+[
+  {
+    "namespace": "edgex-edge",
+    "name": "device-sensehat-raspi-995f8896b-qdjkv",
+    "uid": "9441c4d6-6aa0-4e89-b857-e1dcf3add9ce",
+    "node": "etri-dev0003-raspi5",
+    "containers": [
+      {
+        "containerID": "containerd://cebbb0cb650fb00519440c64378354b0900fcfd84e4ca95ef1abac39bb19c7b8",
+        "image": "sha256:65f2d9a6029bccaf03eb182de6a4b6de0cda1344575c19dd61f2c5985c79f8a0",
+        "imageID": "192.168.0.56:5000/edgex-device-sensehat@sha256:10cb4d7f9a289b6d65a5968c675a409fc85e9f14017026cb10d60e2c55d0fd49",
+        "lastState": {},
+        "name": "device-sensehat-raspi",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-10T12:08:41Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/res",
+            "name": "service-config",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/dev/i2c-1",
+            "name": "sensehat-i2c"
+          },
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "device-serial-jetson-76b6c976fd-pg9gl",
+    "uid": "9e196eb1-c9f1-43e7-83f5-47b4590878bf",
+    "node": "etri-dev0001-jetorn",
+    "containers": [
+      {
+        "containerID": "containerd://df45c616d5c2a9fd895eec177b207e624fa77c16e6d7466f803e16bb033f408e",
+        "image": "sha256:16855f0d61ffb7af250b61cc331b16d7409e8afe608114abde18841427ad3f1a",
+        "imageID": "192.168.0.56:5000/edgex-device-serial@sha256:4855c4a949a3531ab947ec4bafd9aae6d6f3ed374e6b8cb82706d0b54ebfce63",
+        "lastState": {},
+        "name": "device-serial-jetson",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-10T12:08:05Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/res",
+            "name": "service-config",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/dev/edgeai",
+            "name": "arduino-serial",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-device-discovery-8gjgm",
+    "uid": "de085c56-1a1a-4f6e-8eef-dbe530dbffdc",
+    "node": "etri-dev0002-raspi5",
+    "containers": [
+      {
+        "containerID": "containerd://48f075324ea21e29df70721cbbff2bd9eac1c9876abbdc34c3db661d32c2440f",
+        "image": "sha256:35b018aeba1449b36ceb65431ed59b913a2bd4ba0bad7c3572ec5f3198b28488",
+        "imageID": "192.168.0.56:5000/edge-device-discovery@sha256:4ab79a8051d8b260c27ab97c9938c32a071c736cef37d231977c2958e98de1ee",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://937377f3832aa74748f4b6c36615bc162690f8680cd752e7126b56d9f23d872e",
+            "exitCode": 255,
+            "finishedAt": "2026-08-20T10:39:59Z",
+            "reason": "Unknown",
+            "startedAt": "2026-08-03T08:34:06Z"
+          }
+        },
+        "name": "discovery",
+        "ready": true,
+        "restartCount": 1,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-08-24T00:45:06Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/host-dev",
+            "name": "host-dev",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/host-sys",
+            "name": "host-sys",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-device-discovery-9lrcx",
+    "uid": "f956637e-c8d3-43bd-ac84-b7c09f32d9b2",
+    "node": "etri-dev0001-jetorn",
+    "containers": [
+      {
+        "containerID": "containerd://0f41e9ba803449dd4e5ed5275b60bee41eb3c43bb3e5bd5ad0ef7e4d3c295b65",
+        "image": "sha256:35b018aeba1449b36ceb65431ed59b913a2bd4ba0bad7c3572ec5f3198b28488",
+        "imageID": "192.168.0.56:5000/edge-device-discovery@sha256:4ab79a8051d8b260c27ab97c9938c32a071c736cef37d231977c2958e98de1ee",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://f3b0e16fe334488b1fc6660163919badcd5f524372a8cf9d033a98cc0763a779",
+            "exitCode": 255,
+            "finishedAt": "2026-09-10T04:15:38Z",
+            "reason": "Unknown",
+            "startedAt": "2026-08-24T00:44:57Z"
+          }
+        },
+        "name": "discovery",
+        "ready": true,
+        "restartCount": 3,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-10T12:07:57Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/host-dev",
+            "name": "host-dev",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/host-sys",
+            "name": "host-sys",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-device-discovery-i2c-b9gq6",
+    "uid": "51885132-14ca-41cd-bad4-fa40497152eb",
+    "node": "etri-dev0003-raspi5",
+    "containers": [
+      {
+        "containerID": "containerd://a185776c66b5eb17f904b5141e7186a7a81a5588a69c895234d75d9af0349a44",
+        "image": "sha256:35b018aeba1449b36ceb65431ed59b913a2bd4ba0bad7c3572ec5f3198b28488",
+        "imageID": "192.168.0.56:5000/edge-device-discovery@sha256:4ab79a8051d8b260c27ab97c9938c32a071c736cef37d231977c2958e98de1ee",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://a9f2e8473866134a8bd2530acc931e159e4fdac73fab24a59f3ef0e14d087dcb",
+            "exitCode": 255,
+            "finishedAt": "2026-09-10T04:23:21Z",
+            "reason": "Unknown",
+            "startedAt": "2026-09-07T09:58:41Z"
+          }
+        },
+        "name": "discovery",
+        "ready": true,
+        "restartCount": 4,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-10T12:08:39Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/host-dev/i2c-1",
+            "name": "sensehat-i2c"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-device-discovery-qxpmp",
+    "uid": "51f7c057-a600-4dca-aac4-d0f6821548fa",
+    "node": "etri-dev0003-raspi5",
+    "containers": [
+      {
+        "containerID": "containerd://d78aea96a464be3ce200ece21c320328d347ff1b9a3e98294bd8d85436322de3",
+        "image": "sha256:35b018aeba1449b36ceb65431ed59b913a2bd4ba0bad7c3572ec5f3198b28488",
+        "imageID": "192.168.0.56:5000/edge-device-discovery@sha256:4ab79a8051d8b260c27ab97c9938c32a071c736cef37d231977c2958e98de1ee",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://3c50dbf022e262ae58a34a8e3ae506f6e714d084cfc59bb43ab801d6c3e33832",
+            "exitCode": 255,
+            "finishedAt": "2026-09-10T04:23:21Z",
+            "reason": "Unknown",
+            "startedAt": "2026-09-07T10:00:59Z"
+          }
+        },
+        "name": "discovery",
+        "ready": true,
+        "restartCount": 4,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-10T12:08:35Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/host-dev",
+            "name": "host-dev",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/host-sys",
+            "name": "host-sys",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edge-modbus-simulator-765b5b547b-nkx7n",
+    "uid": "b698252c-4faa-40e7-b080-ea773700082d",
+    "node": "etri-dev0001-jetorn",
+    "containers": [
+      {
+        "containerID": "containerd://df978972b310805d7c587cfa326a875d794a526811c226c8596bab3de589eb1a",
+        "image": "sha256:0634ddd6fbc80b559647af2986d53aed536f89a8a29ea86fbf848d1e6e8c0b18",
+        "imageID": "docker.io/library/python@sha256:6d43704baacd1bfbe7c295d7f13079d5d8104ed33568873133f8fc69980419df",
+        "lastState": {},
+        "name": "simulator",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-10T12:08:11Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/app/server.py",
+            "name": "simulator-code",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "edgex-adapter-controller-74f754844f-vqvpq",
+    "uid": "56fd2453-1f07-4d22-9bb4-e4957dbe7b98",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://8a0476ab81a2b6805b617a5d1dcf77c7b1f8fd7777273f876c74900afb7fb257",
+        "image": "sha256:9584b7329729b3b5ee289421336f91b906dd346e6be954ee8b7b3d23d2d03b5e",
+        "imageID": "192.168.0.56:5000/edge-adapter-controller@sha256:627b161e9a40d1b9ff0e0f78fb4e42fea1238fb9b6b96aca8baf45cc4628884b",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://10a3e60f09c23ddd9d14a67391da2244785dff3d7e622579511e2b56e7b9fac3",
+            "exitCode": 255,
+            "finishedAt": "2026-09-14T00:44:12Z",
+            "reason": "Unknown",
+            "startedAt": "2026-09-11T02:41:40Z"
+          }
+        },
+        "name": "edgex-adapter-controller",
+        "ready": true,
+        "restartCount": 2,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:15Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          },
+          {
+            "mountPath": "/var/lib/adapter-controller",
+            "name": "discovery-state"
+          },
+          {
+            "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+            "name": "kube-api-access-94h7r",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "sensor-anomaly-demo-579cdb4d76-64zgf",
+    "uid": "bd69b54e-a977-438f-bc69-b39ef9d3de4d",
+    "node": "etri-dev0001-jetorn",
+    "containers": [
+      {
+        "containerID": "containerd://1c06897f74a7c05146c62ceb9a0788d7111c0a24a84d7cd1b9109f830b87c849",
+        "image": "sha256:efc4e67b5962349919e092b7e524d64d309746f7ad99439eb52d8aeeca5c20b0",
+        "imageID": "192.168.0.56:5000/sensor-anomaly-demo@sha256:0106bea35f4a09df4041020907fef0787d7d5a010f577ad190392d6d5b517650",
+        "lastState": {},
+        "name": "sensor-anomaly-demo",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-10T12:08:12Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          },
+          {
+            "mountPath": "/var/lib/sensor-anomaly-demo",
+            "name": "state"
+          },
+          {
+            "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+            "name": "kube-api-access-xqt56",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "sensor-anomaly-inference-server1-69f86ddcdc-gl5cq",
+    "uid": "ae55b67e-0c37-4c1c-8973-d1c2c5537bf5",
+    "node": null,
+    "containers": []
+  },
+  {
+    "namespace": "edgex-edge",
+    "name": "sensor-anomaly-inference-server1-69f86ddcdc-kgbj7",
+    "uid": "812a47bc-1382-453d-a19a-325f838388e9",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": []
+  },
+  {
+    "namespace": "edgex-system",
+    "name": "edgex-core-command-56ff56d8f6-g9msb",
+    "uid": "e3596fa9-739e-4422-a986-0b9dd0119578",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://7f193fdc8ca5b7e1b68d3c1b59070f573e3132b63a9a1ed5281fb411556e4ad4",
+        "image": "docker.io/edgexfoundry/core-command:4.0.2",
+        "imageID": "docker.io/edgexfoundry/core-command@sha256:0479d8bb2b977c63db4a1cbb810c6583879ccc5b63a4f555276e0c114862458e",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://1d0823e8e32d9827449c2c487f8a54ff6f26d17b2a287b9101b74aabaca42740",
+            "exitCode": 255,
+            "finishedAt": "2026-09-14T00:44:12Z",
+            "reason": "Unknown",
+            "startedAt": "2026-08-24T00:44:53Z"
+          }
+        },
+        "name": "core-command",
+        "ready": true,
+        "restartCount": 3,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:19Z"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-system",
+    "name": "edgex-core-data-5468cb8dd4-bsqxm",
+    "uid": "50d19e45-f24f-4a63-952a-76bfa7e80c36",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://6141cf78b37691b045783dd272833eb78b0cbfdbae05453d7cea05743076538e",
+        "image": "sha256:44770812a74e578925fb383194f99c7d09cdb89e90070490544d09cf1f4d55bc",
+        "imageID": "192.168.0.56:5000/edgex-core-data@sha256:1d0eb4f7a23d0087887de598f74472cbfdd88af27764a084e6899014dae0d9a6",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://909041640925cf50285d905464c7a6ea91644bcc8a2fe07d7028a50d21727a65",
+            "exitCode": 1,
+            "finishedAt": "2026-09-14T00:45:23Z",
+            "reason": "Error",
+            "startedAt": "2026-09-14T00:45:20Z"
+          }
+        },
+        "name": "core-data",
+        "ready": true,
+        "restartCount": 2,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:38Z"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-system",
+    "name": "edgex-core-keeper-7b977955b8-dv2xc",
+    "uid": "9381b610-431c-47e6-9e9a-98e7ced3e82c",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://6cb39ec22d6b4931ca07071e20cdd8c795f452e52c6654dc85962b4b92628186",
+        "image": "docker.io/edgexfoundry/core-keeper:4.0.2",
+        "imageID": "docker.io/edgexfoundry/core-keeper@sha256:49e87a003796dae20c5be64b0b4ea671e28c78a9c1a299ddb30e59824d544f40",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://6acf0bee32fc538df638f99b147082f14560fea052c0db4ddaee9d3d95836df3",
+            "exitCode": 255,
+            "finishedAt": "2026-09-14T00:44:12Z",
+            "reason": "Unknown",
+            "startedAt": "2026-08-24T00:44:55Z"
+          }
+        },
+        "name": "core-keeper",
+        "ready": true,
+        "restartCount": 3,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:20Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/generated",
+            "name": "generated-config",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-system",
+    "name": "edgex-core-metadata-5596d7879-s87rn",
+    "uid": "2565d5f7-6d1b-4727-afca-973560612625",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://73c2febb9336c87fc1ec22e9368a4fd4febb820c18ae322ac288d0ab485a3d0d",
+        "image": "docker.io/edgexfoundry/core-metadata:4.0.2",
+        "imageID": "docker.io/edgexfoundry/core-metadata@sha256:269073488b9baad77adb15b49344e53cbe69c17952cb47744c3847dd8d7f5925",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://47d2bfe3f75264d7a45d7100b0e3b541890766de1f0c272de11f396da3dcb59f",
+            "exitCode": 255,
+            "finishedAt": "2026-09-14T00:44:12Z",
+            "reason": "Unknown",
+            "startedAt": "2026-08-24T00:44:53Z"
+          }
+        },
+        "name": "core-metadata",
+        "ready": true,
+        "restartCount": 3,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:20Z"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-system",
+    "name": "edgex-ingest-gateway-975db9978-gphcd",
+    "uid": "20ca20fc-e6e2-48c1-bf6d-ddc1b70de53e",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://e3719be317da4625efdf3cad084a6ae6f01370783f94f3b2a4e6e246924d97a5",
+        "image": "sha256:d1276419e52e7dcc9d7419d8d139df2b94fd57cd5aa1f966cfe25172bf261193",
+        "imageID": "192.168.0.56:5000/edgex-ingest-gateway@sha256:bdc3a0808eacb06b85f68fd4c3320f39e1fc6648bb64a9fccd7ba96e67ea4a71",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://a6df5e468babb30e2e622cb674fdfeccdaeeeb2fc9a6cb795161c9d317a59c3e",
+            "exitCode": 1,
+            "finishedAt": "2026-09-14T00:45:18Z",
+            "reason": "Error",
+            "startedAt": "2026-09-14T00:45:16Z"
+          }
+        },
+        "name": "gateway",
+        "ready": true,
+        "restartCount": 5,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:38Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/run/gateway-tls",
+            "name": "gateway-tls",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          },
+          {
+            "mountPath": "/tmp",
+            "name": "tmp"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-system",
+    "name": "edgex-messagebus-6657d6b449-vgwgk",
+    "uid": "0efc3a25-e5e6-4692-bdfb-c2a030220176",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://5861f8480ce515ef79ab2519ba9218c6e80a0a8e864485a11f35cb8d4cf37f4b",
+        "image": "docker.io/library/eclipse-mosquitto:2.0.22",
+        "imageID": "docker.io/library/eclipse-mosquitto@sha256:212f89e1eaeb2c322d6441b64396e3346026674db8fa9c27beac293405c32b3c",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://8d555e011b54921db40e4cc5da7962d4588933906acecc7ab8c2e280b1c58888",
+            "exitCode": 255,
+            "finishedAt": "2026-09-14T00:44:12Z",
+            "reason": "Unknown",
+            "startedAt": "2026-08-24T00:44:40Z"
+          }
+        },
+        "name": "mosquitto",
+        "ready": true,
+        "restartCount": 3,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:17Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/mosquitto/config/mosquitto.conf",
+            "name": "config",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "edgex-system",
+    "name": "edgex-postgres-0",
+    "uid": "bb3ba589-d76d-46f4-94e3-3a5b43a56d02",
+    "node": "etri-ser0002-cgnmsb",
+    "containers": [
+      {
+        "containerID": "containerd://ec7e571511f1a71b3643e51caeaf10bf3fb16f3cbdb95c630bbec0f7f02c4394",
+        "image": "docker.io/library/postgres:16.3-alpine",
+        "imageID": "docker.io/library/postgres@sha256:36ed71227ae36305d26382657c0b96cbaf298427b3f1eaeb10d77a6dea3eec41",
+        "lastState": {
+          "terminated": {
+            "containerID": "containerd://8836f8e755819fa0cffd438a9dd50e8b5d0d4866c502b781c40b8803c9ff5243",
+            "exitCode": 255,
+            "finishedAt": "2026-09-14T00:44:12Z",
+            "reason": "Unknown",
+            "startedAt": "2026-08-24T00:44:48Z"
+          }
+        },
+        "name": "postgres",
+        "ready": true,
+        "restartCount": 3,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:45:14Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/var/lib/postgresql/data",
+            "name": "data"
+          },
+          {
+            "mountPath": "/var/run/postgresql",
+            "name": "run"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-agx-6fbd4fd799-cmt94",
+    "uid": "8357b7b5-642e-4ca7-8d50-b02351ffec4b",
+    "node": "etri-dev0005-jetagx",
+    "containers": [
+      {
+        "containerID": "containerd://623e3e5ed35e0b57a23518025deb5d5f0864922cbbfc8d240e9d96c742175d39",
+        "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "lastState": {},
+        "name": "api",
+        "ready": false,
+        "restartCount": 0,
+        "started": false,
+        "state": {
+          "terminated": {
+            "containerID": "containerd://623e3e5ed35e0b57a23518025deb5d5f0864922cbbfc8d240e9d96c742175d39",
+            "exitCode": 137,
+            "finishedAt": "2026-09-10T12:24:02Z",
+            "reason": "Error",
+            "startedAt": "2026-09-10T01:27:26Z"
+          }
+        }
+      },
+      {
+        "containerID": "containerd://27de6a70fec11dac3ffe823838cd4438e7dc3cdf8789edddb9a00120fa94a8c2",
+        "image": "sha256:96b6c6ec9dfe42f51819834fc0dc89d8ede5967df3e5fb441f3a7fe54c1a6b5a",
+        "imageID": "localhost/qualification/ollama-jetson@sha256:3e663d7d9eff51f99e81be82c0eaaca50502b6e98a2f131b9c607812f2ff08aa",
+        "lastState": {},
+        "name": "inference-runtime",
+        "ready": false,
+        "restartCount": 0,
+        "started": false,
+        "state": {
+          "terminated": {
+            "containerID": "containerd://27de6a70fec11dac3ffe823838cd4438e7dc3cdf8789edddb9a00120fa94a8c2",
+            "exitCode": 0,
+            "finishedAt": "2026-09-10T12:24:00Z",
+            "reason": "Completed",
+            "startedAt": "2026-09-10T01:27:27Z"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-agx-6fbd4fd799-lrp26",
+    "uid": "add9e01c-09d7-4a92-8547-92c1100789dc",
+    "node": "etri-dev0005-jetagx",
+    "containers": [
+      {
+        "containerID": "containerd://72c027b937ebc13ed723fa13b102e8801865915b1be011d0d1279dcf9c56779d",
+        "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "lastState": {},
+        "name": "api",
+        "ready": false,
+        "restartCount": 0,
+        "started": false,
+        "state": {
+          "terminated": {
+            "containerID": "containerd://72c027b937ebc13ed723fa13b102e8801865915b1be011d0d1279dcf9c56779d",
+            "exitCode": 255,
+            "finishedAt": "2026-09-11T08:12:18Z",
+            "reason": "Unknown",
+            "startedAt": "2026-09-10T12:24:16Z"
+          }
+        }
+      },
+      {
+        "containerID": "containerd://80cd47ffd14528a62bb32eed67dbeafa3ceacf969eb1ce21f793557f9b00d45b",
+        "image": "sha256:96b6c6ec9dfe42f51819834fc0dc89d8ede5967df3e5fb441f3a7fe54c1a6b5a",
+        "imageID": "localhost/qualification/ollama-jetson@sha256:3e663d7d9eff51f99e81be82c0eaaca50502b6e98a2f131b9c607812f2ff08aa",
+        "lastState": {},
+        "name": "inference-runtime",
+        "ready": false,
+        "restartCount": 0,
+        "started": false,
+        "state": {
+          "terminated": {
+            "containerID": "containerd://80cd47ffd14528a62bb32eed67dbeafa3ceacf969eb1ce21f793557f9b00d45b",
+            "exitCode": 255,
+            "finishedAt": "2026-09-11T08:12:18Z",
+            "reason": "Unknown",
+            "startedAt": "2026-09-10T12:24:17Z"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-agx-6fbd4fd799-m7gx5",
+    "uid": "e6c7ca96-a698-40a7-9005-591dba4d96a6",
+    "node": "etri-dev0005-jetagx",
+    "containers": [
+      {
+        "containerID": "containerd://4768edae6f5c0c10dac57cad65326872677ebe82fc504bc292209147929bfa64",
+        "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "lastState": {},
+        "name": "api",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:46:35Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/app",
+            "name": "code",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      },
+      {
+        "containerID": "containerd://0f06f40d8dab39f7752ebef5a7e6b033ec1b1c486296847359dd8648693f7ace",
+        "image": "sha256:96b6c6ec9dfe42f51819834fc0dc89d8ede5967df3e5fb441f3a7fe54c1a6b5a",
+        "imageID": "localhost/qualification/ollama-jetson@sha256:3e663d7d9eff51f99e81be82c0eaaca50502b6e98a2f131b9c607812f2ff08aa",
+        "lastState": {},
+        "name": "inference-runtime",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-14T00:46:37Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/models",
+            "name": "model-cache"
+          },
+          {
+            "mountPath": "/home/ollama",
+            "name": "runtime-home"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-nano-79f9cfdc88-krq8k",
+    "uid": "6eb21aac-6feb-44d6-9afd-7379a446f373",
+    "node": "etri-dev0001-jetorn",
+    "containers": [
+      {
+        "containerID": "containerd://3d69857f5bf8445e6b75c2a67420c2ace2f6022738b54efc148b5a90c8a55d0b",
+        "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "lastState": {},
+        "name": "api",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-11T06:24:53Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/app",
+            "name": "code",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      },
+      {
+        "containerID": "containerd://7eaffae2e248aaedc2e3ded23094207f05fb4a9b1ee4bd536adcf36b11e85d11",
+        "image": "sha256:1f056210d4aed0704392da5c1b7d90104698d64728a33ba70e9808b0079654c3",
+        "imageID": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "lastState": {},
+        "name": "inference-runtime",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-11T06:24:56Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/models",
+            "name": "model-cache"
+          },
+          {
+            "mountPath": "/home/ollama",
+            "name": "runtime-home"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "llama-continuity-test",
+    "name": "llama-spark-5458cd78f4-dtcqm",
+    "uid": "086be06c-82b4-45f1-8c43-8375009800ca",
+    "node": "etri-ser0003-cg0ms0",
+    "containers": [
+      {
+        "containerID": "containerd://6705f599ab2b7d0c0fc2f2b2af3833b21ca95710238abe28c9a3139dffeb462f",
+        "image": "sha256:a74ddf067736251b63204a4d7a26411cffa3da75600b4e67ad54c9c79f3f81cb",
+        "imageID": "docker.io/library/python@sha256:782412e85d0f0984994c290652577d4018aff08145c85b262bb63dc0c7522254",
+        "lastState": {},
+        "name": "api",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-09T11:04:37Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/app",
+            "name": "code",
+            "readOnly": true,
+            "recursiveReadOnly": "Disabled"
+          }
+        ]
+      },
+      {
+        "containerID": "containerd://7c6e04f586d209c8f22909e5d2442182cd6a26c30ed930ad7deb75e9944755d5",
+        "image": "sha256:1f056210d4aed0704392da5c1b7d90104698d64728a33ba70e9808b0079654c3",
+        "imageID": "docker.io/ollama/ollama@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2",
+        "lastState": {},
+        "name": "inference-runtime",
+        "ready": true,
+        "restartCount": 0,
+        "started": true,
+        "state": {
+          "running": {
+            "startedAt": "2026-09-09T11:04:38Z"
+          }
+        },
+        "volumeMounts": [
+          {
+            "mountPath": "/models",
+            "name": "model-cache"
+          },
+          {
+            "mountPath": "/home/ollama",
+            "name": "runtime-home"
+          }
+        ]
+      }
+    ]
+  }
+]

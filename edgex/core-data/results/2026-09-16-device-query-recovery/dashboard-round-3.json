@@ -1,0 +1,554 @@
+[
+  {
+    "name": "virtual-temperature-001",
+    "source": "edgex",
+    "profile_name": "etri-arduino-temperature",
+    "device_service_name": "device-serial-jetson",
+    "protocol_names": [
+      "serial"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.040824Z",
+    "latest_readings": [
+      {
+        "device_name": "virtual-temperature-001",
+        "source_name": "temperature",
+        "resource_name": "temperature_raw",
+        "value_type": "Int32",
+        "value": 357,
+        "timestamp": "2026-09-16T06:59:35.040824Z",
+        "origin": 1789541975040824800,
+        "event_id": "1aa80493-8da0-4cc5-a4d7-11107768ecfd",
+        "units": "raw"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0001-jetorn",
+    "physical_device_id": "arduino-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "virtual-light-001",
+    "source": "edgex",
+    "profile_name": "etri-arduino-light",
+    "device_service_name": "device-serial-jetson",
+    "protocol_names": [
+      "serial"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.036929Z",
+    "latest_readings": [
+      {
+        "device_name": "virtual-light-001",
+        "source_name": "light",
+        "resource_name": "light_raw",
+        "value_type": "Int32",
+        "value": 372,
+        "timestamp": "2026-09-16T06:59:35.036929Z",
+        "origin": 1789541975036929000,
+        "event_id": "04cd417d-bb4e-4d85-9e73-71bca9425d11",
+        "units": "raw"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0001-jetorn",
+    "physical_device_id": "arduino-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "virtual-magnetic-001",
+    "source": "edgex",
+    "profile_name": "etri-arduino-magnetic",
+    "device_service_name": "device-serial-jetson",
+    "protocol_names": [
+      "serial"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.044891Z",
+    "latest_readings": [
+      {
+        "device_name": "virtual-magnetic-001",
+        "source_name": "magnetic",
+        "resource_name": "magnetic_raw",
+        "value_type": "Int32",
+        "value": 1,
+        "timestamp": "2026-09-16T06:59:35.044891Z",
+        "origin": 1789541975044891000,
+        "event_id": "429ff56c-4223-42b2-8a9a-470eab57d7ba",
+        "units": "raw"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0001-jetorn",
+    "physical_device_id": "arduino-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "virtual-acceleration-x-001",
+    "source": "edgex",
+    "profile_name": "etri-arduino-acceleration-x",
+    "device_service_name": "device-serial-jetson",
+    "protocol_names": [
+      "serial"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.052791Z",
+    "latest_readings": [
+      {
+        "device_name": "virtual-acceleration-x-001",
+        "source_name": "acceleration_x",
+        "resource_name": "acceleration_x_raw",
+        "value_type": "Int32",
+        "value": 359,
+        "timestamp": "2026-09-16T06:59:35.052791Z",
+        "origin": 1789541975052791000,
+        "event_id": "ae7ffcb2-56ba-4113-ab33-b96522d5fda7",
+        "units": "raw"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0001-jetorn",
+    "physical_device_id": "arduino-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "virtual-acceleration-y-001",
+    "source": "edgex",
+    "profile_name": "etri-arduino-acceleration-y",
+    "device_service_name": "device-serial-jetson",
+    "protocol_names": [
+      "serial"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.052791Z",
+    "latest_readings": [
+      {
+        "device_name": "virtual-acceleration-y-001",
+        "source_name": "acceleration_y",
+        "resource_name": "acceleration_y_raw",
+        "value_type": "Int32",
+        "value": 354,
+        "timestamp": "2026-09-16T06:59:35.052791Z",
+        "origin": 1789541975052791000,
+        "event_id": "f2b1df9a-78d2-43ea-b5b6-b6ce7b7dae16",
+        "units": "raw"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0001-jetorn",
+    "physical_device_id": "arduino-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "virtual-acceleration-z-001",
+    "source": "edgex",
+    "profile_name": "etri-arduino-acceleration-z",
+    "device_service_name": "device-serial-jetson",
+    "protocol_names": [
+      "serial"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.052791Z",
+    "latest_readings": [
+      {
+        "device_name": "virtual-acceleration-z-001",
+        "source_name": "acceleration_z",
+        "resource_name": "acceleration_z_raw",
+        "value_type": "Int32",
+        "value": 364,
+        "timestamp": "2026-09-16T06:59:35.052791Z",
+        "origin": 1789541975052791000,
+        "event_id": "f0819440-3175-4d4b-a74a-dc726df7a133",
+        "units": "raw"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0001-jetorn",
+    "physical_device_id": "arduino-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "env-sensehat-temperature-01",
+    "source": "edgex",
+    "profile_name": "etri-sensehat-temperature",
+    "device_service_name": "device-sensehat-raspi",
+    "protocol_names": [
+      "i2c"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.207966Z",
+    "latest_readings": [
+      {
+        "device_name": "env-sensehat-temperature-01",
+        "source_name": "temperature",
+        "resource_name": "temp_humidity",
+        "value_type": "Float64",
+        "value": 44.94841384887695,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "d32d6bfa-ef3b-4eaf-b6d5-3bc75dbc173e",
+        "units": "C"
+      },
+      {
+        "device_name": "env-sensehat-temperature-01",
+        "source_name": "temperature",
+        "resource_name": "temp_pressure",
+        "value_type": "Float64",
+        "value": 41.32291793823242,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "d32d6bfa-ef3b-4eaf-b6d5-3bc75dbc173e",
+        "units": "C"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0003-raspi5",
+    "physical_device_id": "sensehat-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "env-sensehat-humidity-01",
+    "source": "edgex",
+    "profile_name": "etri-sensehat-humidity",
+    "device_service_name": "device-sensehat-raspi",
+    "protocol_names": [
+      "i2c"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.207966Z",
+    "latest_readings": [
+      {
+        "device_name": "env-sensehat-humidity-01",
+        "source_name": "humidity",
+        "resource_name": "humidity",
+        "value_type": "Float64",
+        "value": 26.493915557861328,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "0da329d1-468c-46ce-b1cd-96f6480e5e6f",
+        "units": "%RH"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0003-raspi5",
+    "physical_device_id": "sensehat-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "env-sensehat-pressure-01",
+    "source": "edgex",
+    "profile_name": "etri-sensehat-pressure",
+    "device_service_name": "device-sensehat-raspi",
+    "protocol_names": [
+      "i2c"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.207966Z",
+    "latest_readings": [
+      {
+        "device_name": "env-sensehat-pressure-01",
+        "source_name": "pressure",
+        "resource_name": "pressure",
+        "value_type": "Float64",
+        "value": 1017.419189453125,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "1f4bddeb-305d-4178-a39e-f39ca93fa55d",
+        "units": "hPa"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0003-raspi5",
+    "physical_device_id": "sensehat-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "imu-sensehat-compass-01",
+    "source": "edgex",
+    "profile_name": "etri-sensehat-compass",
+    "device_service_name": "device-sensehat-raspi",
+    "protocol_names": [
+      "i2c"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.207966Z",
+    "latest_readings": [
+      {
+        "device_name": "imu-sensehat-compass-01",
+        "source_name": "compass",
+        "resource_name": "compass",
+        "value_type": "Float64",
+        "value": 36.52734624722961,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "cf939152-80e4-4147-ad29-c610fd8241e6",
+        "units": "deg"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0003-raspi5",
+    "physical_device_id": "sensehat-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "imu-sensehat-orientation-01",
+    "source": "edgex",
+    "profile_name": "etri-sensehat-orientation",
+    "device_service_name": "device-sensehat-raspi",
+    "protocol_names": [
+      "i2c"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.207966Z",
+    "latest_readings": [
+      {
+        "device_name": "imu-sensehat-orientation-01",
+        "source_name": "orientation",
+        "resource_name": "pitch",
+        "value_type": "Float64",
+        "value": 358.28241851927584,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "30cf2c77-f0dd-4de0-ba27-3411d8b68df4",
+        "units": "deg"
+      },
+      {
+        "device_name": "imu-sensehat-orientation-01",
+        "source_name": "orientation",
+        "resource_name": "roll",
+        "value_type": "Float64",
+        "value": 161.7024473168691,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "30cf2c77-f0dd-4de0-ba27-3411d8b68df4",
+        "units": "deg"
+      },
+      {
+        "device_name": "imu-sensehat-orientation-01",
+        "source_name": "orientation",
+        "resource_name": "yaw",
+        "value_type": "Float64",
+        "value": 36.52734624722961,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "30cf2c77-f0dd-4de0-ba27-3411d8b68df4",
+        "units": "deg"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0003-raspi5",
+    "physical_device_id": "sensehat-001",
+    "hardware_binding_id": null,
+    "controller_candidate_id": null
+  },
+  {
+    "name": "arduino-75035303230351e0d171-57fc03a907",
+    "source": "edgex",
+    "profile_name": "arduino-multisensor-v1",
+    "device_service_name": "device-serial-jetson",
+    "protocol_names": [
+      "serial"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "DOWN",
+    "connection_state": "disconnected",
+    "device_service_available": false,
+    "latest_event_timestamp": "2026-09-02T01:30:40.685104Z",
+    "latest_readings": [
+      {
+        "device_name": "arduino-75035303230351e0d171-57fc03a907",
+        "source_name": "light_raw",
+        "resource_name": "light_raw",
+        "value_type": "Int32",
+        "value": 216,
+        "timestamp": "2026-09-02T01:30:40.685104Z",
+        "origin": 1788312640685104000,
+        "event_id": "05508aef-e9bb-463b-bc1f-f3f6ba70a116",
+        "units": "raw"
+      },
+      {
+        "device_name": "arduino-75035303230351e0d171-57fc03a907",
+        "source_name": "acceleration_x_raw",
+        "resource_name": "acceleration_x_raw",
+        "value_type": "Int32",
+        "value": 215,
+        "timestamp": "2026-09-02T01:30:40.582562Z",
+        "origin": 1788312640582562600,
+        "event_id": "d9d6daec-2f0d-4621-a730-2fdbede1d77f",
+        "units": "raw"
+      },
+      {
+        "device_name": "arduino-75035303230351e0d171-57fc03a907",
+        "source_name": "acceleration_y_raw",
+        "resource_name": "acceleration_y_raw",
+        "value_type": "Int32",
+        "value": 210,
+        "timestamp": "2026-09-02T01:30:40.582562Z",
+        "origin": 1788312640582562600,
+        "event_id": "f8fefed9-9903-463c-b778-2e904e7115c5",
+        "units": "raw"
+      },
+      {
+        "device_name": "arduino-75035303230351e0d171-57fc03a907",
+        "source_name": "acceleration_z_raw",
+        "resource_name": "acceleration_z_raw",
+        "value_type": "Int32",
+        "value": 208,
+        "timestamp": "2026-09-02T01:30:40.582562Z",
+        "origin": 1788312640582562600,
+        "event_id": "97be3d26-b95c-4828-ada8-e7394fcf8681",
+        "units": "raw"
+      },
+      {
+        "device_name": "arduino-75035303230351e0d171-57fc03a907",
+        "source_name": "magnetic_raw",
+        "resource_name": "magnetic_raw",
+        "value_type": "Int32",
+        "value": 0,
+        "timestamp": "2026-09-02T01:30:40.578425Z",
+        "origin": 1788312640578425000,
+        "event_id": "980b2c08-10e6-4404-9d43-14633b317df7",
+        "units": "raw"
+      },
+      {
+        "device_name": "arduino-75035303230351e0d171-57fc03a907",
+        "source_name": "temperature_raw",
+        "resource_name": "temperature_raw",
+        "value_type": "Int32",
+        "value": 212,
+        "timestamp": "2026-09-02T01:30:40.574313Z",
+        "origin": 1788312640574313500,
+        "event_id": "ce22a958-071c-4d9f-bd4c-b4fa21f79574",
+        "units": "raw"
+      }
+    ],
+    "telemetry_freshness": "stale",
+    "overall_status": "unavailable",
+    "reason": "EdgeX operatingState is DOWN",
+    "node_name": "etri-dev0001-jetorn",
+    "physical_device_id": null,
+    "hardware_binding_id": null,
+    "controller_candidate_id": "candidate-57fc03a9070cb76ba517882c"
+  },
+  {
+    "name": "imu-sensehat-gyroscope-01",
+    "source": "edgex",
+    "profile_name": "etri-sensehat-gyroscope",
+    "device_service_name": "device-sensehat-raspi",
+    "protocol_names": [
+      "i2c"
+    ],
+    "admin_state": "UNLOCKED",
+    "operating_state": "UP",
+    "connection_state": "connected",
+    "device_service_available": true,
+    "latest_event_timestamp": "2026-09-16T06:59:35.207966Z",
+    "latest_readings": [
+      {
+        "device_name": "imu-sensehat-gyroscope-01",
+        "source_name": "gyroscope",
+        "resource_name": "gyro_x",
+        "value_type": "Float64",
+        "value": 0.07039566338062286,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "325831fe-5390-428e-8503-797e83dc3393",
+        "units": "rad/s"
+      },
+      {
+        "device_name": "imu-sensehat-gyroscope-01",
+        "source_name": "gyroscope",
+        "resource_name": "gyro_y",
+        "value_type": "Float64",
+        "value": 0.0024978816509246826,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "325831fe-5390-428e-8503-797e83dc3393",
+        "units": "rad/s"
+      },
+      {
+        "device_name": "imu-sensehat-gyroscope-01",
+        "source_name": "gyroscope",
+        "resource_name": "gyro_z",
+        "value_type": "Float64",
+        "value": 0.00476449728012085,
+        "timestamp": "2026-09-16T06:59:35.207966Z",
+        "origin": 1789541975207966500,
+        "event_id": "325831fe-5390-428e-8503-797e83dc3393",
+        "units": "rad/s"
+      }
+    ],
+    "telemetry_freshness": "fresh",
+    "overall_status": "available",
+    "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+    "node_name": "etri-dev0003-raspi5",
+    "physical_device_id": "sensehat-001",
+    "hardware_binding_id": "raspi5-sensehat-i2c-001",
+    "controller_candidate_id": null
+  }
+]

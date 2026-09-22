@@ -81,7 +81,10 @@ class DocsHtmlSearchTest(unittest.TestCase):
         files = build_docs_html.md_files()
         paths = [path.relative_to(ROOT / "docs").as_posix() for path in files]
 
-        self.assertEqual(len(paths), 30)
+        self.assertEqual(len(paths), 33)
+        self.assertIn("서버측-가상-디바이스-통합-설계.md", paths)
+        self.assertIn("서비스형-가상-디바이스-설계.md", paths)
+        self.assertIn("물리-가상-디바이스-통합-화면.md", paths)
         self.assertIn("공통-AI-서비스-실행-규격.md", paths)
         self.assertIn("공통-서비스-Kubernetes-오케스트레이션.md", paths)
         self.assertIn("서버-엣지-반복-오프로딩.md", paths)
@@ -109,6 +112,16 @@ class DocsHtmlSearchTest(unittest.TestCase):
         self.assertIn("대시보드 배포하기", intro)
         self.assertIn("현재 데모 운영하기", intro)
         self.assertIn("프로젝트 범위", intro)
+
+    def test_virtual_device_design_is_canonical_and_previous_designs_are_history(self):
+        canonical = "서버측-가상-디바이스-통합-설계.md"
+        self.assertEqual(build_docs_html.group_of(canonical), "정책과 계약")
+        for previous in ("서비스형-가상-디바이스-설계.md", "물리-가상-디바이스-통합-화면.md"):
+            self.assertEqual(build_docs_html.group_of(previous), "개발 참고")
+            self.assertIn("이력", build_docs_html.display_title(previous, ""))
+            self.assertIn(canonical, (ROOT / "docs" / previous).read_text(encoding="utf-8"))
+        for entry in ("문서-안내.md", "프로젝트-범위.md", "저장소-구조.md", "단계별-추진계획.md"):
+            self.assertIn(canonical, (ROOT / "docs" / entry).read_text(encoding="utf-8"))
 
     def test_current_service_document_explains_the_observed_anomaly_contract(self):
         guide = (ROOT / "docs" / "펌프-모터-이상감지-서비스.md").read_text(encoding="utf-8")

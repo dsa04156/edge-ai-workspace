@@ -1,0 +1,397 @@
+{
+  "schemaVersion": "edgeai.managed-devices/v1",
+  "observedAt": 1789466567.5057237,
+  "maxAgeSeconds": 15,
+  "engineScope": "single-runtime-journal-writer",
+  "summary": {
+    "registered": 24,
+    "knownRegistered": 24,
+    "stateQueryable": 24,
+    "inventoryComplete": true,
+    "running": 21,
+    "stopped": 1,
+    "unknown": 0,
+    "other": 2
+  },
+  "sourceErrors": {},
+  "devices": [
+    {
+      "id": "edgex:arduino-75035303230351e0d171-57fc03a907",
+      "sourceId": "arduino-75035303230351e0d171-57fc03a907",
+      "name": "arduino-75035303230351e0d171-57fc03a907",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "unavailable",
+      "profileId": "arduino-multisensor-v1",
+      "node": "etri-dev0001-jetorn",
+      "reason": "EdgeX operatingState is DOWN",
+      "physicalSourceId": null,
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/arduino-75035303230351e0d171-57fc03a907"
+      }
+    },
+    {
+      "id": "edgex:env-sensehat-humidity-01",
+      "sourceId": "env-sensehat-humidity-01",
+      "name": "env-sensehat-humidity-01",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-sensehat-humidity",
+      "node": "etri-dev0003-raspi5",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "sensehat-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/env-sensehat-humidity-01"
+      }
+    },
+    {
+      "id": "edgex:env-sensehat-pressure-01",
+      "sourceId": "env-sensehat-pressure-01",
+      "name": "env-sensehat-pressure-01",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-sensehat-pressure",
+      "node": "etri-dev0003-raspi5",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "sensehat-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/env-sensehat-pressure-01"
+      }
+    },
+    {
+      "id": "edgex:env-sensehat-temperature-01",
+      "sourceId": "env-sensehat-temperature-01",
+      "name": "env-sensehat-temperature-01",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-sensehat-temperature",
+      "node": "etri-dev0003-raspi5",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "sensehat-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/env-sensehat-temperature-01"
+      }
+    },
+    {
+      "id": "edgex:imu-sensehat-compass-01",
+      "sourceId": "imu-sensehat-compass-01",
+      "name": "imu-sensehat-compass-01",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-sensehat-compass",
+      "node": "etri-dev0003-raspi5",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "sensehat-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/imu-sensehat-compass-01"
+      }
+    },
+    {
+      "id": "edgex:imu-sensehat-gyroscope-01",
+      "sourceId": "imu-sensehat-gyroscope-01",
+      "name": "imu-sensehat-gyroscope-01",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-sensehat-gyroscope",
+      "node": "etri-dev0003-raspi5",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "sensehat-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/imu-sensehat-gyroscope-01"
+      }
+    },
+    {
+      "id": "edgex:imu-sensehat-orientation-01",
+      "sourceId": "imu-sensehat-orientation-01",
+      "name": "imu-sensehat-orientation-01",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-sensehat-orientation",
+      "node": "etri-dev0003-raspi5",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "sensehat-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/imu-sensehat-orientation-01"
+      }
+    },
+    {
+      "id": "edgex:virtual-acceleration-x-001",
+      "sourceId": "virtual-acceleration-x-001",
+      "name": "virtual-acceleration-x-001",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-arduino-acceleration-x",
+      "node": "etri-dev0001-jetorn",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "arduino-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/virtual-acceleration-x-001"
+      }
+    },
+    {
+      "id": "edgex:virtual-acceleration-y-001",
+      "sourceId": "virtual-acceleration-y-001",
+      "name": "virtual-acceleration-y-001",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-arduino-acceleration-y",
+      "node": "etri-dev0001-jetorn",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "arduino-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/virtual-acceleration-y-001"
+      }
+    },
+    {
+      "id": "edgex:virtual-acceleration-z-001",
+      "sourceId": "virtual-acceleration-z-001",
+      "name": "virtual-acceleration-z-001",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-arduino-acceleration-z",
+      "node": "etri-dev0001-jetorn",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "arduino-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/virtual-acceleration-z-001"
+      }
+    },
+    {
+      "id": "edgex:virtual-light-001",
+      "sourceId": "virtual-light-001",
+      "name": "virtual-light-001",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-arduino-light",
+      "node": "etri-dev0001-jetorn",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "arduino-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/virtual-light-001"
+      }
+    },
+    {
+      "id": "edgex:virtual-magnetic-001",
+      "sourceId": "virtual-magnetic-001",
+      "name": "virtual-magnetic-001",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-arduino-magnetic",
+      "node": "etri-dev0001-jetorn",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "arduino-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/virtual-magnetic-001"
+      }
+    },
+    {
+      "id": "edgex:virtual-temperature-001",
+      "sourceId": "virtual-temperature-001",
+      "name": "virtual-temperature-001",
+      "kind": "physical",
+      "type": "sensor",
+      "state": "running",
+      "profileId": "etri-arduino-temperature",
+      "node": "etri-dev0001-jetorn",
+      "reason": "EdgeX device service is UP and latest Core Data event is fresh",
+      "physicalSourceId": "arduino-001",
+      "controls": {
+        "owner": "edgex-management",
+        "href": "/management/devices/virtual-temperature-001"
+      }
+    },
+    {
+      "id": "node:etri-dev0001-jetorn",
+      "sourceId": "etri-dev0001-jetorn",
+      "name": "etri-dev0001-jetorn",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-dev0002-raspi5",
+      "sourceId": "etri-dev0002-raspi5",
+      "name": "etri-dev0002-raspi5",
+      "kind": "physical",
+      "type": "node",
+      "state": "unavailable",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-dev0003-raspi5",
+      "sourceId": "etri-dev0003-raspi5",
+      "name": "etri-dev0003-raspi5",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-dev0004-tedger",
+      "sourceId": "etri-dev0004-tedger",
+      "name": "etri-dev0004-tedger",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-dev0005-jetagx",
+      "sourceId": "etri-dev0005-jetagx",
+      "name": "etri-dev0005-jetagx",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-dev0006-raspi5",
+      "sourceId": "etri-dev0006-raspi5",
+      "name": "etri-dev0006-raspi5",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-ser0001-cg0msb",
+      "sourceId": "etri-ser0001-cg0msb",
+      "name": "etri-ser0001-cg0msb",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-ser0002-cgnmsb",
+      "sourceId": "etri-ser0002-cgnmsb",
+      "name": "etri-ser0002-cgnmsb",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-ser0003-cg0ms0",
+      "sourceId": "etri-ser0003-cg0ms0",
+      "name": "etri-ser0003-cg0ms0",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "node:etri-ser0004-cgnms0",
+      "sourceId": "etri-ser0004-cgnms0",
+      "name": "etri-ser0004-cgnms0",
+      "kind": "physical",
+      "type": "node",
+      "state": "running",
+      "controls": {
+        "owner": "kubernetes",
+        "actions": []
+      }
+    },
+    {
+      "id": "legacy:vd-demo-001",
+      "sourceId": "vd-demo-001",
+      "name": "CPU Iris 분류 시험 디바이스",
+      "kind": "virtual",
+      "type": "legacy",
+      "state": "stopped",
+      "profileId": "cpu",
+      "connections": [
+        {
+          "apiVersion": "augmentation.edge-ai.io/v1alpha1",
+          "kind": "DeviceAugmentation",
+          "metadata": {
+            "name": "jetson-vd-demo"
+          },
+          "spec": {
+            "targetDevice": {
+              "kind": "EdgeNode",
+              "name": "etri-dev0001-jetorn"
+            },
+            "bindings": {
+              "inferenceResource": "vd-demo-001"
+            },
+            "workloadPolicy": {
+              "mode": "manual_test",
+              "automaticOffloading": false,
+              "runtimeMigration": false
+            }
+          }
+        }
+      ],
+      "instances": [],
+      "reason": null,
+      "controls": {
+        "owner": "virtual-device-control",
+        "actions": [
+          "start",
+          "stop",
+          "infer"
+        ]
+      }
+    }
+  ],
+  "profiles": [],
+  "countingPolicy": {
+    "unit": "registered-node-edgex-device-or-independent-virtual-device",
+    "includesStopped": true,
+    "includesObservationTwins": false,
+    "includesPods": false
+  },
+  "mutationEnabled": true
+}

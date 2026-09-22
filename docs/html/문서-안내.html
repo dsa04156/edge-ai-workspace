@@ -58,6 +58,7 @@
 <li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계 — 후속 설계 기준</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
 <li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
 <li><a href="가상화-노드-오류-복구시간.html">가상화 노드 오류 복구시간</a></li>
@@ -77,23 +78,25 @@
 <li><a href="2026-09-02-성능지표8-주간-추진현황.html">성능지표 8 주간 추진현황</a></li>
 <li><a href="저장소-구조.html">저장소 구조</a></li>
 <li><a href="단계별-추진계획.html">단계별 추진계획</a></li>
+<li><a href="서비스형-가상-디바이스-설계.html">서비스형 가상 디바이스 설계 — 9월 15일 이력</a></li>
+<li><a href="물리-가상-디바이스-통합-화면.html">물리·가상 디바이스 통합 화면 — 9월 15일 이력</a></li>
 </ul>
 </nav>
       <article class="doc">
         <header class="doc-header">
           <p class="eyebrow">시작하기</p>
           <h1>문서 안내</h1>
-          <p class="subtitle">이 문서 사이트는 현재 운영 중인 Edge AI 플랫폼을 이해하고 장비·서비스를 연결하는 데 필요한 문서만 공개한다. 개발 일지…</p>
+          <p class="subtitle">이 문서 사이트는 현재 운영 중인 Edge AI 플랫폼을 이해하고 장비·서비스를 연결하는 데 필요한 문서와 채택한 후속 설계 기…</p>
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 문서-안내.md</span>
-            <span class="badge">수정: 2026-09-11 16:34</span>
-            <span class="badge">HTML 생성: 2026-09-11 16:52</span>
+            <span class="badge">수정: 2026-09-22 11:04</span>
+            <span class="badge">HTML 생성: 2026-09-22 11:37</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="문서-안내">문서 안내</h1>
-<p>이 문서 사이트는 현재 운영 중인 Edge AI 플랫폼을 이해하고 장비·서비스를 연결하는 데 필요한 문서만 공개한다. 개발 일지, 과거 실험, 구현 계획서는 검색과 탐색에서 제외한다.</p>
+<p>이 문서 사이트는 현재 운영 중인 Edge AI 플랫폼을 이해하고 장비·서비스를 연결하는 데 필요한 문서와 채택한 후속 설계 기준을 공개한다. 후속 설계는 운영 완료와 구분한다. 일반 개발 일지·과거 실험·구현 계획서는 제외하되 현재 계약 변경을 이해하는 데 필요한 9월 15일 VD 자료는 이력으로 표시한다.</p>
 <h2 id="어디서-시작할까">어디서 시작할까</h2>
 <div class="table-wrap"><table>
 <thead><tr>
@@ -120,6 +123,10 @@
 <tr>
 <td>지금 되는 것과 안 되는 것 확인</td>
 <td><a href="현재-구현-상태.html">현재 구현 상태</a></td>
+</tr>
+<tr>
+<td>서버측 가상 디바이스·Pod 차이, EdgeX 등록·서버 전환·100개 관리 설계</td>
+<td><a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계</a> — 후속 설계, 구현 지침 포함</td>
 </tr>
 <tr>
 <td>새 물리 장비 연결</td>
@@ -193,6 +200,8 @@
 <h2 id="문서가-따르는-원칙">문서가 따르는 원칙</h2>
 <ol><li>실제 코드, root Kustomize, 테스트와 live read-only 증거를 우선한다.</li><li>EdgeX는 물리 디바이스 inventory·schema·상태·telemetry의 권위다.</li><li>KubeEdge/Kubernetes는 노드와 workload의 권위다.</li><li>대시보드는 두 권위의 값을 읽고 연결 관계와 판단 근거를 보여준다.</li><li>서비스 설계 dry-run, 제한된 Runtime 검증, 운영 traffic 전환과 범용 offloading을 서로</li></ol>
 <p>구분하고, 격리 시험이나 로컬 구현을 운영 완료 기능처럼 설명하지 않는다.</p>
+<ol><li>서버측 VD 후속 설계는 EdgeX 등록, RuntimeService 서버 슬롯 연결, Operator 실행 제어로 구분한다.</li></ol>
+<p>9월 15일 SQLite 등록부와 9월 16일 철회 기록을 새 계약의 운영 근거로 사용하지 않는다.</p>
 <ol><li>비밀번호, token, URL userinfo와 Secret 값은 문서에 기록하지 않는다.</li></ol>
 <h2 id="문서-작성-eli5-지침">문서 작성 ELI5 지침</h2>
 <p>처음 보는 독자도 이해해야 하는 기술·운영·KPI 문서는 필요할 때 <code>ELI5</code>(초등학생에게 설명하듯) 요약을 먼저 둔다. 짧은 일상 비유로 <strong>무엇이 문제였는지, 무엇을 바꿨는지, 그래서 무엇이 달라졌는지</strong>를 설명한 뒤, 같은 문서에서 정확한 측정 경계·수치·근거·한계를 확인할 수 있게 연결한다.</p>

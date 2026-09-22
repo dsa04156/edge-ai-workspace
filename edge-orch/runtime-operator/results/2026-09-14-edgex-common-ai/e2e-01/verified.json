@@ -1,0 +1,23 @@
+{
+  "request_id": "req-bb5aa2498d894c3a9238d4f395755a7d",
+  "actual_node": "etri-dev0001-jetorn",
+  "model": {
+    "name": "llama3.2:1b-instruct-q8_0",
+    "version": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878"
+  },
+  "performance": {
+    "queue_ms": 4.5,
+    "inference_ms": 465.859,
+    "total_ms": 496.566,
+    "scope": "gateway_receipt_to_result_before_journal_commit"
+  },
+  "result": {
+    "status": "success",
+    "output": {
+      "text": "The temperature reading is 344 degrees raw."
+    },
+    "reason": null
+  },
+  "api_readback_equal": true,
+  "synthetic": false
+}

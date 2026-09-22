@@ -1,0 +1,90 @@
+[
+  {
+    "name": "rt-06627ceab787-f12bf45d7558-7f958b5fdf-hqkgc",
+    "uid": "55022035-a92c-4a41-8d12-36acc9668303",
+    "node": "etri-ser0001-cg0msb",
+    "resources": {
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      }
+    },
+    "measured": {
+      "cgroup": {
+        "/sys/fs/cgroup/cpu.max": "25000 100000",
+        "/sys/fs/cgroup/memory.max": "134217728"
+      },
+      "nvidiaDevicePresent": false
+    }
+  },
+  {
+    "name": "rt-7fd7e18629bd-f12bf45d7558-758fdbc59f-65gcn",
+    "uid": "d00604ba-1101-47b9-b8f6-18859f1e3d9d",
+    "node": "etri-ser0001-cg0msb",
+    "resources": {
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      }
+    },
+    "measured": {
+      "cgroup": {
+        "/sys/fs/cgroup/cpu.max": "25000 100000",
+        "/sys/fs/cgroup/memory.max": "134217728"
+      },
+      "nvidiaDevicePresent": false
+    }
+  },
+  {
+    "name": "rt-a9f33b3fe4cc-f12bf45d7558-84fc89f4d7-bpf9z",
+    "uid": "c3ab04f4-22c4-4d33-a067-cebedc7a4c0a",
+    "node": "etri-ser0001-cg0msb",
+    "resources": {
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      }
+    },
+    "measured": {
+      "cgroup": {
+        "/sys/fs/cgroup/cpu.max": "25000 100000",
+        "/sys/fs/cgroup/memory.max": "134217728"
+      },
+      "nvidiaDevicePresent": false
+    }
+  },
+  {
+    "name": "rt-e0d89c75483f-f12bf45d7558-6ff7d49c67-b58fs",
+    "uid": "fb7beca0-1a18-4617-9899-f37b73b1f79f",
+    "node": "etri-ser0001-cg0msb",
+    "resources": {
+      "limits": {
+        "cpu": "250m",
+        "memory": "128Mi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "64Mi"
+      }
+    },
+    "measured": {
+      "cgroup": {
+        "/sys/fs/cgroup/cpu.max": "25000 100000",
+        "/sys/fs/cgroup/memory.max": "134217728"
+      },
+      "nvidiaDevicePresent": false
+    }
+  }
+]

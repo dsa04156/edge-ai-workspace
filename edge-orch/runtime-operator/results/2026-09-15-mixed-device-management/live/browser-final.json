@@ -1,0 +1,17 @@
+{
+  "url": "http://aggregator.192.168.0.56.sslip.io/#devices",
+  "counts": [
+    112,
+    112,
+    21,
+    89,
+    0
+  ],
+  "width": 390,
+  "documentWidth": 390,
+  "scrollClientHeight": 278,
+  "scrollOuterHeight": 280,
+  "selected": "qa-mixed100-002",
+  "consoleErrors": 0,
+  "consoleWarnings": 0
+}

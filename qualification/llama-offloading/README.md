@@ -1,5 +1,10 @@
 # Llama 3.2 1B 요청 단위 동적 오프로딩 자격시험
 
+> 운영 상태: 2026-09-17 사용자 요청으로 이전 `llama-offload-eval`의 worker·proxy·demo와
+> 접속 리소스를 제거했다. 기존 PVC·설정·소스·시험 근거는 보존했다. 현재 공통 RuntimeService가
+> 사용하는 `llama-continuity-test`는 유지하며, 아래 자격시험 기록과 운영 상태를 구분한다.
+> [정리 기록](../../kubeedge-tools/results/cluster-cleanup-20260917/README.md).
+
 이 디렉터리는 Llama 3.2 1B 요청 라우팅, COLD/CACHED/ACTIVE 수명주기와 노드별 포화점을
 검증하는 **격리된 자격시험 프로토타입**이다. 운영 대시보드 기능, 기존 AI 서비스 배포
 경로, 실행 중 generation 이동 또는 layer 분할 기능이 아니다.
