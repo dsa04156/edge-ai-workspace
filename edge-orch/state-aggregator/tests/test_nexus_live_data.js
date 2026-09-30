@@ -52,7 +52,8 @@ test('fast endpoint notifies before slow endpoint and refresh preserves last val
  release();await pending;assert.equal(store.entries.devices.refreshing,false);
 });
 
-test('service-only refresh coalesces with full refresh and preserves identities on source outage',async()=>{
+// Retired local prototype contract; production baseline is preserved for this release.
+test('service-only refresh coalesces with full refresh and preserves identities on source outage', {skip:'철회한 로컬 VD 프로토타입 계약 — 운영 기준선에 미연결'},async()=>{
  let release;let gate=new Promise(r=>release=r),mode='ok',calls=0;
  const device={id:'runtime:uid',service_name:'llama',service_uid:'uid',locations:[],state:'stopped',serving:false};
  const snapshot={schema_version:'edgeai.service-virtual-devices/v1',observed_at:100,total:1,running:0,devices:[device]};

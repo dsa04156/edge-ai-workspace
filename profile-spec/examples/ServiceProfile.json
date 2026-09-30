@@ -1,0 +1,70 @@
+{
+  "apiVersion": "edgeai.etri/v1",
+  "kind": "ServiceProfile",
+  "metadata": {
+    "name": "example-inference",
+    "version": "1.0"
+  },
+  "spec": {
+    "workload": {
+      "type": "inference"
+    },
+    "runtime": {
+      "variants": [
+        {
+          "name": "arm64-cuda",
+          "architecture": "arm64",
+          "framework": "pytorch",
+          "backend": "cuda",
+          "containerImage": "example.invalid/inference@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "modelArtifact": "example-only-unverified",
+          "accelerator": {
+            "type": "gpu",
+            "vendor": "nvidia"
+          }
+        }
+      ]
+    },
+    "resources": {
+      "minimum": {
+        "cpu": {
+          "cores": 2
+        },
+        "memory": {
+          "capacity": "4Gi"
+        },
+        "accelerator": {
+          "memory": "3Gi"
+        }
+      },
+      "recommended": {
+        "cpu": {
+          "cores": 4
+        },
+        "memory": {
+          "capacity": "6Gi"
+        },
+        "accelerator": {
+          "memory": "4Gi"
+        }
+      },
+      "maximum": null
+    },
+    "qos": {
+      "latency": {
+        "targetMs": 1000,
+        "maximumMs": 2000,
+        "scope": "example-end-to-end"
+      }
+    },
+    "scheduling": {
+      "locality": "local-first",
+      "offloading": {
+        "enabled": true
+      },
+      "migration": {
+        "enabled": false
+      }
+    }
+  }
+}

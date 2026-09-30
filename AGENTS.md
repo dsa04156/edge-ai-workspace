@@ -37,10 +37,21 @@
   스케줄러는 세부2 등 연계 대상의 책임이며 자체 구현을 선행조건으로 두지 않는다.
 - 새 저장소를 만들지 않고 현재 저장소의 `profile-spec/`를 독립 개발 영역으로 사용한다.
   기존 수집·관측·Runtime Operator·대시보드를 재사용하며 Schema와 읽기 전용 연결부터 진행한다.
+  Schema 원본은 `profile-spec/schemas/`, dashboard bundle은 `profile-spec/build_bundle.py`로 생성한다.
+  Profile 검증·관측·제한 비교 API는 Registry 등록·실행·성능 자격이 아니다.
+- ② Device Manager는 **기존 NEXUS 대시보드의 왼쪽 메뉴**에 `디바이스 관리`로 추가한다.
+  메뉴는 운영 현황·디바이스 관리만 유지한다. 기존 디바이스 등 제거한 메뉴를
+  임의 복구하지 않는다. 바깥 네비게이션·별도 브라우저 탭·dashboard iframe을 만들지 않는다.
+  로컬 검증은 `app/device_manager_preview.py`에서 같은 NEXUS UI와 기존 운영 원본의 GET을 사용한다.
+  수집/실행 controller를 기동하거나 운영 쓰기를 전달하지 않는다. 저장 계약은 `app/device_manager.py`다.
+  DeviceProfile 불변 버전·Node UID 참조만 로컬에 저장하고 EdgeX/Kubernetes/RuntimeService는 읽는다.
+  동일 이름의 교체 UID로 자동 이전하지 않고 등록·연결만으로 실행 자격을 부여하지 않는다.
+  기존 VD/logical registry 재개·Workflow·배치 실행으로 확대하지 않는다. 2026-09-30 사용자 승인으로
+  배포된 운영 현황을 보존한 Device Manager 운영 배포와 main 통합을 진행한다.
 - Profile은 장비명 `compatibleDevices` 나열 대신 Capability 조건으로 정의한다. 정적 Profile과
   RuntimeState, Profile과 실제 인스턴스를 분리하고 기존 실행·성능 검증 근거를 유지한다.
-- 다음 산출물은 DeviceProfile·ServiceProfile·VirtualDeviceProfile·RuntimeState의 네 가지
-  v1 Schema 초안·예제·검증·기존 필드 대응표다. DB·REST API·새 실행 제어기부터 만들지 않는다.
+- 네 가지 v1 Schema·예제·필드 대응표를 기준으로 실장비 정적 능력·서비스 요구량의 근거와
+  버전 참조 등록 계약을 보강한다. 조회·검증 API와 Registry CRUD·새 실행 제어기를 구분한다.
   VD 설계 M0~M6는 7단계의 세부 참고로 두며 전체 개발의 시작점으로 삼지 않는다.
 - 아래 9월 15일 범위와 검증 근거는 기존 기반이다. 이 순서 기록을 신규 구현·실장비 시험·배포
   완료로 해석하지 않고, 9월 28일 철회한 VD·수동 Workflow 프로토타입도 자동 재개하지 않는다.

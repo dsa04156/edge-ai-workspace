@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:edgeai:profile:v1:DeviceProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "apiVersion": {
+      "const": "edgeai.etri/v1"
+    },
+    "kind": {
+      "const": "DeviceProfile"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]{0,127}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ]
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "deviceClass": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253
+        },
+        "type": {
+          "enum": [
+            "physical",
+            "unknown"
+          ]
+        },
+        "hardware": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "architecture": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "arm64",
+                    "amd64"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "cpu": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "cores": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "cores"
+              ]
+            },
+            "memory": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "capacity": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                      "maxLength": 32
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "capacity"
+              ]
+            },
+            "accelerators": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "type": {
+                        "enum": [
+                          "gpu",
+                          "npu"
+                        ]
+                      },
+                      "vendor": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "model": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "memory": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                            "maxLength": 32
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "memoryMode": {
+                        "enum": [
+                          "dedicated",
+                          "shared",
+                          "unknown"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "type",
+                      "vendor",
+                      "model",
+                      "memory",
+                      "memoryMode"
+                    ]
+                  },
+                  "uniqueItems": true
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "architecture",
+            "cpu",
+            "memory",
+            "accelerators"
+          ]
+        },
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "frameworks": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "uniqueItems": true
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "backends": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "uniqueItems": true
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "frameworks",
+            "backends"
+          ]
+        },
+        "capabilities": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "communication": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "protocols": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "uniqueItems": true
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "protocols"
+          ]
+        }
+      },
+      "required": [
+        "deviceClass",
+        "type",
+        "hardware",
+        "runtime",
+        "capabilities",
+        "communication"
+      ]
+    }
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ]
+}

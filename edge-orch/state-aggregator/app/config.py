@@ -25,6 +25,8 @@ def _env_csv(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
 
 
 class Settings(BaseModel):
+    device_manager_enabled: bool = Field(default_factory=lambda: _env_bool("DEVICE_MANAGER_ENABLED"))
+    device_manager_read_base_url: str = Field(default_factory=lambda: os.getenv("DEVICE_MANAGER_READ_BASE_URL", ""))
     common_runtime_demo_enabled: bool = Field(default_factory=lambda: _env_bool("COMMON_RUNTIME_DEMO_ENABLED"))
     common_runtime_url: str = Field(default_factory=lambda: os.getenv(
         "COMMON_RUNTIME_URL", "http://runtime-gateway.platform-runtime.svc.cluster.local:8080"))

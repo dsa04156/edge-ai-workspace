@@ -28,6 +28,13 @@ kubectl kustomize k8s >/dev/null
 - `app/edgex.py`, `kube.py`, `prometheus.py` — 권위별 외부 reader
 - `app/service.py`, `normalizer.py`, `models.py` — 상태 계산과 typed read model
 - `app/device_management*.py` — 승인된 등록 경로; Kubernetes 쓰기는 Adapter Controller가 소유
+- `app/device_manager.py`, `app/static/nexus/device-manager.*` — 로컬 DeviceProfile 버전·Node UID
+  연결 메타데이터와 원본 조회. `DEVICE_MANAGER_ENABLED` 기본값은 false이며 장비/실행체
+  등록부나 Kubernetes/EdgeX 쓰기 API로 확장하지 않는다. 계약은 `../../profile-spec/디바이스-매니저.md`.
+- `app/device_manager_preview.py` — 기존 NEXUS UI의 로컬 검증 진입점.
+  `platform.js`의 왼쪽 메뉴에 `디바이스 관리`를 추가한다. 별도 shell이나 iframe은 사용하지 않는다.
+  기존 운영 원본의 GET만 중계하고 Profile/연결은 로컬 DB에 저장한다. `app.main`이나 수집/실행
+  controller를 시작하지 않으며 운영 변경 요청을 전달하지 않는다.
 - `app/static/` — vanilla JS/CSS 운영 UI와 브라우저 내부 서비스 설계 dry-run
 - `app/config/*.json` — Git 기반 service/adapter/instance 계약
 - `app/common_runtime.py`, `app/common_runtime_demo.py` — 공통 runtime 관측과 승인된 demo API 연결

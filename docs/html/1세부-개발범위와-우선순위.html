@@ -91,8 +91,8 @@
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 1세부-개발범위와-우선순위.md</span>
-            <span class="badge">수정: 2026-09-30 15:02</span>
-            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
+            <span class="badge">수정: 2026-09-30 17:11</span>
+            <span class="badge">HTML 생성: 2026-09-30 19:44</span>
           </div>
         </header>
         <div class="doc-body">
@@ -179,7 +179,7 @@
 <p>이 순서가 전체 개발 우선순위다. <a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계</a>의 M0~M6는 ⑦ 단계 안의 세부 설계로 참고하며, VD를 전체 개발의 첫 단계로 앞당기지 않는다. 서버 자원 제공 API와 기존 Operator의 실행 책임을 정렬한 뒤 구체화한다. 9월 28일 철회한 VD·수동 Workflow 프로토타입을 이 문서 갱신으로 재개하지 않는다.</p>
 <p>현재 <code>서비스 설계</code> 화면은 dry-run이다. ③과 ⑧은 후속 구현 대상이며 legacy Workflow 코드를 현재 기능으로 승격하지 않는다. 실제 구현·검증 근거는 <a href="현재-구현-상태.html">현재 구현 상태</a>, 범위는 <a href="프로젝트-범위.html">프로젝트 범위</a>, 경로와 소유권은 <a href="저장소-구조.html">저장소 구조</a>를 따른다. 현장 옥동 AI 2종의 입력·출력·모델 계약 확정 과제는 계속 유지한다.</p>
 <h2 id="기존-저장소에서-profile부터-확장-2026-09-30-확정">기존 저장소에서 Profile부터 확장 — 2026-09-30 확정</h2>
-<p>새 저장소를 만들지 않고 현재 저장소 안의 <strong><code>profile-spec/</code></strong>를 독립 개발 영역으로 사용한다. 기존 EdgeX 수집·노드 관측·Runtime Operator·대시보드를 기반으로 확장한다. 지금 확정한 것은 개발 위치와 접근 방식이며, 해당 디렉터리와 Schema 코드를 생성한 상태는 아니다.</p>
+<p>새 저장소를 만들지 않고 현재 저장소 안의 <strong><code>profile-spec/</code></strong>를 독립 개발 영역으로 사용한다. 기존 EdgeX 수집·노드 관측·Runtime Operator·대시보드를 기반으로 확장한다. <a href="../profile-spec/README.md">Profile v1</a>에 네 가지 Schema·예제·필드 대응표와 노드 관측 adapter를 구현했다. NEXUS <code>/#profiles</code>에서 명세 검증·제한 비교를 제공하며 Registry와 실행은 후속이다.</p>
 <p>첫 개발 묶음은 다음 순서로 진행한다.</p>
 <ol><li>기존 RuntimeService·ServiceDescriptor·노드 관측과 새 개념의 <strong>필드 대응표</strong> 작성</li><li><strong>DeviceProfile·ServiceProfile·VirtualDeviceProfile·RuntimeState</strong> 네 가지 Schema 초안 작성</li><li>정상·누락·불일치 예제와 단위·참조·버전·값 검증</li><li>기존 정보를 새 규격으로 변환하는 <strong>읽기 전용 연결부</strong> 작성</li><li>실제 배치를 바꾸지 않고 후보·제외 이유를 비교한 뒤 기존 배치 로직과 연결 범위 결정</li></ol>
 <p><code>profile-spec/</code>의 초기 산출물은 Schema·예제·검증 코드·필드 대응표다. YAML 예제와 JSON Schema의 검증 규칙을 따로 중복 관리하지 않는다. 초기 정적 정의는 버전 있는 파일로 관리하고 Profile Manager REST API·Registry DB는 계약과 기존 원본의 소유권을 정리한 후 개발한다. Profile Registry가 EdgeX·Kubernetes의 디바이스 원본을 복제한 별도 관리 원장이 되지 않도록 한다.</p>
@@ -226,7 +226,7 @@
 <p>VD의 물리 기능/인터페이스 표현과 dynamic binding 제안이 기존 RuntimeService 서버 슬롯의 고유 연결 규칙에 미치는 영향은 아직 상세 계약 확정 전이다. 기존 규칙을 조용히 바꾸거나 <code>binding.mode: dynamic</code> 선언만으로 동적 연결·에뮬레이션을 지원한다고 설명하지 않는다. 사용자가 제시한 장비 사양·자원 수치·이미지·API 예시는 명세 초안이며 실제 검증값으로 등록하지 않는다.</p>
 <p>첫 인수 기준은 <strong>기존 노드·서비스 정보를 새 Schema로 표현하고 후보·제외 이유를 설명할 수 있음</strong>이다. 여러 기관이 독립적으로 명세를 배포·버전 관리해야 할 때 별도 Profile 명세 저장소 분리를 검토한다.</p>
 <h2 id="진행-기록과-다음-작업">진행 기록과 다음 작업</h2>
-<p><strong>현재 단계는 ①의 방향·구조 정리 완료, Schema 코드 구현 전</strong>이다. 다음 작업은 기존 필드 대응표와 네 가지 v1 Schema 초안·예제·검증이다. 진행 중·완료·보류, 검증 근거, 커밋/배포 여부와 다음 작업은 <a href="현재-구현-상태.html">현재 구현 상태</a>의 최신 체크포인트에 계속 기록한다. 이 문서는 확정한 방향·순서·인수 기준을 관리하며 일일 진행 기록은 중복하지 않는다.</p>
+<p><strong>현재 단계는 ① Schema 초안을 기반으로 ② Device Manager의 로컬 첫 기능을 구현한 상태</strong>다. <a href="../profile-spec/디바이스-매니저.md">디바이스 매니저</a>에서 실제 장비 조회, Profile 불변 버전 등록·연결과 상태·실행 서비스 조회를 제공한다. 정적 사양·서비스 요구량의 근거 보강은 계속 필요하다. 현재 비교는 architecture·예약 여유만 설명하며 전체 Profile Matcher·Scheduler 완료가 아니다. 진행 중·완료·보류, 검증 근거, 커밋/배포 여부와 다음 작업은 <a href="현재-구현-상태.html">현재 구현 상태</a>의 최신 체크포인트에 계속 기록한다. 이 문서는 확정한 방향·순서·인수 기준을 관리하며 일일 진행 기록은 중복하지 않는다.</p>
         </div>
       </article>
       <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#목표와-책임-경계">목표와 책임 경계</a></li>

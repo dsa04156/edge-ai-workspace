@@ -1,0 +1,46 @@
+{
+  "apiVersion": "edgeai.etri/v1",
+  "kind": "DeviceProfile",
+  "metadata": {
+    "name": "example-arm64-gpu",
+    "version": "1.0"
+  },
+  "spec": {
+    "deviceClass": "edge-ai-device",
+    "type": "physical",
+    "hardware": {
+      "architecture": "arm64",
+      "cpu": {
+        "cores": 6
+      },
+      "memory": {
+        "capacity": "8Gi"
+      },
+      "accelerators": [
+        {
+          "type": "gpu",
+          "vendor": "nvidia",
+          "model": "example",
+          "memory": "8Gi",
+          "memoryMode": "shared"
+        }
+      ]
+    },
+    "runtime": {
+      "frameworks": [
+        "pytorch"
+      ],
+      "backends": [
+        "cuda"
+      ]
+    },
+    "capabilities": {
+      "camera": true
+    },
+    "communication": {
+      "protocols": [
+        "mqtt"
+      ]
+    }
+  }
+}

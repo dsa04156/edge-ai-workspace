@@ -87,16 +87,138 @@
         <header class="doc-header">
           <p class="eyebrow">시작하기</p>
           <h1>현재 구현 상태</h1>
-          <p class="subtitle">사용자가 현재 브랜치 agent/edgex-central-docs의 누적 변경을 커밋·push하도록 요청했다. 대상은 1세부 1…</p>
+          <p class="subtitle">왼쪽 메뉴는 앞서 확정한 운영 현황·디바이스 관리만 유지한다.</p>
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-09-30 15:24</span>
-            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
+            <span class="badge">수정: 2026-09-30 19:44</span>
+            <span class="badge">HTML 생성: 2026-09-30 19:44</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-구현-상태">현재 구현 상태</h1>
+<h2 id="디바이스-관리-운영-배포-main-통합-진행-2026-09-30">디바이스 관리 운영 배포·main 통합 진행 — 2026-09-30</h2>
+<ul><li>사용자 승인: 배포된 운영 현황을 유지하고 디바이스 관리만 추가해 운영 배포한 뒤 main에 합친다.</li></ul>
+<p>왼쪽 메뉴는 앞서 확정한 운영 현황·디바이스 관리만 유지한다.</p>
+<ul><li>저장소 정합성: 운영 이미지 <code>6359ca81…</code>와 로컬 소스가 달랐다. 운영 현황·원본 reader·기존 화면은</li></ul>
+<p>운영 이미지의 파일을 기준으로 맞추고 Device Manager 화면/API/Schema만 연결했다. 철회된 VD prototype API router를 다시 활성화하지 않는다. 과거 소스는 Git 이력에 보존한다.</p>
+<ul><li>빌드: 기존 immutable 이미지 위에 관리 기능에 필요한 10개 파일과 Schema 검증 의존성만 추가했다.</li></ul>
+<p><code>scripts/build-device-manager-overlay.sh</code>와 <code>results/2026-09-30-device-manager/</code>에 재현·검증 근거를 둔다. 운영 현황 관련 9개 파일의 SHA256이 기존 배포와 일치한다.</p>
+<ul><li>사전 검사: Python 전체 496개 통과. JS 323개 통과, 철회 prototype 계약 3개는 이유를 명시해 보존·제외했다.</li></ul>
+<p>후보 이미지: <code>sha256:712782e162aca26a41e7b2c53b58c137c77e7c70621b6bbba1cc7af85129ef28</code>.</p>
+<ul><li>진행: 격리된 임시 Pod에서 controller lifespan 없이 기동·실제 장비 조회를 확인한다. 배포 및 main 통합은</li></ul>
+<p>아직 완료 전이다. Argo CD 기존 image override·환경 patch를 보존해 반영한다.</p>
+<ul><li>main 통합 시 과거 브랜치 변경까지 일괄 재배포하는 CI를 피하기 위해 <code>[skip ci]</code> 커밋으로 통합하고,</li></ul>
+<p>이번에 검증한 dashboard 이미지만 기존 Argo CD Application을 통해 배포한다. 다른 서비스 재배포 없음.</p>
+<h2 id="메뉴-정리-공용-프로파일-상단-이동-반응형-보완-2026-09-30">메뉴 정리·공용 프로파일 상단 이동·반응형 보완 — 2026-09-30</h2>
+<ul><li>완료(로컬): 왼쪽 메뉴에서 서비스 구성도·디바이스·데이터·AI 서비스·OFFLOAD DEMO·장애 이력·</li></ul>
+<p>검증 설정을 제거했다. 사용자 후속 정정에 따라 자원·오프로딩도 제거하고 <strong>운영 현황·디바이스 관리만</strong> 유지한다. 메뉴 정리이며 기존 API·실행 데이터 삭제나 운영 서비스 변경은 아니다.</p>
+<ul><li>공용 프로파일을 하단 고급 disclosure에서 상단 <strong>연산 장비 / 센서·입력 / 공용 프로파일</strong>의</li></ul>
+<p>세 번째 보기로 옮겼다. 버전 수·등록·새 버전·미사용 버전 삭제·장비별 연결 계약을 유지한다.</p>
+<ul><li>반응형: 기존 장비 표는 모바일 가용 폭 312px에서 최소470px을 유지해 열이 가려졌다.</li></ul>
+<p>최소 폭을 제거하고 700px 이하에서 장비·센서의 전체 항목을 세로로 표시한다. 네비게이션과 상단 버튼은 줄바꿈하며 좁은 화면의 헤더·입력 폼도 가용 폭 안에 배치한다.</p>
+<ul><li>검증: 320/390/600/700/768/1024/1440px × 장비/센서/프로파일의 페이지·표·메뉴 가로 overflow 없음.</li></ul>
+<p>사양 편집→공용 프로파일→복귀 시 입력 유지 확인, 시험 입력은 저장 없이 취소했다. Python 20개·JS 326개 통과. <code>output/playwright/manager-responsive-mobile.png</code>, <code>manager-profiles-toolbar-desktop.png</code>에 시각 근거를 남겼다.</p>
+<ul><li>반영: 로컬 <code>http://192.168.0.56:8768/#device-manager</code>. 운영 배포·커밋/push 없음.</li></ul>
+<h2 id="기존-nexus-왼쪽-메뉴에-디바이스-관리-추가-2026-09-30">기존 NEXUS 왼쪽 메뉴에 디바이스 관리 추가 — 2026-09-30</h2>
+<p>최종 요구는 <strong>기존 대시보드의 왼쪽 네비게이션에 디바이스 관리를 별도 메뉴로 추가</strong>하는 것이다. 앞선 별도 shell·바깥 네비게이션·운영 dashboard iframe 해석은 잘못됐으며 모두 제거했다.</p>
+<ul><li>완료(로컬): 기존 NEXUS <code>platform.js</code>에 <code>#device-manager</code> 메뉴·페이지를 추가했다.</li></ul>
+<p>기존 <code>디바이스</code> 바로 아래에 표시하며 운영 현황·다른 기존 메뉴는 유지한다. <code>index.html</code>에서 관리 JS/CSS를 로드하고 <code>main.py</code>에 관리 router를 연결했다.</p>
+<ul><li>검증 앱: <code>app/device_manager_preview.py</code>가 같은 NEXUS UI를 제공한다. 기존 운영 원본의</li></ul>
+<p><code>/state/*</code>, <code>/api/*</code> GET만 중계하고 운영 쓰기는 전달하지 않는다. 수집/실행 controller는 시작하지 않는다. 실제 장비 조회·기존 Profile 1개/연결 1개와 동일 로컬 DB를 유지한다.</p>
+<ul><li>검증: Python 20개·JS 326개 통과. 브라우저에서 sidebar 1개/iframe 0개, 운영 현황↔관리 전환,</li></ul>
+<p>편집 입력 유지, 뒤로/앞으로·직접 새로고침, 390px overflow 없음 확인. 시험 편집은 저장 없이 취소했다. 근거: <code>output/playwright/nexus-device-manager-desktop.png</code>, <code>nexus-device-manager-mobile.png</code>.</p>
+<ul><li>한계: 기존 운영 원본의 <code>/api/managed-devices</code>, <code>/api/service-virtual-devices</code>는 404로 응답한다.</li></ul>
+<p>로컬 검증 앱도 원본 오류를 보존하며 해당 기능을 정상 동작으로 보고하지 않는다.</p>
+<ul><li>접속: <code>http://192.168.0.56:8768/#device-manager</code>. 운영 배포·커밋/push는 수행하지 않았다.</li></ul>
+<p>아래 독립 웹 분리 기록의 UI 구조는 이 절로 대체한다.</p>
+<h2 id="device-manager-독립-웹-분리-장비-조회-유지-2026-09-30">Device Manager 독립 웹 분리·장비 조회 유지 — 2026-09-30</h2>
+<p>사용자가 “기존 대시보드와 화면·메뉴만 분리하고 장비 조회는 유지”로 범위를 확정했다.</p>
+<ul><li>완료(로컬): <code>app/device_manager_preview.py</code> factory와 <code>device-manager-standalone.*</code>를 추가했다.</li></ul>
+<p>기존 sidebar·현황 탭·서비스/VD/Workflow 화면과 dashboard JS를 로드하지 않는다. 기존 dashboard의 Device Manager 메뉴·asset·router 연결도 제거했다. 독립 앱에는 관리 router와 허용 asset만 있으며 <code>/dashboard</code>, <code>/classic</code>, 기존 실행 API는 없다.</p>
+<ul><li>실행: 기존 스크립트가 독립 앱을 <code>0.0.0.0:8768</code>에 실행한다. <code>http://192.168.0.56:8768/</code>로 접속한다.</li></ul>
+<p>Node UID는 기존 Kubernetes reader, 자원·센서·RuntimeService는 지정 운영 aggregator의 GET을 유지한다. <code>app.main</code>이나 수집/실행 controller를 시작하지 않는다.</p>
+<ul><li>데이터: 같은 <code>~/.local/state/edgeai-device-manager-preview</code> DB를 사용한다. 실제 조회 노드 10개·</li></ul>
+<p>EdgeX 등록 항목 13개·source 오류 0, 기존 Profile 1개·장비 연결 1개 유지 확인. 테스트 쓰기는 fixture만 사용했다.</p>
+<ul><li>검증: 관련 Python 19개·JavaScript 326개 통과. 독립 asset 전체 응답, 기존 route 404,</li></ul>
+<p>브라우저 관리 API만 요청, 저장 후 재조회·센서 조회·PC/모바일 overflow 없음 확인. <code>output/playwright/device-standalone-desktop.png</code>, <code>device-standalone-mobile.png</code>.</p>
+<ul><li>기존 현황 탭의 내부 DNS 오류는 독립 웹에서 해당 탭을 로드하지 않으므로 재현 경로에서 제외된다.</li></ul>
+<p>원본 reader 오류를 수정했다고 설명하지 않는다. 운영 배포·커밋/push는 수행하지 않았다.</p>
+<h2 id="디바이스-운영-흐름-조회-우선-필요할-때-편집-2026-09-30">디바이스 운영 흐름: 조회 우선·필요할 때 편집 — 2026-09-30</h2>
+<p>현업 관점 검토 후 사용자가 조회 우선, 자동 이름/버전 제안, 관측/수동값 분리, 고급 Profile 관리를 승인했다.</p>
+<ul><li>완료(로컬): 장비 선택 시 현재 상태→사양→실행 서비스를 조회하고 <strong>사양 편집</strong>에서만 폼을 연다.</li></ul>
+<p><strong>상태·사양</strong> 탭이 기본 진입점이다. 사양 저장 후 조회로 복귀하며 취소는 해당 미저장 초안을 버린다.</p>
+<ul><li>사양 표에 자동 관측/수동 등록 열과 관측 조회/등록 시각을 분리했다. 보고 용량은 제조사 총용량이</li></ul>
+<p>아니며 등록 시각은 하드웨어 검증 시각이 아니다. 기존 수동 사양은 관측 refresh로 덮어쓰지 않는다.</p>
+<ul><li>Profile 이름은 architecture별 일반 초안, 버전은 기존 이름의 다음 버전으로 제안한다. 이름·버전,</li></ul>
+<p>연결·해제, 공용 Profile 추가/삭제는 고급 disclosure로 옮겼다. 버전 저장·연결 계약은 유지한다.</p>
+<ul><li>검증: JavaScript 326개 통과. fixture 브라우저에서 선택 시 편집 비활성, 자동 이름/버전,</li></ul>
+<p>refresh/장비 전환 후 초안 유지, 저장 후 조회 복귀, 취소, 자동 8 CPU/등록 4 cores 분리, 접힌 고급 필드의 입력 오류 노출을 확인했다. PC/모바일 조회·편집 화면 검토, 가로 넘침 없음·console 오류 0. 스크린샷 <code>output/playwright/device-readfirst-desktop.png</code>, <code>device-readfirst-mobile.png</code>, <code>device-readfirst-real.png</code>.</p>
+<ul><li>실제 로컬 8768 화면에 반영. 사용자 저장 데이터·운영 배포·Git 커밋/push는 변경하지 않았다.</li></ul>
+<p>이전 현황·연결 탭의 내부 DNS 조회 오류는 별도 미해결 사항으로 유지한다.</p>
+<h2 id="디바이스-메뉴-통합-편집-화면-정리-2026-09-30">디바이스 메뉴 통합·편집 화면 정리 — 2026-09-30</h2>
+<p>사용자가 별도 프로파일 화면 제거와 디바이스 화면 정리를 요청했다.</p>
+<ul><li>완료(로컬): 프로파일·장비 관리 메뉴를 디바이스 한 진입점으로 통합. 내부 사양·프로파일 /</li></ul>
+<p>현황·연결 탐색, 기존 <code>/#profiles</code> 주소의 관리 화면 이동, 미사용 명세 화면 asset 로딩 제거. Schema·검증 API와 등록 데이터는 유지한다.</p>
+<ul><li>UI: 기본 사양 우선, 가속기 세부·실행환경/통신 접기, 장비 선택 안내, 목록 스크롤과 desktop</li></ul>
+<p>목록 위치 유지, 숨김 상태가 CSS에 의해 무시되던 설계 관점 버튼 수정. Profile 편집·연결 기능은 그대로다.</p>
+<ul><li>검증: 관련 Python 17개·JavaScript 324개 통과. fixture에서 접힌 실행환경 값의 저장·연결·해제·삭제,</li></ul>
+<p>과거 주소 이동 확인. 실제 PC 1440px/모바일 390px overflow 없음, 디바이스 메뉴 활성·탭 이동 확인. 스크린샷 <code>output/playwright/device-polish-desktop.png</code>, <code>device-polish-mobile.png</code>.</p>
+<ul><li>별도 발견 사항: 기존 현황·연결 탭의 로컬 <code>/state/devices</code>, <code>/state/service-resource-profiles</code>는</li></ul>
+<p>클러스터 내부 주소 DNS 접근 실패로 HTTP 500을 반환했다. 사양 관리의 지정 운영 aggregator 읽기 경로와 별개다. 이번에 원본 reader나 운영 설정을 변경하지 않았으며 전체 현황 조회 정상으로 주장하지 않는다.</p>
+<ul><li>로컬 8768 반영. 운영 배포·커밋/push 없음. 사용자 입력 Profile과 장비 연결은 변경하지 않았다.</li></ul>
+<h2 id="device-manager-한-화면-편집-추가-삭제-2026-09-30">Device Manager 한 화면 편집·추가/삭제 — 2026-09-30</h2>
+<p>사용자가 장비와 Profile을 한 화면에서 편집하고, Profile 추가·삭제와 장비 연결·해제까지 처리하도록 확정했다. 실제 장비 등록·삭제는 포함하지 않는다.</p>
+<ul><li>완료(로컬): 장비 선택 즉시 기존 Profile 편집, 미연결 장비의 architecture·보고 CPU/RAM 초안</li></ul>
+<p>채우기, 새 Profile 추가, 저장·선택 장비 연결, 연결 해제, 같은 화면의 공용 Profile 추가/삭제.</p>
+<ul><li>수정은 새 불변 버전으로 저장한다. 다른 장비가 참조하는 버전은 유지하며 사용 중인 버전 삭제는</li></ul>
+<p>차단한다. 버전 저장·연결을 단일 transaction으로 묶어 revision/architecture 충돌 시 모두 롤백한다.</p>
+<ul><li>원본 재사용: CPU/RAM은 Kubernetes 보고 용량으로 표시하며 제조사 총용량과 구분한다.</li></ul>
+<p>GPU·지원 runtime·물리 여부는 추정하지 않는다. 센서는 기존 EdgeX Profile 읽기만 유지한다.</p>
+<ul><li>검증: 관련 Python 16개·전체 JavaScript 324개 통과. fixture 브라우저에서 보고값 자동 채우기,</li></ul>
+<p>장비 전환 후 초안 유지, 추가·연결, 수정 후 새 버전, 페이지 재조회 유지, 사용 중 삭제 차단, 해제·삭제 확인. 모바일 390px 가로 넘침 없음, console 오류 0. 스크린샷 <code>output/playwright/device-manager-inline-desktop.png</code>, <code>device-manager-inline-mobile.png</code>.</p>
+<ul><li>로컬 <code>http://192.168.0.56:8768/#device-manager</code>에 반영했다. 실제 Jetson의 CPU 6 cores·보고 RAM 자동 채우기를 확인했다. 문서/Argo 계약 18개 통과, HTML/검색 색인 재생성. 운영 배포·Git 커밋/push는 하지 않았다.</li></ul>
+<p>계약·사용 순서는 <a href="../profile-spec/디바이스-매니저.md">디바이스 매니저</a> 참조.</p>
+<h2 id="device-manager-첫-범위-로컬-웹-연결-2026-09-30">② Device Manager 첫 범위·로컬 웹 연결 — 2026-09-30</h2>
+<p>사용자가 Profile 다음 단계로 Device Manager 구현을 승인했다. 현재 범위는 장비 원본 조회와 정적 Profile 등록·연결이며, <a href="../profile-spec/디바이스-매니저.md">구현 계약과 실행 방법</a>에 정리했다.</p>
+<ul><li>완료(로컬): <code>/#device-manager</code>의 연산 장비·센서/입력·Profile 목록, 검색·선택 상세,</li></ul>
+<p>DeviceProfile 불변 버전 등록/삭제·새 버전 작성, Node UID 기반 Profile 연결/해제. 참조 중인 버전 삭제·동시 수정·architecture 불일치·동명이인 노드 재등록을 검사한다.</p>
+<ul><li>원본 책임: 노드 identity는 Kubernetes에서 직접 읽고, 사용률·EdgeX 상태·RuntimeService는</li></ul>
+<p>명시적으로 지정한 기존 운영 aggregator의 읽기 API를 사용한다. SQLite에는 정적 Profile과 연결 참조만 저장한다. 별도 물리/가상 inventory나 실행체 등록부가 아니다.</p>
+<ul><li>웹 확인: <code>http://192.168.0.56:8768/#device-manager</code>, <code>0.0.0.0:8768</code> 바인딩.</li></ul>
+<p>실제 연산 노드 10개·EdgeX 등록 항목 13개, 원본 조회 오류 없음을 확인했다. 13개는 물리 장비 대수가 아니다. 현재 RuntimeService 실행 위치는 0개이며 이를 시험 서비스로 채우지 않았다.</p>
+<ul><li>저장: 기본 경로는 <code>~/.local/state/edgeai-device-manager-preview/device-profile-bindings.sqlite3</code>.</li></ul>
+<p>재현용 실행 스크립트는 <code>edge-orch/state-aggregator/scripts/run-device-manager-preview.sh</code>다. lifespan을 꺼서 수집·제어 loop를 시작하지 않는다. 실제 로컬 등록 Profile·연결은 0개 상태로 보존했다.</p>
+<ul><li>상태: 예약 여유·실측 사용률·원본 시각을 분리하고 미수집/오래된 값·조회 실패를 정상이나 0으로</li></ul>
+<p>표시하지 않는다. Ready Unknown도 준비 안 됨과 구분한다. Profile 등록은 실행/성능 자격을 뜻하지 않는다.</p>
+<ul><li>검증: dashboard 전체 Python 490개 통과 후 Ready Unknown 처리를 보강하고 관련 Python 49개를</li></ul>
+<p>다시 통과했다. 전체 JavaScript 322개·문서/Argo 계약 18개 통과, HTML/검색 색인 34개 로컬 재생성. 별도 fixture DB/서버에서 등록→연결→새로고침 후 유지→해제→버전 생성/삭제를 브라우저로 검증했다. ARM64 Profile의 AMD64 선택 제한도 확인했다. 실제 화면 1440px/390px 가로 넘침 없음, console 오류 0. 스크린샷은 로컬 <code>output/playwright/device-manager-desktop.png</code>, <code>device-manager-mobile.png</code>다.</p>
+<ul><li>범위: 사용자가 지정한 로컬 웹 연결·검증까지다. Git 커밋/push·운영 이미지 빌드/배포는</li></ul>
+<p>수행하지 않았다. Kubernetes/EdgeX 쓰기·서비스 실행/이동·VD 수명주기·Workflow/Scheduler는 추가하지 않았다.</p>
+<ul><li>다음: 실제 장비의 확인된 static capability를 Profile로 등록·연결한다. ServiceProfile/VirtualDeviceProfile</li></ul>
+<p>Registry와 전체 호환성 매칭은 후속이다. ③ Workflow 실행 구조로 진행할 때 이 연결 계약을 사용한다.</p>
+<h2 id="profile-v1-명세-관측-웹-연결-2026-09-30">Profile v1 명세·관측 웹 연결 — 2026-09-30</h2>
+<p>사용자의 “먼저 만들고 웹에 연동” 요청을 ① Profile부터 구현했다. 원본은 <a href="../profile-spec/README.md">Profile v1</a>과 <a href="../profile-spec/기존-필드-대응표.md">기존 필드 대응표</a>다.</p>
+<ul><li>완료(로컬): 네 가지 JSON Schema와 예제, 생성 bundle 일치 검사, 형식·단위·요구량 순서·시각·</li></ul>
+<p>참조 버전 검증, 노드→DeviceProfile/RuntimeState 읽기 전용 adapter.</p>
+<ul><li>로컬 접속: 사용자 요청으로 미리보기 서버를 <code>0.0.0.0:8768</code>에 바인딩했다.</li></ul>
+<p><code>http://192.168.0.56:8768/#profiles</code>에서 접속하며 서버의 해당 주소 HTTP 200을 확인했다.</p>
+<ul><li>웹: NEXUS <code>/#profiles</code>에 JSON 편집·검증·내려받기, 실제 노드 예약 여유/사용률 조회,</li></ul>
+<p>ServiceProfile의 architecture·CPU/RAM 예약 여유 비교를 연결했다.</p>
+<ul><li>실제 조회: 로컬 API에서 클러스터 연산 노드 10개를 조회했다. 알려진 정적 능력 형태는</li></ul>
+<p>공통 관측 Profile 2개로 묶인다. 등록 수를 뜻하지 않으며 hardware capacity/runtime 지원은 null이다. 로컬 검증 서버는 lifespan을 끄고 실행해 수집·제어 loop를 시작하지 않았다. 따라서 로컬 Prometheus cache의 사용률은 미수집으로 표시했다. Kubernetes 예약량과 실제 사용량을 혼동하지 않는다.</p>
+<ul><li>검증: 전체 dashboard Python 471개·JavaScript 317개 통과 후 시각/참조/네트워크 검증을 보강했고,</li></ul>
+<p>관련 Python 35개·JS 3개를 다시 통과했다. 예제와 생성 bundle 일치, 잘못된 장비명 필드·수량· tier 역전·RFC3339·source 실패·stale/미래 관측·XSS escaping·64 KiB 제한을 확인했다.</p>
+<ul><li>브라우저: 명세 성공/오류·예제 복구·10개 노드 후보 비교, 1440px/390px 가로 넘침 없음,</li></ul>
+<p>네 가지 명세 종류 각각 검증 성공·console 오류 0을 확인했다. 스크린샷은 로컬 <code>output/playwright/profile-desktop.png</code>, <code>profile-mobile.png</code>다. JSON 편집은 탭 안에서만 유지되며 새로고침 시 사라진다.</p>
+<ul><li>미구현: Registry CRUD/DB·실측 요구량 자동 변환·Device 바인딩·전체 runtime/모델 호환성 매칭·</li></ul>
+<p>Scheduler/Workflow 실행·VD 동적 수명주기. 비교는 항상 <code>executionAllowed=false</code>이고 기존 qualification을 대체하지 않는다.</p>
+<ul><li>배포 경계: 운영 dashboard digest <code>3b818ef1bc7d6347e91f87e5428c4e3f03878f277b2a8a3996877d954e3d50ad</code>와</li></ul>
+<p>로컬 사이에 이전 VD/통합 화면 차이가 남아 있다. 전체 소스 배포 시 철회한 변경까지 포함되므로 사용자가 <strong>Profile v1의 로컬 웹 연결·검증까지</strong>로 확정했다. 운영 반영은 이번 범위에서 제외했다. 현재 Git 커밋·push·이미지 빌드·운영 배포는 수행하지 않았다. 기존 workload·수집 리소스는 변경하지 않았다.</p>
+<ul><li>문서 검증: HTML/검색 색인 34개 재생성, 문서·Argo 계약 18개 통과, 수정 Markdown 7개 상대 링크 정상.</li></ul>
+<p>생성 문서는 로컬 반영이며 문서 웹도 배포하지 않았다.</p>
+<ul><li>다음: 실제 static capability·새 서비스 요구량 근거와 Profile 버전 참조 등록 계약을 확정하고,</li></ul>
+<p>Device Manager 이후 Workflow Task가 ServiceProfile을 참조하도록 연결한다.</p>
 <h2 id="개발-방향-데모-정리-git-체크포인트-2026-09-30">개발 방향·데모 정리 Git 체크포인트 — 2026-09-30</h2>
 <p>사용자가 현재 브랜치 <code>agent/edgex-central-docs</code>의 누적 변경을 커밋·push하도록 요청했다. 대상은 1세부 10단계·Profile 독립 개발 방향, 운영 데모 정리 근거, 퇴역 Argo 설정과 생성 문서다. 아래 미커밋·미배포 표기는 각 작업 종료 당시의 상태이며 이 체크포인트를 포함한 Git 이력과 구분한다.</p>
 <ul><li>검증 근거 재사용: 집중 검사 21개 통과, 전체 116개 통과·기존 추진계획 줄 수 상한 실패 1개.</li></ul>
@@ -662,7 +784,16 @@
 <p>세부 포함·제외 기준은 <a href="프로젝트-범위.html">프로젝트 범위</a>를 따른다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#개발-방향-데모-정리-git-체크포인트-2026-09-30">개발 방향·데모 정리 Git 체크포인트 — 2026-09-30</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#디바이스-관리-운영-배포-main-통합-진행-2026-09-30">디바이스 관리 운영 배포·main 통합 진행 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#메뉴-정리-공용-프로파일-상단-이동-반응형-보완-2026-09-30">메뉴 정리·공용 프로파일 상단 이동·반응형 보완 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#기존-nexus-왼쪽-메뉴에-디바이스-관리-추가-2026-09-30">기존 NEXUS 왼쪽 메뉴에 디바이스 관리 추가 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#device-manager-독립-웹-분리-장비-조회-유지-2026-09-30">Device Manager 독립 웹 분리·장비 조회 유지 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#디바이스-운영-흐름-조회-우선-필요할-때-편집-2026-09-30">디바이스 운영 흐름: 조회 우선·필요할 때 편집 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#디바이스-메뉴-통합-편집-화면-정리-2026-09-30">디바이스 메뉴 통합·편집 화면 정리 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#device-manager-한-화면-편집-추가-삭제-2026-09-30">Device Manager 한 화면 편집·추가/삭제 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#device-manager-첫-범위-로컬-웹-연결-2026-09-30">② Device Manager 첫 범위·로컬 웹 연결 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#profile-v1-명세-관측-웹-연결-2026-09-30">Profile v1 명세·관측 웹 연결 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#개발-방향-데모-정리-git-체크포인트-2026-09-30">개발 방향·데모 정리 Git 체크포인트 — 2026-09-30</a></li>
 <li class="toc-h2"><a href="#시험-ai-데모-워크로드-운영-정리-2026-09-30">시험·AI 데모 워크로드 운영 정리 — 2026-09-30</a></li>
 <li class="toc-h2"><a href="#profile-독립-개발-영역과-진행-추적-2026-09-30">Profile 독립 개발 영역과 진행 추적 — 2026-09-30</a></li>
 <li class="toc-h2"><a href="#1세부-개발-순서-확정-2026-09-30">1세부 개발 순서 확정 — 2026-09-30</a></li>
@@ -676,16 +807,7 @@
 <li class="toc-h2"><a href="#agx-연결-단절-진단-2026-09-16">AGX 연결 단절 진단 — 2026-09-16</a></li>
 <li class="toc-h2"><a href="#최신-개발-체크포인트-2026-09-15">최신 개발 체크포인트 — 2026-09-15</a></li>
 <li class="toc-h3"><a href="#kubeedge-upstream-메트릭-버그-수정-pr-범위-축소-dco-복구">KubeEdge upstream 메트릭 버그 수정 — PR 범위 축소·DCO 복구</a></li>
-<li class="toc-h3"><a href="#혼합-디바이스-100개-관리-9월-15일-시험-이력-9월-16일-배포-철회">혼합 디바이스 100개 관리 — 9월 15일 시험 이력, 9월 16일 배포 철회</a></li>
-<li class="toc-h3"><a href="#배포-검증-근거와-현재-정지-상태">배포·검증 근거와 현재 정지 상태</a></li>
-<li class="toc-h3"><a href="#다음-작업">다음 작업</a></li>
-<li class="toc-h3"><a href="#개발-기록을-찾는-위치">개발 기록을 찾는 위치</a></li>
-<li class="toc-h2"><a href="#2026-09-08-통합-운영-대시보드-확장">2026-09-08 통합 운영 대시보드 확장</a></li>
-<li class="toc-h2"><a href="#한눈에-보기">한눈에 보기</a></li>
-<li class="toc-h2"><a href="#배포-기준선">배포 기준선</a></li>
-<li class="toc-h2"><a href="#live-상태-스냅샷">live 상태 스냅샷</a></li>
-<li class="toc-h2"><a href="#runtime-실행-검증-경계">Runtime 실행 검증 경계</a></li>
-<li class="toc-h2"><a href="#serial-recovery-배포-실측-상태">Serial recovery 배포·실측 상태</a></li></ol></aside>
+<li class="toc-h3"><a href="#혼합-디바이스-100개-관리-9월-15일-시험-이력-9월-16일-배포-철회">혼합 디바이스 100개 관리 — 9월 15일 시험 이력, 9월 16일 배포 철회</a></li></ol></aside>
     </div>
   </div>
 

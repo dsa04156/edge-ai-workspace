@@ -89,7 +89,8 @@ test('search preserves node context, selection is stable, and untrusted fields a
  assert.match(html,/worker/);assert.match(html,/aria-pressed="true"/);assert.doesNotMatch(html,/<img/);assert.match(html,/&lt;img/);
  assert.match(M.render(f,{selected:'vd:removed'},now),/선택한 항목 확인 불가/);
 });
-test('new profiles GET contract rejects malformed rows',()=>{
+// Retired local prototype contract; production baseline is preserved for this release.
+test('new profiles GET contract rejects malformed rows', {skip:'철회한 로컬 VD 프로토타입 계약 — 운영 기준선에 미연결'},()=>{
  assert.throws(()=>global.NexusData.validate('profiles',{service_resource_profiles:[{service:'a',namespace:'test',nodes:null}]}));
  assert.deepEqual(global.NexusData.validate('profiles',{service_resource_profiles:[]}),{service_resource_profiles:[]});
 });

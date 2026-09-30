@@ -240,6 +240,8 @@ def _node_ready(status: Any) -> bool:
 
 def _is_accelerator_resource(name: str) -> bool:
     lowered = name.lower()
+    if lowered in {"hailo.ai/h8", "hailo.ai/h8l"}:
+        return True
     return "/" in lowered and any(
         token in lowered for token in ("gpu", "npu", "tpu", "accelerator")
     )

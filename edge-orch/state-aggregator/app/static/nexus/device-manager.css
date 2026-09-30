@@ -1,0 +1,69 @@
+.manager-workspace{display:grid;gap:16px;min-width:0}.manager-workspace .panel{padding:24px;min-width:0}
+.manager-workspace h2{font-size:19px;margin:0 0 12px}.manager-workspace h3{font-size:16px;margin:24px 0 12px}.manager-workspace h2 small,.manager-workspace h3 small{font-size:13px;font-weight:400;color:#49616a}
+.manager-workspace p{line-height:1.6;color:#49616a}.manager-toolbar,.manager-heading,.manager-actions,.manager-binding{display:flex;align-items:center;justify-content:space-between;gap:12px}.manager-tabs,.manager-actions{display:flex;gap:8px;flex-wrap:wrap}.manager-tabs button[aria-pressed=true]{background:#006d77;color:white}.manager-toolbar .button{min-height:44px}
+.manager-grid{display:grid;grid-template-columns:minmax(320px,.8fr) minmax(0,1.2fr);gap:20px;align-items:start}.manager-list-panel .manager-heading{flex-wrap:wrap}.manager-detail h2{overflow-wrap:anywhere}.manager-workspace label{font-size:13px;color:#49616a;display:grid;gap:6px}.manager-workspace input,.manager-workspace select{box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px 12px;border:1px solid #cad6d6;border-radius:8px;background:#fff;color:#132e35}.manager-search{min-width:200px;flex:1}.manager-search input{max-width:100%}
+.manager-workspace .table-wrap{overflow:auto;max-width:100%}.manager-table{width:100%;min-width:470px}.manager-table td{vertical-align:top}.manager-table td:first-child{overflow-wrap:anywhere}.manager-table small,.manager-heading>span small{display:block;margin-top:6px;color:#60777d;font-size:12px}.manager-table button{max-width:230px;text-align:left;overflow-wrap:anywhere;min-height:44px}.manager-selected{background:#eef7f7}.manager-selected td:first-child{box-shadow:inset 3px 0 #006d77}.manager-unbound{color:#946200}.manager-empty{padding:32px 0}
+.manager-heading{align-items:flex-start}.manager-status{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.manager-workspace .manager-footnote{font-size:12px;color:#60777d;margin:4px 0 12px}.manager-workspace .manager-warning{color:#946200}.manager-binding{margin:8px 0 16px}.manager-binding select{flex:1}.manager-binding .button{white-space:nowrap;min-height:44px}.manager-workspace .button:disabled{opacity:.5;cursor:not-allowed}.manager-workspace :is(input,select,button,summary):focus-visible{outline:2px solid #006d77;outline-offset:3px}
+.manager-facts{margin:12px 0}.manager-facts div{display:grid;grid-template-columns:140px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid #e0e8e7}.manager-facts dt{color:#60777d;font-size:12px}.manager-facts dd{margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.manager-service-list{list-style:none;padding:0}.manager-service-list li{padding:10px 0;display:flex;justify-content:space-between;gap:12px}.manager-service-list span{color:#60777d;font-size:12px}.manager-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.manager-profile{border-top:1px solid #dce5e4;margin-top:24px;padding-top:16px}.manager-profile h3{margin:8px 0}.manager-workspace summary{cursor:pointer;min-height:44px;align-content:center}.manager-workspace #manager-profile-form{max-width:780px;border-top:1px solid #dce5e4;padding-top:20px}
+@media(max-width:1100px){.manager-grid{grid-template-columns:1fr}.manager-table button{max-width:none}.manager-toolbar{align-items:flex-start}.manager-detail{scroll-margin-top:20px}}
+@media(max-width:600px){.manager-workspace .panel{padding:16px}.manager-form-grid{grid-template-columns:1fr}.manager-toolbar,.manager-heading{flex-wrap:wrap}.manager-facts div{grid-template-columns:110px minmax(0,1fr)}.manager-binding{flex-wrap:wrap}.manager-binding select{flex-basis:100%}.manager-profile .manager-actions{width:100%}}
+
+.manager-workspace fieldset{border:0;padding:0;margin:0;min-width:0}.manager-workspace legend{font-size:16px;font-weight:600;margin-bottom:16px}.manager-library>summary{padding:12px 20px;background:#fff;border:1px solid #dce5e4;border-radius:8px}.manager-library[open]>summary{margin-bottom:12px}.manager-list-panel .table-wrap{max-height:680px;overflow:auto}
+
+.device-subnav{display:flex;gap:8px;margin:0 0 24px;padding:4px;border-bottom:1px solid #dce5e4}.device-subnav[hidden]{display:none}.device-subnav a{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:8px;color:#49616a;text-decoration:none;font-size:14px}.device-subnav a[aria-current=page]{background:#e6f3f3;color:#006d77;font-weight:600}.device-subnav a:focus-visible{outline:2px solid #006d77;outline-offset:2px}
+.manager-placeholder{text-align:center;padding-block:64px!important}.manager-placeholder-icon{display:inline-grid;place-items:center;width:48px;height:48px;border-radius:12px;background:#eef7f7;color:#006d77;font-size:26px;margin-bottom:20px}.manager-placeholder p{font-size:14px}.manager-detail #manager-profile-form{margin-top:20px}.manager-workspace #manager-profile-form details{border-top:1px solid #e0e8e7;margin-top:16px;padding-top:4px}.manager-workspace #manager-profile-form .note{font-size:12px;background:#f3f7fa;border:0;border-radius:8px;padding:12px;margin:16px 0}.manager-workspace #manager-profile-form .manager-actions{padding-top:4px}.manager-detail>.manager-actions{justify-content:flex-start}.manager-detail>.manager-actions button:last-child{margin-left:auto}.manager-detail>.manager-footnote{margin-top:12px}
+@media(min-width:1101px){.manager-list-panel{position:sticky;top:20px}.manager-list-panel .table-wrap{max-height:560px}}
+@media(max-width:600px){.device-subnav{margin-bottom:16px}.device-subnav a{padding:0 12px}.manager-detail>.manager-actions button:last-child{margin-left:0}.manager-placeholder{padding-block:32px!important}}
+
+.view-switch[hidden]{display:none!important}
+
+.manager-spec-heading{align-items:center;margin-top:24px}.manager-spec-heading h3{margin:0 0 6px}.manager-spec-heading .button{white-space:nowrap}.manager-spec-table{margin-top:12px;overflow:auto}.manager-spec-table table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px}.manager-spec-table th,.manager-spec-table td{padding:12px 10px;border-bottom:1px solid #e0e8e7;text-align:left;vertical-align:top;overflow-wrap:anywhere}.manager-spec-table th:first-child{width:22%;color:#60777d;font-weight:400}.manager-spec-table thead{background:#f3f7fa}.manager-spec-table small{display:block;font-size:11px;font-weight:400;color:#60777d;margin-top:4px}.manager-source-times{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.manager-source-times p{font-size:11px;margin:0}.manager-source-times strong{font-weight:400;color:#132e35}.manager-advanced{border-top:1px solid #e0e8e7;margin-top:20px;padding-top:8px}.manager-metadata{margin-bottom:20px}.manager-detail #manager-profile-form{padding:20px;border:1px solid #cad6d6;border-radius:8px;background:#f9fbfc}.manager-detail #manager-profile-form legend{float:left;width:100%}.manager-detail #manager-profile-form legend+*{clear:both}
+@media(max-width:600px){.manager-detail #manager-profile-form{padding:14px}.manager-spec-table th,.manager-spec-table td{padding:10px 6px;font-size:12px}.manager-source-times{grid-template-columns:1fr}.manager-spec-heading{flex-wrap:nowrap}}
+
+/* Device Manager is a page in the existing NEXUS shell. */
+.device-manager-screen .view-switch,.device-manager-screen #scope-note{display:none}
+
+/* Fit the available workspace; narrow screens show each complete device record. */
+.manager-toolbar{flex-wrap:wrap;align-items:flex-start}
+.manager-tabs{min-width:0;flex:1}
+.manager-tab-count{font-size:11px;opacity:.8;white-space:nowrap}
+.manager-workspace .manager-table{min-width:0;table-layout:fixed;border-collapse:collapse}
+.manager-workspace .manager-table :is(th,td){min-width:0;max-width:none;white-space:normal;overflow-wrap:anywhere;padding:12px 8px}
+.manager-list-panel .manager-table th:first-child{width:46%}
+.manager-workspace .manager-table button{max-width:100%;min-width:0}
+.manager-workspace .manager-table small{overflow-wrap:anywhere}
+.manager-heading>div,.manager-heading>span,.manager-heading h3,.manager-service-list li>*{min-width:0;overflow-wrap:anywhere}
+.manager-workspace .manager-search{min-width:0;flex-basis:180px}
+.manager-workspace .manager-service-list li{flex-wrap:wrap;overflow-wrap:anywhere}
+@media(max-width:700px){
+  .manager-workspace .manager-tabs{flex-basis:100%}
+  .manager-workspace .manager-tabs .button{flex:1 1 auto;flex-wrap:wrap;gap:4px 8px}
+  .manager-toolbar>[data-manager-refresh]{margin-left:auto}
+  .manager-list-panel .table-wrap{max-height:none;overflow:visible}
+  .manager-workspace .manager-table,.manager-workspace .manager-table tbody{display:block;width:100%}
+  .manager-workspace .manager-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .manager-workspace .manager-table tr{display:grid;grid-template-columns:minmax(0,1fr);border-bottom:1px solid var(--line);padding:12px}
+  .manager-workspace .manager-table td{display:block;width:100%;padding:6px 0;border:0}
+  .manager-workspace .manager-table td:before{content:attr(data-label);display:block;color:#60777d;font-size:11px;margin-bottom:4px}
+  .manager-selected{box-shadow:inset 3px 0 #006d77}
+  .manager-selected td:first-child{box-shadow:none}
+  .manager-workspace .manager-table small{margin-top:3px}
+  .manager-heading,.manager-spec-heading{flex-wrap:wrap}
+  .manager-facts div{grid-template-columns:minmax(0,1fr)}
+  .manager-profile .manager-actions{justify-content:flex-start}
+  .manager-workspace .manager-actions .button{white-space:normal}
+}
+
+/* Keep responsive changes inside Device Manager; deployed overview is unchanged. */
+@media(max-width:700px){
+  .device-manager-screen .app{display:block}
+  .device-manager-screen .rail{height:auto;position:static;overflow:visible}
+  .device-manager-screen #nav{display:flex;flex-wrap:wrap;overflow:visible;margin-top:16px;gap:6px}
+  .device-manager-screen #nav .nav-item{flex:1 1 auto;justify-content:center;min-height:44px;padding:10px 8px}
+  .device-manager-screen .topbar{min-height:50px;height:auto;gap:12px;padding:10px 16px}
+  .device-manager-screen .topbar .prototype-label{display:none}
+  .device-manager-screen .breadcrumb{min-width:0;flex-wrap:wrap;gap:4px}
+  .device-manager-screen .breadcrumb span{margin:0 4px}
+  .device-manager-screen main{padding:20px 16px}
+  .device-manager-screen .rail-bottom{display:none}
+}

@@ -3,7 +3,7 @@
 'use strict';const UX=root.NexusUX||(typeof require==='function'?require('./ux-policy.js'):null);
 const D=root.NexusData,E=D.escape;
 const colors=['#1685fb','#0bbf91','#7554fa'];
-const aliases={'etri-dev0001-jetorn':'Jetson 01','etri-dev0002-raspi5':'Raspberry Pi 02','etri-dev0003-raspi5':'Raspberry Pi 03','etri-dev0004-tedger':'Tinker Edge R','etri-dev0005-jetagx':'Jetson AGX','etri-ser0001-cg0msb':'서버 01','etri-ser0002-cgnmsb':'서버 02'};
+const aliases={'etri-dev0001-jetorn':'Jetson 01','etri-dev0002-raspi5':'Raspberry Pi 02','etri-dev0003-raspi5':'Raspberry Pi 03','etri-dev0004-tedger':'Tinker Edge R','etri-dev0005-jetagx':'Jetson AGX','etri-ser0001-cg0msb':'서버 01','etri-ser0002-cgnmsb':'서버 02','etri-dev0006-raspi5':'Raspberry Pi 06','etri-ser0003-cg0ms0':'DGX Spark','etri-ser0004-cgnms0':'서버 04'};
 const nodeName=n=>aliases[n]||n||'미확인';
 const reasons={execution_lease_expired:'실행 권한 만료 · AI 처리 중단',service_input_stale:'서비스 입력 데이터가 오래됐습니다',model_warming_up:'추론 모델 준비 중',input_stale:'입력 데이터 오래됨',model_not_ready:'모델 준비 미확인',service_performance_unavailable:'유효한 성능 표본 없음',resource_observation_unavailable:'자원 관측 미확인'};
 const labels={healthy:'정상',degraded:'점검 필요',stale:'오래됨',fresh:'최신',warming_up:'준비 중',ready:'준비 완료',available:'수신 정상',STANDBY:'처리 중단',ACTIVE:'활성 모드',SHADOW:'보조 모드',BLOCKED:'검토 보류',FAILED:'실패',SUCCEEDED:'완료',warning:'주의'};
@@ -31,6 +31,45 @@ function model(entries,now=Date.now()){
  const issues=demoCurrent?(ops.issues||[]):[];
  return {services,devices,resources,groups,ops,opsCurrent,demoCurrent,issues,nodeCounts,usage,latency,execution,current,events:[...(ops?.events||[])].sort((a,b)=>(Date.parse(b.timestamp)||0)-(Date.parse(a.timestamp)||0)),errors:['services','resources','devices','operations'].filter(k=>!current(k)),received:Math.max(0,...['services','resources','devices','operations'].map(k=>entries[k]?.receivedAt||0)),refreshing:Object.values(entries).some(e=>e.refreshing)};
 }
+function nodeRows(entries,now=Date.now()){
+ const current=k=>D.isCurrent(entries[k],now),nodes=D.items(entries.nodes,'nodes');
+ return [...D.items(entries.resources,'resources')].sort((a,b)=>a.node.localeCompare(b.node)).map(r=>{
+  const n=nodes.find(n=>n.hostname===r.node),raw=n?.raw_metrics||{};
+  const failed=current('nodes')&&fresh(n?.collected_at,now)&&(raw.up===0||n.node_health==='unavailable');
+  const observed=current('resources')&&fresh(r.utilization?.observedAt,now)&&!failed;
+  const rawCurrent=current('nodes')&&fresh(n?.collected_at,now)&&!failed;
+  const value=k=>observed&&number(r.utilization?.[k])&&r.utilization[k]>=0?r.utilization[k]:null;
+  const ratio=k=>{const v=value(k);return v!==null&&v<=1?v*100:null;};
+  const temperature=k=>rawCurrent&&number(raw[k])?raw[k]:null;
+  const amounts=(kind,key)=>current('resources')&&number(r[kind]?.[key])&&r[kind][key]>=0?r[kind][key]:null;
+  const acceleratorUnits=current('resources')?Object.entries(r.allocatable?.acceleratorUnits||{}).filter(([,v])=>number(v)&&v>0).map(([key,total])=>({key,total,free:number(r.available?.acceleratorUnits?.[key])?r.available.acceleratorUnits[key]:null})):[];
+  return {name:r.node,label:nodeName(r.node),ready:current('resources')?r.kubernetesReady:null,schedulable:current('resources')?r.schedulable:null,
+   cpu:ratio('cpuRatio'),memory:ratio('memoryRatio'),gpu:ratio('gpuRatio'),gpuMemory:ratio('gpuMemoryRatio'),
+   cpuRequested:amounts('requested','cpuCores'),cpuTotal:amounts('allocatable','cpuCores'),memoryRequested:amounts('requested','memoryBytes'),memoryTotal:amounts('allocatable','memoryBytes'),
+   accelerators:acceleratorUnits,capacityKnown:current('resources'),
+   cpuTemperature:temperature('cpu_temperature_celsius'),gpuTemperature:temperature('gpu_temperature_celsius'),
+   rx:value('networkRxBytesPerSecond'),tx:value('networkTxBytesPerSecond'),
+   observation:failed?'수집 중단':!current('resources')?'조회 실패':!r.utilization?.observedAt?'미수집':!fresh(r.utilization.observedAt,now)?'오래된 관측':'최신 관측'};
+ });
+}
+const compact=v=>number(v)?v.toLocaleString('ko-KR',{maximumFractionDigits:2}):'—';
+const rate=v=>v===null?'미수집':v>=1048576?(v/1048576).toFixed(1)+' MiB/s':(v/1024).toFixed(1)+' KiB/s';
+const acceleratorLabel=key=>({'hailo.ai/h8':'Hailo-8 NPU','hailo.ai/h8l':'Hailo-8L NPU','mobilint.com/npu':'Mobilint NPU','nvidia.com/gpu':'NVIDIA GPU','nvidia.com/gpu.shared':'NVIDIA GPU · 공유 슬롯'}[key]||key);
+function usageCell(value,detail){return `<div class="ov-resource-value">${value===null?'<span class="ov-unobserved">미수집</span>':`<strong>${value.toFixed(1)}<span>%</span></strong><meter min="0" max="100" value="${value}" aria-label="실측 사용률 ${value.toFixed(1)}%"></meter>`}</div><small>${detail}</small>`;}
+function nodeTable(entries){
+ const rows=nodeRows(entries);
+ const body=rows.map(n=>{
+  const npu=n.accelerators.some(a=>/npu|hailo/.test(a.key));
+  const gpu=`<div class="ov-resource-value"><strong>${n.gpu===null?'—':n.gpu.toFixed(1)}<span>%</span></strong><small>${n.gpuMemory===null?'메모리 미수집':'메모리 '+n.gpuMemory.toFixed(1)+'%'}</small></div>`;
+  return `<tr><th scope="row"><strong>${E(n.label)}</strong><small>${E(n.name)}</small></th><td data-label="상태">${pill(n.ready===true?'Ready':n.ready===false?'NotReady':'미확인',n.ready===true?'good':n.ready===false?'warn':'muted')}<small>${E(n.observation)}${n.schedulable===false?' · 배치 제한':''}</small></td>
+  <td data-label="CPU">${usageCell(n.cpu,'예약 '+compact(n.cpuRequested)+' / '+compact(n.cpuTotal)+' core')}</td>
+  <td data-label="메모리">${usageCell(n.memory,'예약 '+compact(n.memoryRequested===null?null:n.memoryRequested/1073741824)+' / '+compact(n.memoryTotal===null?null:n.memoryTotal/1073741824)+' GiB')}</td>
+  <td data-label="GPU / NPU" class="ov-accelerator-cell">${n.gpu!==null?gpu:`<span class="ov-unobserved">${npu?'NPU 사용률 미수집':'GPU/NPU 사용률 미수집'}</span>`}${n.accelerators.map(a=>`<small title="${E(a.key)}">${E(acceleratorLabel(a.key))} · 할당 여유 ${compact(a.free)} / ${compact(a.total)}</small>`).join('')||`<small>${n.capacityKnown?'가속기 할당 자원 미등록':'가속기 할당 상태 미확인'}</small>`}</td>
+  <td data-label="온도"><span>CPU ${n.cpuTemperature===null?'미수집':compact(n.cpuTemperature)+'℃'}</span><small>GPU ${n.gpuTemperature===null?'미수집':compact(n.gpuTemperature)+'℃'}</small></td>
+  <td data-label="네트워크"><span>↓ ${rate(n.rx)}</span><small>↑ ${rate(n.tx)}</small></td></tr>`;
+ }).join('');
+ return `<section class="ov-card ov-node-resources" aria-label="전체 노드 자원 현황">${heading('노드별 자원 현황 <span class="ov-pill">'+rows.length+'개 노드</span>',link('자원 상세','resources'))}<div class="ov-resource-caption">실측 사용률과 예약량을 함께 비교하세요. <span>예약: 요청량 / 할당 가능량 · 가속기: 할당 여유 / 전체 슬롯</span></div><div class="ov-table-wrap"><table class="ov-table ov-resource-table"><thead><tr>${['노드','상태','CPU','메모리','GPU / NPU','온도','네트워크'].map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>${!rows.length?empty(D.isCurrent(entries.resources)?'등록된 노드가 없습니다.':'노드 자원 목록을 확인할 수 없습니다.') :''}</div><div class="ov-card-foot">미수집은 0%가 아닙니다. 할당 여유는 실측 유휴율과 다르며, GPU 공유 슬롯은 물리 GPU 개수가 아닙니다.</div></section>`;
+}
 function kpi(title,value,details,page,symbol,tone){return `<button class="ov-kpi" ${page==='attention'?'data-overview-attention':'data-live-page="'+page+'"'}><span class="ov-kpi-icon ${tone}">${icon(symbol)}</span><span class="ov-kpi-value"><span>${title}</span><strong>${value}</strong></span><span class="ov-kpi-details">${details}</span></button>`;}
 const dot=(text,tone='muted')=>`<span class="ov-dot-label ${tone}">${E(text)}</span>`;
 const empty=text=>`<div class="ov-empty">${E(text)}</div>`;
@@ -53,6 +92,7 @@ function render(entries){
  ${kpi('등록 디바이스',c('devices')?m.devices.length:'—',dot((c('devices')?m.groups.length:'—')+' 물리 source','blue')+dot((dFresh??'—')+' 수신 정상','good')+dot('EdgeX 등록 기준'),'devices','cpu','purple')}
  ${kpi('점검 항목',m.demoCurrent?m.issues.length:'—',dot('서비스 처리·입력','warn')+dot(m.demoCurrent?'현재 관측 근거':'현재 확인 불가')+dot('항목별 상세 확인'),'attention','bell','red')}
  </section>
+ ${nodeTable(entries)}
  <div class="ov-charts">
  <section class="ov-card">${heading('노드 자원 사용률',`<div class="ov-metric-tabs" aria-label="자원 지표">${[['cpuRatio','CPU'],['memoryRatio','메모리'],['gpuRatio','GPU']].map(([k,v])=>`<button data-overview-metric="${k}" aria-pressed="${metric===k}">${v}</button>`).join('')}</div>`)}<div class="ov-chart"><canvas id="ov-resource-chart" role="img" aria-label="노드별 현재 사용률, 상세 수치는 자원 상세에서 확인"></canvas></div><div class="ov-card-foot"><span>현재 실측 · 미관측은 막대 없음</span>${link('자원 상세','resources')}</div></section>
  <section class="ov-card">${heading('노드 준비 상태',link('상세','resources'))}<div class="ov-node-chart"><div class="ov-donut"><canvas id="ov-node-chart" role="img" aria-label="Ready ${m.nodeCounts.ready}, NotReady ${m.nodeCounts.notReady}, 미확인 ${m.nodeCounts.unknown}"></canvas><div><strong>${nodeTotal}</strong><span>전체 노드</span></div></div><dl>${[['Ready',m.nodeCounts.ready,'good'],['NotReady',m.nodeCounts.notReady,'warn'],['미확인',m.nodeCounts.unknown,'muted']].map(([t,n,k])=>`<div><dt>${dot(t,k)}</dt><dd>${n}</dd></div>`).join('')}</dl></div><div class="ov-card-foot">Kubernetes · KubeEdge 기준</div></section>
@@ -82,5 +122,5 @@ if(root.document){
  root.document.addEventListener('input',e=>{if(e.target.id!=='overview-search')return;const box=root.document.getElementById('overview-search-results'),q=e.target.value.trim().toLowerCase(),m=lastModel;box.hidden=!q;if(!q||!m)return;const results=[...m.services.map(s=>({name:s.display_name,id:s.service_id,type:'서비스',attr:'data-live-service'})),...m.groups.map(s=>({name:s.id,id:s.id,type:'물리 장비',attr:'data-live-source'})),...m.resources.map(n=>({name:nodeName(n.node),id:n.node,type:'노드',attr:'data-live-page'}))].filter(x=>(x.name+' '+x.id).toLowerCase().includes(q)).slice(0,8);box.innerHTML=results.map(x=>`<button ${x.attr}="${E(x.attr==='data-live-page'?'resources':x.id)}"><span>${E(x.name)}<small>${E(x.id)}</small></span><small>${x.type}</small></button>`).join('')||'<p>일치하는 서비스·장비·노드가 없습니다.</p>';});
  root.document.addEventListener('keydown',e=>{if(e.key==='Escape'){const box=root.document.getElementById('overview-search-results');if(box)box.hidden=true;}if(e.key==='ArrowDown'&&e.target.id==='overview-search'){const b=root.document.querySelector('#overview-search-results button');if(b){e.preventDefault();b.focus();}}});
 }
-const api={model,render,clear};root.NexusOverview=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+const api={model,render,clear,nodeRows,nodeTable};root.NexusOverview=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

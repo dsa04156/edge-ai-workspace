@@ -1,0 +1,48 @@
+{
+  "apiVersion": "edgeai.etri/v1",
+  "kind": "VirtualDeviceProfile",
+  "metadata": {
+    "name": "example-server-slot",
+    "version": "1.0"
+  },
+  "spec": {
+    "type": "virtual",
+    "emulation": {
+      "deviceClass": "edge-ai-device",
+      "interfaces": [
+        "grpc"
+      ]
+    },
+    "resources": {
+      "minimum": {
+        "cpu": {
+          "cores": 1
+        },
+        "memory": {
+          "capacity": "2Gi"
+        }
+      },
+      "recommended": null,
+      "maximum": {
+        "cpu": {
+          "cores": 4
+        },
+        "memory": {
+          "capacity": "8Gi"
+        }
+      }
+    },
+    "backend": {
+      "placement": "edge-ai-server",
+      "resourcePool": "example-pool"
+    },
+    "binding": {
+      "mode": "dynamic",
+      "physicalDeviceOptional": true
+    },
+    "lifecycle": {
+      "creation": "on-demand",
+      "deletion": "automatic"
+    }
+  }
+}

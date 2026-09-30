@@ -16,10 +16,8 @@ from .adapter_catalog import AdapterCatalog
 from .adapter_controller_client import AdapterControllerClient
 from .adapter_runtime_service import AdapterRuntimeManagementService
 from .config import Settings
+from .device_manager import create_device_manager_router
 from .common_runtime import create_common_runtime_router
-from .service_virtual_devices import create_service_virtual_device_router
-from .service_settings import create_service_settings_router
-from .managed_devices import create_managed_device_router
 from .common_runtime_demo import create_common_demo_router
 from .model_offload_api import create_model_offload_router
 from .model_offload_contract import ModelOffloadContract
@@ -222,10 +220,8 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="state-aggregator", version="0.1.0", lifespan=lifespan)
+app.include_router(create_device_manager_router(settings, service))
 app.include_router(create_common_runtime_router(settings))
-app.include_router(create_service_virtual_device_router(settings))
-app.include_router(create_service_settings_router(settings))
-app.include_router(create_managed_device_router(settings, service))
 app.include_router(create_common_demo_router(settings))
 app.include_router(create_model_offload_router(model_offload_controller, settings.execution_management_token))
 app.include_router(create_virtual_device_router(service.kube))

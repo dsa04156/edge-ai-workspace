@@ -1,0 +1,39 @@
+{
+  "apiVersion": "edgeai.etri/v1",
+  "kind": "RuntimeState",
+  "metadata": {
+    "deviceId": "example-device-001",
+    "profileRef": {
+      "name": "example-arm64-gpu",
+      "version": "1.0"
+    }
+  },
+  "status": {
+    "phase": "Unknown",
+    "observedAt": "2026-09-30T00:00:00Z",
+    "reservation": {
+      "source": "kubernetes-pod-requests",
+      "capacitySource": "kubernetes-allocatable",
+      "allocatable": {
+        "cpuCores": 6,
+        "memoryBytes": 8589934592,
+        "acceleratorUnits": {}
+      },
+      "requested": {
+        "cpuCores": 2,
+        "memoryBytes": 2147483648,
+        "acceleratorUnits": {}
+      },
+      "available": {
+        "cpuCores": 4,
+        "memoryBytes": 6442450944,
+        "acceleratorUnits": {}
+      }
+    },
+    "utilization": null,
+    "reasonCodes": [
+      "example_only",
+      "utilization_unreported"
+    ]
+  }
+}

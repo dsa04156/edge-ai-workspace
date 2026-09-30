@@ -1,0 +1,447 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:edgeai:profile:v1:ServiceProfile",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "apiVersion": {
+      "const": "edgeai.etri/v1"
+    },
+    "kind": {
+      "const": "ServiceProfile"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]{0,127}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ]
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workload": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "enum": [
+                "inference",
+                "preprocessing",
+                "postprocessing"
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "runtime": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "variants": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "architecture": {
+                    "enum": [
+                      "arm64",
+                      "amd64"
+                    ]
+                  },
+                  "framework": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "backend": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "containerImage": {
+                    "type": "string",
+                    "pattern": "^[^\\s]+@sha256:[a-f0-9]{64}$"
+                  },
+                  "modelArtifact": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "accelerator": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "gpu",
+                              "npu"
+                            ]
+                          },
+                          "vendor": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 253
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "vendor"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "architecture",
+                  "framework",
+                  "backend",
+                  "containerImage",
+                  "modelArtifact",
+                  "accelerator"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1,
+              "maxItems": 32
+            }
+          },
+          "required": [
+            "variants"
+          ]
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "minimum": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "cpu": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cores": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "cores"
+                  ]
+                },
+                "memory": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "capacity": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                      "maxLength": 32
+                    }
+                  },
+                  "required": [
+                    "capacity"
+                  ]
+                },
+                "accelerator": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "memory": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                      "maxLength": 32
+                    }
+                  },
+                  "required": []
+                },
+                "network": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "bandwidthMbps": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "bandwidthMbps"
+                  ]
+                }
+              },
+              "required": [
+                "cpu",
+                "memory"
+              ]
+            },
+            "recommended": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpu": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cores": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "cores"
+                      ]
+                    },
+                    "memory": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "capacity": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": [
+                        "capacity"
+                      ]
+                    },
+                    "accelerator": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "memory": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": []
+                    },
+                    "network": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "bandwidthMbps": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "bandwidthMbps"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "cpu",
+                    "memory"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "maximum": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpu": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cores": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "cores"
+                      ]
+                    },
+                    "memory": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "capacity": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": [
+                        "capacity"
+                      ]
+                    },
+                    "accelerator": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "memory": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": []
+                    },
+                    "network": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "bandwidthMbps": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "bandwidthMbps"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "cpu",
+                    "memory"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "minimum",
+            "recommended",
+            "maximum"
+          ]
+        },
+        "qos": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "latency": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "targetMs": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "maximumMs": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "scope": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 253
+                    }
+                  },
+                  "required": [
+                    "targetMs",
+                    "maximumMs",
+                    "scope"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "latency"
+          ]
+        },
+        "scheduling": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "locality": {
+              "enum": [
+                "local-first",
+                "any"
+              ]
+            },
+            "offloading": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "enabled"
+              ]
+            },
+            "migration": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "enabled"
+              ]
+            }
+          },
+          "required": [
+            "locality",
+            "offloading",
+            "migration"
+          ]
+        }
+      },
+      "required": [
+        "workload",
+        "runtime",
+        "resources",
+        "qos",
+        "scheduling"
+      ]
+    }
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "spec"
+  ]
+}

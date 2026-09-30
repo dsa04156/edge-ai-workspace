@@ -91,14 +91,14 @@
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-30 15:02</span>
-            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
+            <span class="badge">수정: 2026-09-30 19:28</span>
+            <span class="badge">HTML 생성: 2026-09-30 19:44</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="저장소-구조">저장소 구조</h1>
 <h2 id="1세부-개발-진입점-2026-09-30">1세부 개발 진입점 — 2026-09-30</h2>
-<p>전체 구현 순서는 <a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a>의 10단계를 따른다. 첫 작업은 Profile v1과 기존 RuntimeService·ServiceDescriptor·노드 관측의 필드 대응이다. 새 저장소 대신 현재 저장소의 <code>profile-spec/</code>를 독립 개발 영역으로 사용하기로 했다. 네 가지 Schema·예제·검증·필드 대응표부터 작성하고 기존 데이터의 읽기 전용 연결을 추가한다. 현재는 경로 계획이며 디렉터리·코드 생성 전이다. Registry DB·REST API를 먼저 추가하지 않는다. 기존 <code>edge-orch/runtime-operator/</code>와 <code>edge-orch/state-aggregator/</code>를 재사용 검토하며, 새 Manager·Scheduler·Controller라는 역할명이 새 실행 제어기나 디렉터리 생성을 뜻하지 않는다. 서버 내부 자원 관리는 연계 API 너머의 책임이다. 아래 VD M0~M6는 전체 순서의 ⑦ 단계에 해당하는 세부 설계로 참고한다. 이번 문서 갱신은 코드·배포 소유권을 변경하지 않는다.</p>
+<p>전체 구현 순서는 <a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a>의 10단계를 따른다. 첫 작업은 Profile v1과 기존 RuntimeService·ServiceDescriptor·노드 관측의 필드 대응이다. 새 저장소 대신 현재 저장소의 <code>profile-spec/</code>를 독립 개발 영역으로 사용하기로 했다. 네 가지 Schema·예제·필드 대응표와 노드 읽기 전용 adapter를 구현했다. <a href="../profile-spec/README.md">Profile v1</a>의 원본은 <code>profile-spec/schemas/</code>이며 <code>build_bundle.py</code>가 dashboard의 <code>app/config/profile_spec_v1.json</code>을 생성한다. <code>app/profile_spec.py</code>는 명세 검증·관측·제한 비교 API다. 과거 <code>app/static/nexus/profiles.js</code> 화면은 메뉴와 asset 로딩에서 제거했다. Device Manager 화면도 기존 dashboard에서 분리했다. <code>app/device_manager.py</code>가 ② DeviceProfile 불변 버전과 Node UID 참조를 <code>DATA_DIR/device-profile-bindings.sqlite3</code>에 저장한다. <code>app/static/nexus/device-manager.js</code>의 장비 선택·폼 등록·연결·관측은 기존 NEXUS <code>platform.js</code>의 <code>디바이스 관리</code> 페이지에서 제공한다. <code>app/device_manager_preview.py</code>는 같은 UI와 기존 운영 GET을 연결하는 로컬 검증 앱이며, Profile/연결만 로컬 DB에 저장한다. 별도 shell·dashboard iframe은 제거했다. <a href="../profile-spec/디바이스-매니저.md">디바이스 매니저</a>에 상세 계약을 둔다. 실제 배포 여부는 현재 구현 상태를 따른다. 기존 <code>edge-orch/runtime-operator/</code>와 <code>edge-orch/state-aggregator/</code>를 재사용 검토하며, 새 Manager·Scheduler·Controller라는 역할명이 새 실행 제어기나 디렉터리 생성을 뜻하지 않는다. 서버 내부 자원 관리는 연계 API 너머의 책임이다. 아래 VD M0~M6는 전체 순서의 ⑦ 단계에 해당하는 세부 설계로 참고한다. 이번 문서 갱신은 코드·배포 소유권을 변경하지 않는다.</p>
 <h2 id="서버측-가상-디바이스-2026-09-22-후속-설계-경로">서버측 가상 디바이스 — 2026-09-22 후속 설계 경로</h2>
 <p>후속 계약·구현 순서의 원본은 <a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계</a>다. 이번에는 문서만 통합하며 아래 확장 경로의 신규 기능을 구현·배포하지 않는다.</p>
 <div class="table-wrap"><table>

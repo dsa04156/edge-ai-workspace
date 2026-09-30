@@ -1,0 +1,11 @@
+{
+  "static/nexus/overview.js": "22796ac7ceefe2b6219d37a8341ea918c1d8ca0cf57534171b930d421486be0c",
+  "static/nexus/overview.css": "e3768766978dacf3a80e3f5ea8a31807c9c1257220399b3444fe38e2324ca14d",
+  "static/nexus/live-data.js": "3a237e1e5d27f6c465dac769dd1117d1f6aa8544221f19990dcfbf7bf045b593",
+  "static/nexus/live-ui.js": "d5342deb10eabb0c71e7f3684d5455ac044d327984e65a22d6b6e274b2469cc2",
+  "static/nexus/product-shell.css": "e3d57c4e15547be6867a0b7f496616cb02b40bc596a7467c3f0cebd5b8545028",
+  "static/nexus/source-view.js": "210f23047fe4cff92080796ebea06185d92ee39fa282e19df8d9dfba18752f05",
+  "static/dashboard-screen.css": "0c88e0dfc96ec6c264d12010174774025dce435dad7e0d53f26d623f7872bf4b",
+  "static/virtual-devices.js": "d5d415bb75d77b843a026ac96e4e0e22e58ead1b7f06dba9106136dab5f85539",
+  "resource_pool.py": "ab24b002288ed09177f75320f3a33368444c13c95dafc282eb9182575bc3d49a"
+}

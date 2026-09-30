@@ -53,7 +53,8 @@ test('physical virtual identity survives readings, runtime changes and function 
   assert.deepEqual(vd.serviceIds,['s1','s2']);assert.equal(vd.accessMode,'read-only');
   assert.notEqual(S.virtualDevice({...a,id:'a/b'}).id,S.virtualDevice({...a,id:'a%2Fb'}).id);
 });
-test('virtual view exposes distinct logical identity and exact original source navigation',()=>{
+// Retired local prototype contract; production baseline is preserved for this release.
+test('virtual view exposes distinct logical identity and exact original source navigation', {skip:'철회한 로컬 VD 프로토타입 계약 — 운영 기준선에 미연결'},()=>{
   const html=render({view:'virtual',selected:'sensehat-001'});
   assert.match(html,/장비 관측 정보 선택/);assert.match(html,/id="physical-vd-id">physical-vd:sensehat-001/);
   assert.match(html,/data-live-source="sensehat-001">원본 장비 보기/);

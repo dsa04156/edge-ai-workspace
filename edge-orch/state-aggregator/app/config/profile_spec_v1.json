@@ -1,0 +1,1525 @@
+{
+  "apiVersion": "edgeai.etri/v1",
+  "maturity": "draft",
+  "schemas": {
+    "DeviceProfile": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "urn:edgeai:profile:v1:DeviceProfile",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apiVersion": {
+          "const": "edgeai.etri/v1"
+        },
+        "kind": {
+          "const": "DeviceProfile"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9.-]{0,127}$"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.[0-9]+$"
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ]
+        },
+        "spec": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "deviceClass": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253
+            },
+            "type": {
+              "enum": [
+                "physical",
+                "unknown"
+              ]
+            },
+            "hardware": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "architecture": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "arm64",
+                        "amd64"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cpu": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cores": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "cores"
+                  ]
+                },
+                "memory": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "capacity": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "capacity"
+                  ]
+                },
+                "accelerators": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "gpu",
+                              "npu"
+                            ]
+                          },
+                          "vendor": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 253
+                          },
+                          "model": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 253
+                          },
+                          "memory": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                                "maxLength": 32
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "memoryMode": {
+                            "enum": [
+                              "dedicated",
+                              "shared",
+                              "unknown"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "vendor",
+                          "model",
+                          "memory",
+                          "memoryMode"
+                        ]
+                      },
+                      "uniqueItems": true
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "architecture",
+                "cpu",
+                "memory",
+                "accelerators"
+              ]
+            },
+            "runtime": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "frameworks": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "uniqueItems": true
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "backends": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "uniqueItems": true
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "frameworks",
+                "backends"
+              ]
+            },
+            "capabilities": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "communication": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "protocols": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "uniqueItems": true
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "protocols"
+              ]
+            }
+          },
+          "required": [
+            "deviceClass",
+            "type",
+            "hardware",
+            "runtime",
+            "capabilities",
+            "communication"
+          ]
+        }
+      },
+      "required": [
+        "apiVersion",
+        "kind",
+        "metadata",
+        "spec"
+      ]
+    },
+    "RuntimeState": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "urn:edgeai:profile:v1:RuntimeState",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apiVersion": {
+          "const": "edgeai.etri/v1"
+        },
+        "kind": {
+          "const": "RuntimeState"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "deviceId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253
+            },
+            "profileRef": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9.-]{0,127}$"
+                },
+                "version": {
+                  "type": "string",
+                  "pattern": "^[0-9]+\\.[0-9]+$"
+                }
+              },
+              "required": [
+                "name",
+                "version"
+              ]
+            }
+          },
+          "required": [
+            "deviceId",
+            "profileRef"
+          ]
+        },
+        "status": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "phase": {
+              "enum": [
+                "Ready",
+                "NotReady",
+                "Unknown"
+              ]
+            },
+            "observedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "reservation": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "source": {
+                  "const": "kubernetes-pod-requests"
+                },
+                "capacitySource": {
+                  "const": "kubernetes-allocatable"
+                },
+                "allocatable": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpuCores": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "memoryBytes": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "acceleratorUnits": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    }
+                  },
+                  "required": [
+                    "cpuCores",
+                    "memoryBytes",
+                    "acceleratorUnits"
+                  ]
+                },
+                "requested": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpuCores": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "memoryBytes": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "acceleratorUnits": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    }
+                  },
+                  "required": [
+                    "cpuCores",
+                    "memoryBytes",
+                    "acceleratorUnits"
+                  ]
+                },
+                "available": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpuCores": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "memoryBytes": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "acceleratorUnits": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    }
+                  },
+                  "required": [
+                    "cpuCores",
+                    "memoryBytes",
+                    "acceleratorUnits"
+                  ]
+                }
+              },
+              "required": [
+                "source",
+                "capacitySource",
+                "allocatable",
+                "requested",
+                "available"
+              ]
+            },
+            "utilization": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "source": {
+                      "const": "prometheus"
+                    },
+                    "observedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "cpuRatio": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "memoryRatio": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "gpuRatio": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "source",
+                    "observedAt",
+                    "cpuRatio",
+                    "memoryRatio",
+                    "gpuRatio"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reasonCodes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 253
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "phase",
+            "observedAt",
+            "reservation",
+            "utilization",
+            "reasonCodes"
+          ]
+        }
+      },
+      "required": [
+        "apiVersion",
+        "kind",
+        "metadata",
+        "status"
+      ]
+    },
+    "ServiceProfile": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "urn:edgeai:profile:v1:ServiceProfile",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apiVersion": {
+          "const": "edgeai.etri/v1"
+        },
+        "kind": {
+          "const": "ServiceProfile"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9.-]{0,127}$"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.[0-9]+$"
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ]
+        },
+        "spec": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "workload": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "enum": [
+                    "inference",
+                    "preprocessing",
+                    "postprocessing"
+                  ]
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            "runtime": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "variants": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "architecture": {
+                        "enum": [
+                          "arm64",
+                          "amd64"
+                        ]
+                      },
+                      "framework": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "backend": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "containerImage": {
+                        "type": "string",
+                        "pattern": "^[^\\s]+@sha256:[a-f0-9]{64}$"
+                      },
+                      "modelArtifact": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 253
+                      },
+                      "accelerator": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "type": {
+                                "enum": [
+                                  "gpu",
+                                  "npu"
+                                ]
+                              },
+                              "vendor": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 253
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "vendor"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "architecture",
+                      "framework",
+                      "backend",
+                      "containerImage",
+                      "modelArtifact",
+                      "accelerator"
+                    ]
+                  },
+                  "uniqueItems": true,
+                  "minItems": 1,
+                  "maxItems": 32
+                }
+              },
+              "required": [
+                "variants"
+              ]
+            },
+            "resources": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "minimum": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpu": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cores": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "cores"
+                      ]
+                    },
+                    "memory": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "capacity": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": [
+                        "capacity"
+                      ]
+                    },
+                    "accelerator": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "memory": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": []
+                    },
+                    "network": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "bandwidthMbps": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "bandwidthMbps"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "cpu",
+                    "memory"
+                  ]
+                },
+                "recommended": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cpu": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "cores": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "cores"
+                          ]
+                        },
+                        "memory": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "capacity": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": [
+                            "capacity"
+                          ]
+                        },
+                        "accelerator": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "memory": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": []
+                        },
+                        "network": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "bandwidthMbps": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "bandwidthMbps"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "cpu",
+                        "memory"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maximum": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cpu": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "cores": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "cores"
+                          ]
+                        },
+                        "memory": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "capacity": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": [
+                            "capacity"
+                          ]
+                        },
+                        "accelerator": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "memory": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": []
+                        },
+                        "network": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "bandwidthMbps": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "bandwidthMbps"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "cpu",
+                        "memory"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "minimum",
+                "recommended",
+                "maximum"
+              ]
+            },
+            "qos": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "latency": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "targetMs": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "maximumMs": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 253
+                        }
+                      },
+                      "required": [
+                        "targetMs",
+                        "maximumMs",
+                        "scope"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "latency"
+              ]
+            },
+            "scheduling": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "locality": {
+                  "enum": [
+                    "local-first",
+                    "any"
+                  ]
+                },
+                "offloading": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ]
+                },
+                "migration": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "enabled"
+                  ]
+                }
+              },
+              "required": [
+                "locality",
+                "offloading",
+                "migration"
+              ]
+            }
+          },
+          "required": [
+            "workload",
+            "runtime",
+            "resources",
+            "qos",
+            "scheduling"
+          ]
+        }
+      },
+      "required": [
+        "apiVersion",
+        "kind",
+        "metadata",
+        "spec"
+      ]
+    },
+    "VirtualDeviceProfile": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "urn:edgeai:profile:v1:VirtualDeviceProfile",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "apiVersion": {
+          "const": "edgeai.etri/v1"
+        },
+        "kind": {
+          "const": "VirtualDeviceProfile"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9.-]{0,127}$"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^[0-9]+\\.[0-9]+$"
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ]
+        },
+        "spec": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "virtual"
+            },
+            "emulation": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "deviceClass": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 253
+                },
+                "interfaces": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  },
+                  "uniqueItems": true
+                }
+              },
+              "required": [
+                "deviceClass",
+                "interfaces"
+              ]
+            },
+            "resources": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "minimum": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpu": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cores": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "cores"
+                      ]
+                    },
+                    "memory": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "capacity": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": [
+                        "capacity"
+                      ]
+                    },
+                    "accelerator": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "memory": {
+                          "type": "string",
+                          "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                          "maxLength": 32
+                        }
+                      },
+                      "required": []
+                    },
+                    "network": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "bandwidthMbps": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "bandwidthMbps"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "cpu",
+                    "memory"
+                  ]
+                },
+                "recommended": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cpu": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "cores": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "cores"
+                          ]
+                        },
+                        "memory": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "capacity": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": [
+                            "capacity"
+                          ]
+                        },
+                        "accelerator": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "memory": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": []
+                        },
+                        "network": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "bandwidthMbps": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "bandwidthMbps"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "cpu",
+                        "memory"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "maximum": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "cpu": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "cores": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "cores"
+                          ]
+                        },
+                        "memory": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "capacity": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": [
+                            "capacity"
+                          ]
+                        },
+                        "accelerator": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "memory": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?(Ki|Mi|Gi|Ti)$",
+                              "maxLength": 32
+                            }
+                          },
+                          "required": []
+                        },
+                        "network": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "bandwidthMbps": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          },
+                          "required": [
+                            "bandwidthMbps"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "cpu",
+                        "memory"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "minimum",
+                "recommended",
+                "maximum"
+              ]
+            },
+            "backend": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "placement": {
+                  "const": "edge-ai-server"
+                },
+                "resourcePool": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 253
+                }
+              },
+              "required": [
+                "placement",
+                "resourcePool"
+              ]
+            },
+            "binding": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "dynamic",
+                    "static"
+                  ]
+                },
+                "physicalDeviceOptional": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "mode",
+                "physicalDeviceOptional"
+              ]
+            },
+            "lifecycle": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "creation": {
+                  "enum": [
+                    "on-demand",
+                    "manual"
+                  ]
+                },
+                "deletion": {
+                  "enum": [
+                    "automatic",
+                    "manual"
+                  ]
+                }
+              },
+              "required": [
+                "creation",
+                "deletion"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "emulation",
+            "resources",
+            "backend",
+            "binding",
+            "lifecycle"
+          ]
+        }
+      },
+      "required": [
+        "apiVersion",
+        "kind",
+        "metadata",
+        "spec"
+      ]
+    }
+  },
+  "examples": {
+    "DeviceProfile": {
+      "apiVersion": "edgeai.etri/v1",
+      "kind": "DeviceProfile",
+      "metadata": {
+        "name": "example-arm64-gpu",
+        "version": "1.0"
+      },
+      "spec": {
+        "deviceClass": "edge-ai-device",
+        "type": "physical",
+        "hardware": {
+          "architecture": "arm64",
+          "cpu": {
+            "cores": 6
+          },
+          "memory": {
+            "capacity": "8Gi"
+          },
+          "accelerators": [
+            {
+              "type": "gpu",
+              "vendor": "nvidia",
+              "model": "example",
+              "memory": "8Gi",
+              "memoryMode": "shared"
+            }
+          ]
+        },
+        "runtime": {
+          "frameworks": [
+            "pytorch"
+          ],
+          "backends": [
+            "cuda"
+          ]
+        },
+        "capabilities": {
+          "camera": true
+        },
+        "communication": {
+          "protocols": [
+            "mqtt"
+          ]
+        }
+      }
+    },
+    "RuntimeState": {
+      "apiVersion": "edgeai.etri/v1",
+      "kind": "RuntimeState",
+      "metadata": {
+        "deviceId": "example-device-001",
+        "profileRef": {
+          "name": "example-arm64-gpu",
+          "version": "1.0"
+        }
+      },
+      "status": {
+        "phase": "Unknown",
+        "observedAt": "2026-09-30T00:00:00Z",
+        "reservation": {
+          "source": "kubernetes-pod-requests",
+          "capacitySource": "kubernetes-allocatable",
+          "allocatable": {
+            "cpuCores": 6,
+            "memoryBytes": 8589934592,
+            "acceleratorUnits": {}
+          },
+          "requested": {
+            "cpuCores": 2,
+            "memoryBytes": 2147483648,
+            "acceleratorUnits": {}
+          },
+          "available": {
+            "cpuCores": 4,
+            "memoryBytes": 6442450944,
+            "acceleratorUnits": {}
+          }
+        },
+        "utilization": null,
+        "reasonCodes": [
+          "example_only",
+          "utilization_unreported"
+        ]
+      }
+    },
+    "ServiceProfile": {
+      "apiVersion": "edgeai.etri/v1",
+      "kind": "ServiceProfile",
+      "metadata": {
+        "name": "example-inference",
+        "version": "1.0"
+      },
+      "spec": {
+        "workload": {
+          "type": "inference"
+        },
+        "runtime": {
+          "variants": [
+            {
+              "name": "arm64-cuda",
+              "architecture": "arm64",
+              "framework": "pytorch",
+              "backend": "cuda",
+              "containerImage": "example.invalid/inference@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+              "modelArtifact": "example-only-unverified",
+              "accelerator": {
+                "type": "gpu",
+                "vendor": "nvidia"
+              }
+            }
+          ]
+        },
+        "resources": {
+          "minimum": {
+            "cpu": {
+              "cores": 2
+            },
+            "memory": {
+              "capacity": "4Gi"
+            },
+            "accelerator": {
+              "memory": "3Gi"
+            }
+          },
+          "recommended": {
+            "cpu": {
+              "cores": 4
+            },
+            "memory": {
+              "capacity": "6Gi"
+            },
+            "accelerator": {
+              "memory": "4Gi"
+            }
+          },
+          "maximum": null
+        },
+        "qos": {
+          "latency": {
+            "targetMs": 1000,
+            "maximumMs": 2000,
+            "scope": "example-end-to-end"
+          }
+        },
+        "scheduling": {
+          "locality": "local-first",
+          "offloading": {
+            "enabled": true
+          },
+          "migration": {
+            "enabled": false
+          }
+        }
+      }
+    },
+    "VirtualDeviceProfile": {
+      "apiVersion": "edgeai.etri/v1",
+      "kind": "VirtualDeviceProfile",
+      "metadata": {
+        "name": "example-server-slot",
+        "version": "1.0"
+      },
+      "spec": {
+        "type": "virtual",
+        "emulation": {
+          "deviceClass": "edge-ai-device",
+          "interfaces": [
+            "grpc"
+          ]
+        },
+        "resources": {
+          "minimum": {
+            "cpu": {
+              "cores": 1
+            },
+            "memory": {
+              "capacity": "2Gi"
+            }
+          },
+          "recommended": null,
+          "maximum": {
+            "cpu": {
+              "cores": 4
+            },
+            "memory": {
+              "capacity": "8Gi"
+            }
+          }
+        },
+        "backend": {
+          "placement": "edge-ai-server",
+          "resourcePool": "example-pool"
+        },
+        "binding": {
+          "mode": "dynamic",
+          "physicalDeviceOptional": true
+        },
+        "lifecycle": {
+          "creation": "on-demand",
+          "deletion": "automatic"
+        }
+      }
+    }
+  }
+}
