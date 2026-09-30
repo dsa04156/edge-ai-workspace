@@ -58,6 +58,7 @@
 <li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a></li>
 <li><a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계 — 후속 설계 기준</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
 <li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
@@ -86,16 +87,18 @@
         <header class="doc-header">
           <p class="eyebrow">개발 참고</p>
           <h1>저장소 구조</h1>
-          <p class="subtitle">후속 계약·구현 순서의 원본은 서버측 가상 디바이스 통합 설계다. 이번에는 문서만 통합하며 아래 확장 경로의 신규 기능을 구현·…</p>
+          <p class="subtitle">전체 구현 순서는 1세부 개발범위와 우선순위의 10단계를 따른다. 첫 작업은 Profile v1과 기존 RuntimeServic…</p>
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 저장소-구조.md</span>
-            <span class="badge">수정: 2026-09-22 11:04</span>
-            <span class="badge">HTML 생성: 2026-09-22 11:37</span>
+            <span class="badge">수정: 2026-09-30 15:02</span>
+            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="저장소-구조">저장소 구조</h1>
+<h2 id="1세부-개발-진입점-2026-09-30">1세부 개발 진입점 — 2026-09-30</h2>
+<p>전체 구현 순서는 <a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a>의 10단계를 따른다. 첫 작업은 Profile v1과 기존 RuntimeService·ServiceDescriptor·노드 관측의 필드 대응이다. 새 저장소 대신 현재 저장소의 <code>profile-spec/</code>를 독립 개발 영역으로 사용하기로 했다. 네 가지 Schema·예제·검증·필드 대응표부터 작성하고 기존 데이터의 읽기 전용 연결을 추가한다. 현재는 경로 계획이며 디렉터리·코드 생성 전이다. Registry DB·REST API를 먼저 추가하지 않는다. 기존 <code>edge-orch/runtime-operator/</code>와 <code>edge-orch/state-aggregator/</code>를 재사용 검토하며, 새 Manager·Scheduler·Controller라는 역할명이 새 실행 제어기나 디렉터리 생성을 뜻하지 않는다. 서버 내부 자원 관리는 연계 API 너머의 책임이다. 아래 VD M0~M6는 전체 순서의 ⑦ 단계에 해당하는 세부 설계로 참고한다. 이번 문서 갱신은 코드·배포 소유권을 변경하지 않는다.</p>
 <h2 id="서버측-가상-디바이스-2026-09-22-후속-설계-경로">서버측 가상 디바이스 — 2026-09-22 후속 설계 경로</h2>
 <p>후속 계약·구현 순서의 원본은 <a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계</a>다. 이번에는 문서만 통합하며 아래 확장 경로의 신규 기능을 구현·배포하지 않는다.</p>
 <div class="table-wrap"><table>
@@ -428,7 +431,8 @@
 <p>사용자의 구현 요청에 따라 기존 runtime-operator에 선택적인 JSON 텐서 V2 추론 adapter를 추가하고, 학습된 손글씨 숫자 분류 모델을 두 번째 실제 AI 실행 검증 서비스로 연결한다. 첫 범위는 독립 요청의 실행·결과 검증·준비 후 경로 전환·drain·중지와 기존 노드별 시험 버튼 재사용이다. 기존 Llama·EdgeX 입력과 수집을 유지하고 legacy workflow를 사용하지 않는다. 새 모델은 실행 검증을 마친 노드만 후보로 등록하고 성능 자격을 별도로 측정하기 전에는 선호 배치 모드로 운영한다. 성능값을 추정해 과부하 자동 이동을 활성화하지 않는다. 기존 Llama의 자동 정책은 유지한다. 담당은 platform-runtime 운영자이며 검증 기준은 ARM64/AMD64 실제 모델 결과, 모델 identity 거부, 신규 요청 경로 전환, 중지·자원 반환, 서비스 격리와 대시보드 연결이다. 합성 HTTP 응답이나 현장 옥동 판별 모델로 설명하지 않는다. 구현·운영 결과는 후속 실측 기록으로 구분한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#서버측-가상-디바이스-2026-09-22-후속-설계-경로">서버측 가상 디바이스 — 2026-09-22 후속 설계 경로</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#1세부-개발-진입점-2026-09-30">1세부 개발 진입점 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#서버측-가상-디바이스-2026-09-22-후속-설계-경로">서버측 가상 디바이스 — 2026-09-22 후속 설계 경로</a></li>
 <li class="toc-h3"><a href="#이전-확장-이력">이전 확장 이력</a></li>
 <li class="toc-h2"><a href="#2026-09-14-공통-ai-입력-연결">2026-09-14 공통 AI 입력 연결</a></li>
 <li class="toc-h2"><a href="#물리-장비의-가상-디바이스-표현-2026-09-08-승인">물리 장비의 가상 디바이스 표현 (2026-09-08 승인)</a></li>
@@ -450,8 +454,7 @@
 <li class="toc-h2"><a href="#2026-09-10-장비-독립-공통-실행-제어기-승인-범위">2026-09-10 장비 독립 공통 실행 제어기 승인 범위</a></li>
 <li class="toc-h2"><a href="#2026-09-11-ai-추론-지표-승인-기반-증강">2026-09-11 AI 추론 지표·승인 기반 증강</a></li>
 <li class="toc-h3"><a href="#2026-09-11-llama-승인-증강-3단계-확대">2026-09-11 Llama 승인 증강 3단계 확대</a></li>
-<li class="toc-h3"><a href="#llama-서비스-실행-중지와-노드별-부하">Llama 서비스 실행·중지와 노드별 부하</a></li>
-<li class="toc-h3"><a href="#offload-demo-대시보드-연결-2026-09-14">OFFLOAD DEMO 대시보드 연결 (2026-09-14)</a></li></ol></aside>
+<li class="toc-h3"><a href="#llama-서비스-실행-중지와-노드별-부하">Llama 서비스 실행·중지와 노드별 부하</a></li></ol></aside>
     </div>
   </div>
 

@@ -1,7 +1,8 @@
 # Sensor Anomaly Demo — Agent Instructions
 
-상위 `../AGENTS.md`와 루트 `../../AGENTS.md`를 먼저 적용한다. 이 프로젝트는 실제 Local
-Data 입력, 정렬, 통계 기준선 추론, 파생 결과 저장을 검증하는 현재 고정 서비스 데모다.
+상위 `../AGENTS.md`와 루트 `../../AGENTS.md`를 먼저 적용한다. 2026-09-30 사용자 요청으로
+운영 Deployment·Service·Argo Application을 제거했다. 소스·PVC·시험 기록은 보존하며 자동 재배포하지 않는다.
+이 프로젝트는 실제 Local Data 입력, 정렬, 통계 기준선 추론, 파생 결과 저장을 검증한 고정 서비스 데모다.
 옥동 실장비 AI 모델이거나 범용 동적 offloading 구현은 아니다.
 
 ## Build & Run

@@ -58,6 +58,7 @@
 <li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a></li>
 <li><a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계 — 후속 설계 기준</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
 <li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
@@ -86,17 +87,17 @@
         <header class="doc-header">
           <p class="eyebrow">개발 참고</p>
           <h1>공통 서비스 Kubernetes 오케스트레이션</h1>
-          <p class="subtitle">&gt; 상태: 공통 Kubernetes 제어기와 NEXUS 데모 운영 중. 아래에 구성·등록·자동 전환 기준·화면 사용 순서를 정리…</p>
+          <p class="subtitle">&gt; 2026-09-30 상태: 공통 Kubernetes 제어기·gateway·NEXUS는 유지하고 등록된 AI/시험 서비스 4개…</p>
           <div class="meta">
             <span class="badge kind">개발 참고</span>
             <span class="badge">원본: 공통-서비스-Kubernetes-오케스트레이션.md</span>
-            <span class="badge">수정: 2026-09-11 16:34</span>
-            <span class="badge">HTML 생성: 2026-09-22 11:37</span>
+            <span class="badge">수정: 2026-09-30 15:13</span>
+            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="공통-서비스-kubernetes-오케스트레이션">공통 서비스 Kubernetes 오케스트레이션</h1>
-<blockquote><p>상태: 공통 Kubernetes 제어기와 NEXUS 데모 운영 중. 아래에 구성·등록·자동 전환 기준·화면 사용 순서를 정리했다. 실제 GPU 왕복 261/261과 합성 HTTP 왕복 173/173을 검증했으며 임의 AI 서비스 이전·운영 HA 완료를 뜻하지 않는다.</p></blockquote>
+<blockquote><p>2026-09-30 상태: 공통 Kubernetes 제어기·gateway·NEXUS는 유지하고 등록된 AI/시험 서비스 4개와 Llama worker·전용 입력기는 제거했다. 아래는 보존한 구성·등록·자동 전환·시험 근거이며 상시 재실행 지시가 아니다. 실제 GPU 왕복 261/261과 합성 HTTP 왕복 173/173은 과거 검증이며 임의 AI 서비스 이전·운영 HA 완료를 뜻하지 않는다. 최신 정리 상태는 <a href="현재-구현-상태.html">현재 구현 상태</a>를 따른다.</p></blockquote>
 <h2 id="쉽게-설명하면">쉽게 설명하면</h2>
 <p>서비스는 해야 할 일과 필요한 장비 조건을 제출한다. 플랫폼은 현재 일을 맡을 수 있는 노드를 찾는다. 이동할 때는 새 작업자를 먼저 준비하고 새 요청을 넘긴 뒤 이전 작업자의 남은 요청이 끝나야 자원을 반납한다. Nano·Orin·Spark는 그 과정을 시험하는 장비 예시다.</p>
 <h2 id="지금-어떻게-구성해-두었나">지금 어떻게 구성해 두었나</h2>

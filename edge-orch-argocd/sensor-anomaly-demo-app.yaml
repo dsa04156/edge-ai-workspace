@@ -3,6 +3,9 @@ kind: Application
 metadata:
   name: edge-orch-sensor-anomaly-demo
   namespace: argocd
+  annotations:
+    edge-ai.io/lifecycle: retired
+    edge-ai.io/retired-at: "2026-09-30"
 spec:
   project: default
   source:
@@ -21,8 +24,6 @@ spec:
       jsonPointers:
         - /spec
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+    # Retired demo: retained for explicit recovery, not automatic deployment.
     syncOptions:
       - RespectIgnoreDifferences=true

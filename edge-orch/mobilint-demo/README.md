@@ -1,5 +1,8 @@
 # 모빌인트 NPU 코어 분리 데모
 
+> 2026-09-30 추론 데모 Deployment·Service를 제거했다. 장비 드라이버와 device plugin은 유지한다.
+> 아래 구성·시험 기록은 보존 근거다. [정리 기록](../../kubeedge-tools/results/demo-cleanup-20260930/README.md).
+
 한 NPU를 받은 서버 안에서 두 모델이 서로 다른 코어를 사용한다. 여러 서비스는 이
 서버의 API를 호출할 수 있다. Kubernetes가 코어를 Pod별로 쪼개 주는 구조는 아니다.
 

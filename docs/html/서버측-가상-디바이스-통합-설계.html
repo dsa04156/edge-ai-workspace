@@ -58,6 +58,7 @@
 <li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a></li>
 <li><a class="active" aria-current="page" href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계 — 후속 설계 기준</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
 <li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
@@ -86,16 +87,17 @@
         <header class="doc-header">
           <p class="eyebrow">정책과 계약</p>
           <h1>서버측 가상 디바이스 통합 설계 — 후속 설계 기준</h1>
-          <p class="subtitle">&gt; 문서 ID: VD-DESIGN-001 &gt; 버전: 1.1 / 원안 작성일: 2026-09-18 / 문서 통합일: 2026-09…</p>
+          <p class="subtitle">&gt; 2026-09-30 적용 우선순위: 1세부 전체 개발 순서를 먼저 따른다. &gt; 이 문서의 M0M6는 전체 순서의 ⑦ Virt…</p>
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 서버측-가상-디바이스-통합-설계.md</span>
-            <span class="badge">수정: 2026-09-22 11:02</span>
-            <span class="badge">HTML 생성: 2026-09-22 11:37</span>
+            <span class="badge">수정: 2026-09-30 14:48</span>
+            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="서버측-가상-디바이스-통합-설계">서버측 가상 디바이스 통합 설계</h1>
+<blockquote><p>2026-09-30 적용 우선순위: <a href="1세부-개발범위와-우선순위.html">1세부 전체 개발 순서</a>를 먼저 따른다. 이 문서의 M0~M6는 전체 순서의 ⑦ Virtual Device 단계에서 참고할 세부 설계다. 서버 내부 GPU/NPU 스케줄러는 연계 대상의 책임이며, 기존 Operator의 테스트베드 실행 제어를 외부 Edge AI Server의 내부 제어권으로 확대하지 않는다. 서버 연계 API와 정렬한 뒤 구체화한다. 9월 28일 철회한 VD·수동 Workflow 프로토타입의 재개 승인이 아니다. 아래 9월 22일 원안은 보존한다.</p></blockquote>
 <blockquote><p>문서 ID: VD-DESIGN-001 버전: 1.1 / 원안 작성일: 2026-09-18 / 문서 통합일: 2026-09-22 상태: 사용자 채택 후속 설계 기준. 이번 작업은 문서 통합이며 신규 기능 구현·운영 배포·공식 평가 완료를 뜻하지 않는다. 적용 저장소: <code>dsa04156/edge-ai-workspace</code> 원안 코드 확인 기준: <code>main</code> / <code>2926ac7ae21bd72c7d70f57f09e7109e2c124086</code> 통합 원본: 저장소 루트 <code>01_virtual_device_design.md</code>, <code>02_codex_implementation_prompt.md</code> (원본 보존). 구현 지침은 부록 A.</p></blockquote>
 <h2 id="통합-기준과-현재-적용-범위">통합 기준과 현재 적용 범위</h2>
 <p>2026-09-22 사용자 요청으로 01 설계서와 02 개발 지시문을 이 문서에 통합했다. 가상 디바이스의 후속 설계·개발 인수 기준은 이 문서를 단일 기준으로 사용한다. 본문 0~16절은 설계, 부록 A는 해당 설계의 구현 순서와 제출 지침이다. <strong>부록의 구현 명령은 후속 구현 작업용이며 이번 문서 통합 요청을 코드 변경·실장비 시험 승인으로 확대하지 않는다.</strong></p>

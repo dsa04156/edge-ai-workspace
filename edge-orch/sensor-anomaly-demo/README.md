@@ -1,5 +1,9 @@
 # Sensor anomaly service baseline
 
+> 2026-09-30 운영 정리: 본체·server1·전환 시험 Deployment와 Service, Argo Application을 제거했다.
+> 소스·결과 PVC·시험 근거는 보존한다. 아래는 구현·복구 참고이며 현재 실행 중이라는 뜻은 아니다.
+> [정리 및 복구 기록](../../kubeedge-tools/results/demo-cleanup-20260930/README.md)을 먼저 확인한다.
+
 이 서비스는 Jetson에서 EdgeX Serial Device Service의 Local Data API를 읽어 가속도 3축과
 온도를 정렬하고, 현재 검증용 통계 기준선으로 펌프·모터 이상 점수를 계산한다.
 

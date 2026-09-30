@@ -98,18 +98,15 @@ def test_factory_vision_ai_is_retired_from_current_argocd_apps():
     assert "edge-orch-factory-vision-inspection-ai" not in apps
 
 
-def test_sensor_anomaly_demo_argocd_application_contract():
+def test_sensor_anomaly_demo_argocd_application_is_retired_without_auto_sync():
     app = _load_yaml(SENSOR_DEMO_APP)[0]
 
     assert app["kind"] == "Application"
     assert app["metadata"]["name"] == "edge-orch-sensor-anomaly-demo"
     assert app["spec"]["source"]["path"] == "edge-orch/sensor-anomaly-demo/k8s"
-    assert app["spec"]["source"]["targetRevision"] == "main"
+    assert app["metadata"]["annotations"]["edge-ai.io/lifecycle"] == "retired"
     assert app["spec"]["destination"]["namespace"] == "edgex-edge"
-    assert app["spec"]["syncPolicy"]["automated"] == {
-        "prune": True,
-        "selfHeal": True,
-    }
+    assert "automated" not in app["spec"]["syncPolicy"]
 
 
 def test_rejects_missing_factory_service_selector():

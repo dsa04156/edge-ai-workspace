@@ -58,6 +58,7 @@
 <li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
 <li class="group">정책과 계약</li>
 <li><a class="active" aria-current="page" href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a></li>
 <li><a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계 — 후속 설계 기준</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
 <li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
@@ -86,16 +87,20 @@
         <header class="doc-header">
           <p class="eyebrow">정책과 계약</p>
           <h1>프로젝트 범위</h1>
-          <p class="subtitle">사용자 요청으로 01 설계서와 02 구현 지시문을 서버측 가상 디바이스 통합 설계에 통합했다. 이번 승인 범위는 문서 통합이다.…</p>
+          <p class="subtitle">사용자 요청으로 Llama·숫자 분류·합성 runtime 서비스·센서 anomaly·모빌인트·VD 데모와 Modbus 개발 fi…</p>
           <div class="meta">
             <span class="badge kind">정책과 계약</span>
             <span class="badge">원본: 프로젝트-범위.md</span>
-            <span class="badge">수정: 2026-09-22 11:04</span>
-            <span class="badge">HTML 생성: 2026-09-22 11:37</span>
+            <span class="badge">수정: 2026-09-30 15:12</span>
+            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="프로젝트-범위">프로젝트 범위</h1>
+<h2 id="데모-실행-리소스-정리-2026-09-30">데모 실행 리소스 정리 — 2026-09-30</h2>
+<p>사용자 요청으로 Llama·숫자 분류·합성 runtime 서비스·센서 anomaly·모빌인트·VD 데모와 Modbus 개발 fixture의 운영 실행·접속 리소스를 제거했다. EdgeX 물리 수집·노드 관측· Runtime Operator·대시보드·드라이버·데이터 볼륨은 유지한다. 구현 소스·시험 근거는 보존하며 아래 과거 실행 승인을 상시 재배포 지시로 사용하지 않는다. 현재 등록 RuntimeService는 0개다. 상세 검증·복구는 <a href="현재-구현-상태.html">현재 구현 상태</a>와 <a href="../kubeedge-tools/results/demo-cleanup-20260930/README.md">정리 기록</a>을 따른다.</p>
+<h2 id="1세부-개발-순서와-책임-경계-2026-09-30">1세부 개발 순서와 책임 경계 — 2026-09-30</h2>
+<p>사용자가 확정한 전체 순서는 <a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a>의 ① Profile부터 ⑩ 복구·고가용성·운영까지다. 기존 VD 세부 설계보다 이 전체 순서를 우선한다. 1세부는 디바이스 배치 판단·서버 자원 요청·준비 결과에 따른 실행/재배치를 담당하고, 서버 내부 GPU/NPU 스케줄링은 세부2 등 연계 대상의 책임으로 둔다. 이번 갱신은 개발 방향의 문서화이며 Workflow 실행·VD 구현·배포 완료를 뜻하지 않는다. 아래 날짜별 승인과 검증 기록은 당시 범위로 보존한다.</p>
 <h2 id="서버측-가상-디바이스-2026-09-22-후속-설계-기준">서버측 가상 디바이스 — 2026-09-22 후속 설계 기준</h2>
 <p>사용자 요청으로 01 설계서와 02 구현 지시문을 <a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계</a>에 통합했다. <strong>이번 승인 범위는 문서 통합이다. 신규 구현·실클러스터 시험·운영 배포를 완료하거나 승인한 것으로 해석하지 않는다.</strong></p>
 <ul><li>VD는 AI 서비스의 서버측 실행환경을 등록·관리하는 객체다. 등록 원본은 전용 EdgeX Device/Profile,</li></ul>
@@ -387,7 +392,9 @@
 <p>사용자의 구현 요청에 따라 기존 runtime-operator에 선택적인 JSON 텐서 V2 추론 adapter를 추가하고, 학습된 손글씨 숫자 분류 모델을 두 번째 실제 AI 실행 검증 서비스로 연결한다. 첫 범위는 독립 요청의 실행·결과 검증·준비 후 경로 전환·drain·중지와 기존 노드별 시험 버튼 재사용이다. 기존 Llama·EdgeX 입력과 수집을 유지하고 legacy workflow를 사용하지 않는다. 새 모델은 실행 검증을 마친 노드만 후보로 등록하고 성능 자격을 별도로 측정하기 전에는 선호 배치 모드로 운영한다. 성능값을 추정해 과부하 자동 이동을 활성화하지 않는다. 기존 Llama의 자동 정책은 유지한다. 담당은 platform-runtime 운영자이며 검증 기준은 ARM64/AMD64 실제 모델 결과, 모델 identity 거부, 신규 요청 경로 전환, 중지·자원 반환, 서비스 격리와 대시보드 연결이다. 합성 HTTP 응답이나 현장 옥동 판별 모델로 설명하지 않는다. 구현·운영 결과는 후속 실측 기록으로 구분한다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#서버측-가상-디바이스-2026-09-22-후속-설계-기준">서버측 가상 디바이스 — 2026-09-22 후속 설계 기준</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#데모-실행-리소스-정리-2026-09-30">데모 실행 리소스 정리 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#1세부-개발-순서와-책임-경계-2026-09-30">1세부 개발 순서와 책임 경계 — 2026-09-30</a></li>
+<li class="toc-h2"><a href="#서버측-가상-디바이스-2026-09-22-후속-설계-기준">서버측 가상 디바이스 — 2026-09-22 후속 설계 기준</a></li>
 <li class="toc-h3"><a href="#이전-확장-이력">이전 확장 이력</a></li>
 <li class="toc-h2"><a href="#2026-09-14-edgex-공통-ai-단일-실행-승인-범위">2026-09-14 EdgeX → 공통 AI 단일 실행 승인 범위</a></li>
 <li class="toc-h2"><a href="#공통-ai-서비스-계약-기준">공통 AI 서비스 계약 기준</a></li>
@@ -408,9 +415,7 @@
 <li class="toc-h3"><a href="#제한된-장비-관리">제한된 장비 관리</a></li>
 <li class="toc-h2"><a href="#승인과-검증이-필요한-범위">승인과 검증이 필요한 범위</a></li>
 <li class="toc-h3"><a href="#승인된-llama-버튼-시연-2026-09-07">승인된 Llama 버튼 시연 — 2026-09-07</a></li>
-<li class="toc-h2"><a href="#명시적으로-제외하는-것">명시적으로 제외하는 것</a></li>
-<li class="toc-h2"><a href="#완료-증거">완료 증거</a></li>
-<li class="toc-h3"><a href="#jetson-gpu-계측-추가-2026-09-08-사용자-설치-요청">Jetson GPU 계측 추가 (2026-09-08 사용자 설치 요청)</a></li></ol></aside>
+<li class="toc-h2"><a href="#명시적으로-제외하는-것">명시적으로 제외하는 것</a></li></ol></aside>
     </div>
   </div>
 

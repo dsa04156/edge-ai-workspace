@@ -58,6 +58,7 @@
 <li><a href="ops/네트워크-문제해결.html">네트워크 문제 해결</a></li>
 <li class="group">정책과 계약</li>
 <li><a href="프로젝트-범위.html">프로젝트 범위</a></li>
+<li><a href="1세부-개발범위와-우선순위.html">1세부 개발범위와 우선순위</a></li>
 <li><a href="서버측-가상-디바이스-통합-설계.html">서버측 가상 디바이스 통합 설계 — 후속 설계 기준</a></li>
 <li><a href="대시보드-판단-정책.html">대시보드 판단 정책</a></li>
 <li><a href="디바이스-연결-복구-표준.html">디바이스 연결 복구 표준</a></li>
@@ -86,16 +87,17 @@
         <header class="doc-header">
           <p class="eyebrow">시작하기</p>
           <h1>펌프·모터 이상감지 서비스</h1>
-          <p class="subtitle">sensor-anomaly-demo는 가속도 3축과 온도를 결합해 펌프·모터의 진동·온도 변화 징후를 보여주는 Edge AI 기…</p>
+          <p class="subtitle">&gt; 2026-09-30 운영 정리: 센서 anomaly 본체·서버 추론·전환 시험체의 실행·접속 리소스를 제거했다. &gt; 아래는…</p>
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 펌프-모터-이상감지-서비스.md</span>
-            <span class="badge">수정: 2026-08-18 14:10</span>
-            <span class="badge">HTML 생성: 2026-09-22 11:37</span>
+            <span class="badge">수정: 2026-09-30 15:13</span>
+            <span class="badge">HTML 생성: 2026-09-30 15:24</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="펌프-모터-이상감지-서비스">펌프·모터 이상감지 서비스</h1>
+<blockquote><p>2026-09-30 운영 정리: 센서 anomaly 본체·서버 추론·전환 시험체의 실행·접속 리소스를 제거했다. 아래는 보존한 구현·시험 기준이며 현재 실행 중이라는 뜻은 아니다. EdgeX 센서 수집과 결과 PVC는 유지한다. 현재 운영 상태와 재실행 경계는 <a href="현재-구현-상태.html">현재 구현 상태</a>를 따른다.</p></blockquote>
 <h2 id="한눈에-보기">한눈에 보기</h2>
 <p><code>sensor-anomaly-demo</code>는 가속도 3축과 온도를 결합해 펌프·모터의 진동·온도 변화 징후를 보여주는 Edge AI 기준선 서비스다. Jetson에서 EdgeX Device Service의 최근 데이터를 읽고, 특징과 이상 점수를 계산해 결과·알림을 저장한다.</p>
 <blockquote><p>현재 모델은 옥동 설비에서 학습한 고장 분류 AI가 아니라 <code>online-baseline</code> 통계 모델이다. Arduino 입력은 디바이스 연결과 서비스 운영을 검증하는 테스트베드 기준선이며, 실제 설비 고장 종류나 잔여 수명을 판정하지 않는다.</p></blockquote>

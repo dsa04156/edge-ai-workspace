@@ -1,0 +1,3 @@
+{"name": "dashboard", "http": 200, "bytes": 4993}
+{"name": "runtime", "http": 200, "bytes": 198, "topKeys": ["schema_version", "source", "observed_at", "snapshot_age_seconds", "observation_error", "services"], "servicesCount": 0, "observation_error": null, "last_error": null, "source": "kubernetes-runtime-operator", "snapshot_age_seconds": 0.8999793529510498}
+{"name": "devices", "http": 200, "bytes": 14491, "topKeys": ["list"]}

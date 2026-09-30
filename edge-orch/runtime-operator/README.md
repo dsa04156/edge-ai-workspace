@@ -1,5 +1,10 @@
 # 공통 서비스 실행 제어기
 
+> 2026-09-30 운영 기준: Operator·gateway·원장 PVC는 유지하고 등록된 시험/AI RuntimeService 4개,
+> 전용 센서 입력기와 Llama resident worker를 제거했다. 현재 서비스 정의는 0개다.
+> 아래 등록·실행 예제는 재현 참고이며 자동 재등록하지 않는다.
+> [정리 및 복구 기록](../../kubeedge-tools/results/demo-cleanup-20260930/README.md).
+
 전체 노드의 계약·호환성·예약 자원·서비스 부하를 기준으로 Kubernetes RuntimeService를
 조정한다. 장비 이름과 고정 이동 순서는 구현에 없다.
 
