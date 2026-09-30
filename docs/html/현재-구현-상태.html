@@ -91,13 +91,13 @@
           <div class="meta">
             <span class="badge kind">시작하기</span>
             <span class="badge">원본: 현재-구현-상태.md</span>
-            <span class="badge">수정: 2026-09-30 19:44</span>
-            <span class="badge">HTML 생성: 2026-09-30 19:44</span>
+            <span class="badge">수정: 2026-09-30 19:48</span>
+            <span class="badge">HTML 생성: 2026-09-30 19:48</span>
           </div>
         </header>
         <div class="doc-body">
           <h1 id="현재-구현-상태">현재 구현 상태</h1>
-<h2 id="디바이스-관리-운영-배포-main-통합-진행-2026-09-30">디바이스 관리 운영 배포·main 통합 진행 — 2026-09-30</h2>
+<h2 id="디바이스-관리-운영-배포-main-통합-2026-09-30">디바이스 관리 운영 배포·main 통합 — 2026-09-30</h2>
 <ul><li>사용자 승인: 배포된 운영 현황을 유지하고 디바이스 관리만 추가해 운영 배포한 뒤 main에 합친다.</li></ul>
 <p>왼쪽 메뉴는 앞서 확정한 운영 현황·디바이스 관리만 유지한다.</p>
 <ul><li>저장소 정합성: 운영 이미지 <code>6359ca81…</code>와 로컬 소스가 달랐다. 운영 현황·원본 reader·기존 화면은</li></ul>
@@ -106,8 +106,8 @@
 <p><code>scripts/build-device-manager-overlay.sh</code>와 <code>results/2026-09-30-device-manager/</code>에 재현·검증 근거를 둔다. 운영 현황 관련 9개 파일의 SHA256이 기존 배포와 일치한다.</p>
 <ul><li>사전 검사: Python 전체 496개 통과. JS 323개 통과, 철회 prototype 계약 3개는 이유를 명시해 보존·제외했다.</li></ul>
 <p>후보 이미지: <code>sha256:712782e162aca26a41e7b2c53b58c137c77e7c70621b6bbba1cc7af85129ef28</code>.</p>
-<ul><li>진행: 격리된 임시 Pod에서 controller lifespan 없이 기동·실제 장비 조회를 확인한다. 배포 및 main 통합은</li></ul>
-<p>아직 완료 전이다. Argo CD 기존 image override·환경 patch를 보존해 반영한다.</p>
+<ul><li>운영 배포 완료: Argo CD Synced/Healthy, <code>1/1 Ready</code>, 후보 digest 일치. 격리 Pod와 운영 API 모두</li></ul>
+<p>장비 10개·센서 13개·sourceErrors={} 확인. 기존 로컬 Profile 1개와 동일 Node UID 연결 1개를 운영 API로 이관했다. 운영 DB는 기존 PVC에 저장한다. 운영 화면 320/390/768/1440px 넘침 없음, 보존 파일 9개 SHA256도 운영 Pod에서 재검증했다. 코드 배포 커밋은 <code>a036a778</code>이다. main에는 이번 코드와 검증 기록을 fast-forward로 통합한다. Argo CD 기존 환경 patch는 보존한다.</p>
 <ul><li>main 통합 시 과거 브랜치 변경까지 일괄 재배포하는 CI를 피하기 위해 <code>[skip ci]</code> 커밋으로 통합하고,</li></ul>
 <p>이번에 검증한 dashboard 이미지만 기존 Argo CD Application을 통해 배포한다. 다른 서비스 재배포 없음.</p>
 <h2 id="메뉴-정리-공용-프로파일-상단-이동-반응형-보완-2026-09-30">메뉴 정리·공용 프로파일 상단 이동·반응형 보완 — 2026-09-30</h2>
@@ -784,7 +784,7 @@
 <p>세부 포함·제외 기준은 <a href="프로젝트-범위.html">프로젝트 범위</a>를 따른다.</p>
         </div>
       </article>
-      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#디바이스-관리-운영-배포-main-통합-진행-2026-09-30">디바이스 관리 운영 배포·main 통합 진행 — 2026-09-30</a></li>
+      <aside class="toc" aria-label="문서 목차"><h2>이 문서</h2><ol><li class="toc-h2"><a href="#디바이스-관리-운영-배포-main-통합-2026-09-30">디바이스 관리 운영 배포·main 통합 — 2026-09-30</a></li>
 <li class="toc-h2"><a href="#메뉴-정리-공용-프로파일-상단-이동-반응형-보완-2026-09-30">메뉴 정리·공용 프로파일 상단 이동·반응형 보완 — 2026-09-30</a></li>
 <li class="toc-h2"><a href="#기존-nexus-왼쪽-메뉴에-디바이스-관리-추가-2026-09-30">기존 NEXUS 왼쪽 메뉴에 디바이스 관리 추가 — 2026-09-30</a></li>
 <li class="toc-h2"><a href="#device-manager-독립-웹-분리-장비-조회-유지-2026-09-30">Device Manager 독립 웹 분리·장비 조회 유지 — 2026-09-30</a></li>
